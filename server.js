@@ -143,6 +143,12 @@ app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) 
     }
 });
 
+// --- ROOT ROUTE ---
+// Redirect users from the main URL to the login page
+app.get('/', (req, res) => {
+    res.redirect('/login.html');
+});
+
 // --- AUTHENTICATION ROUTES ---
 app.post('/api/auth/register', async (req, res) => {
     try {
