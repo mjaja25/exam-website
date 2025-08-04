@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     const token = localStorage.getItem('token');
 
+    // --- Dynamic URL Configuration ---
+    // This block automatically detects if you are on localhost or a deployed server.
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
+    // --- End of Configuration ---
+
     // --- Logout Functionality ---
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('token');
@@ -12,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Fetch and Display User's Past Results ---
     async function fetchUserResults() {
         try {
-            const response = await fetch('/api/user/dashboard', {
+            // Use the dynamic URL to make the API call
+            const response = await fetch(`${API_BASE_URL}/api/user/dashboard`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
@@ -28,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Render the Results in the Table ---
     function displayResults(results) {
         if (results.length === 0) {
             resultsBody.innerHTML = `<tr><td colspan="4">You have no submissions yet.</td></tr>`;
@@ -42,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let details = '';
             let submissionLink = '';
 
-            // Customize display based on test type
             switch (result.testType) {
                 case 'Typing':
                     details = `WPM: ${result.wpm}, Accuracy: ${result.accuracy}%`;
@@ -54,8 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 case 'Excel':
                     details = 'File Submitted';
-                    // The file path needs the server's base URL
-                    submissionLink = `<a href="http://localhost:3000/${result.filePath}" target="_blank" download>Download</a>`;
+                    // Use the dynamic URL for the download link
+                    submissionLink = `<a href="${API_BASE_URL}/${result.filePath}" target="_blank" download>Download</a>`;
                     break;
             }
 
