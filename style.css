@@ -1,0 +1,167 @@
+/* Basic Setup */
+body {
+    background-color: #f0f2f5;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Main test container styling */
+.test-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 800px;
+    max-width: 90%;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Statistics bar (Time, WPM, Accuracy) */
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span {
+    font-size: 14px;
+    color: #666;
+}
+
+.stat-item p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+    margin: 5px 0 0 0;
+}
+
+/* Passage and Input Area Styling */
+.passage {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.input-area {
+    width: 100%;
+    height: 150px;
+    padding: 15px;
+    font-size: 18px;
+    line-height: 1.6;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    resize: none; /* Prevents user from resizing the textarea */
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.input-area:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+/* Class to hide elements */
+.hidden {
+    display: none;
+}
+/* Real-time feedback styling */
+.passage span.correct {
+    color: #28a745; /* Green */
+}
+
+.passage span.incorrect {
+    color: #dc3545; /* Red */
+    text-decoration: underline;
+}
+
+/* Submit Button Styling */
+.submit-button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    background-color: #28a745; /* Green */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+    background-color: #218838; /* Darker Green */
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.form-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Admin Page Styling */
+.admin-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.results-table th, .results-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.results-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.results-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}

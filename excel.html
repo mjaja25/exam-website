@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Proficiency Test - Typing</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
+</head>
+<body>
+
+    <div class="test-container">
+        <h1>Excel Proficiency Test</h1>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span>Time Left</span>
+                <p id="timer">5:00</p>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <p>1. Download the Excel file below.</p>
+            <p>2. Complete the tasks mentioned in the file.</p>
+            <p>3. Save your work and upload the completed file before the time runs out.</p>
+            <a href="/Excel-Question.xlsx" id="download-btn" download class="download-btn">Download Question File</a>
+        </div>
+
+        <form id="excel-form">
+            <input type="file" id="excel-file" name="excelFile" required>
+            <button type="submit" class="submit-button">Upload and Submit</button>
+        </form>
+        <div id="results-screen" class="hidden">
+            <h2>Time's Up!</h2>
+            <p>Well done. Here are your results.</p>
+            <button id="restart-btn">Take Again</button>
+        </div>
+    </div>
+
+    <script src="excel.js"></script>
+</body>
+</html>

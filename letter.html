@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Proficiency Test - Typing</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
+</head>
+<body>
+
+    <div class="test-container">
+        <h1>Letter Writing Test</h1>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span>Time Left</span>
+                <p id="timer">5:00</p>
+            </div>
+        </div>
+
+        <div id="passage-display" class="passage">
+            Write a letter to your manager requesting a one-week leave of absence.
+        </div>
+
+        <textarea id="user-input" class="input-area" placeholder="Start typing here..."></textarea>
+        <button id="submit-btn" class="submit-button">Submit Test</button>
+        
+        <div id="results-screen" class="hidden">
+            <h2>Time's Up!</h2>
+            <p>Well done. Here are your results.</p>
+            <button id="restart-btn">Take Again</button>
+        </div>
+    </div>
+
+    <script src="letter.js"></script>
+</body>
+</html>

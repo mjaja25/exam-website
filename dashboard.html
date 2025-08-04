@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script> </head>
+<body>
+    <div class="admin-container">
+        <div class="header-bar">
+            <h1>Welcome to Your Dashboard</h1>
+            <button id="logout-btn" class="logout-button">Logout</button>
+        </div>
+        
+        <h2>Start a New Test</h2>
+        <div class="test-links">
+            <a href="/typing.html" class="test-link-btn">Typing Test</a>
+            <a href="/letter.html" class="test-link-btn">Letter Test</a>
+            <a href="/excel.html" class="test-link-btn">Excel Test</a>
+        </div>
+
+        <h2>Your Past Results</h2>
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Test Type</th>
+                    <th>Score / Details</th>
+                    <th>Submitted At</th>
+                    <th>Submission</th>
+                </tr>
+            </thead>
+            <tbody id="results-tbody">
+                </tbody>
+        </table>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>
