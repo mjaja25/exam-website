@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Fetch and Display User's Past Results ---
     async function fetchUserResults() {
         try {
-            const response = await fetch('http://localhost:3000/api/user/dashboard', {
+            const response = await fetch('/api/user/dashboard', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
