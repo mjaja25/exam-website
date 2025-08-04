@@ -165,6 +165,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
+
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -179,6 +180,10 @@ app.post('/api/auth/login', async (req, res) => {
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.json({ token });
     } catch (error) {
+        // --- DEBUGGING CODE ---
+        console.log("!!!!!!!!!! LOGIN ROUTE CRASHED !!!!!!!!!!");
+        console.log("THE FULL ERROR OBJECT IS:", error);
+        // --- END DEBUGGING CODE ---
         res.status(500).json({ message: 'Server error during login.' });
     }
 });
