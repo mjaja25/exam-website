@@ -1,3 +1,8 @@
+// --- Dynamic URL Configuration ---
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
+// --- End of Configuration ---
+
 // Grab the elements
 const timerElement = document.getElementById('timer');
 const excelForm = document.getElementById('excel-form');
@@ -22,7 +27,7 @@ function startTimer() {
                 clearInterval(timerInterval);
                 alert("Time's up! Your submission will now be attempted.");
                 if (fileInput.files.length > 0) {
-                    excelForm.requestSubmit(); // This will trigger the 'submit' event below
+                    excelForm.requestSubmit();
                 } else {
                     alert("No file was selected to submit.");
                 }
@@ -41,8 +46,6 @@ excelForm.addEventListener('submit', async (event) => {
     // Stop the timer if the user submits early
     clearInterval(timerInterval);
 
-    // --- **THE FIX IS HERE** ---
-    // 1. Get the token from localStorage
     const token = localStorage.getItem('token');
     if (!token) {
         alert('Authentication error. Please log in again.');
@@ -53,10 +56,10 @@ excelForm.addEventListener('submit', async (event) => {
     formData.append('excelFile', fileInput.files[0]);
 
     try {
-        const response = await fetch('/api/submit/excel', {
+        // Use the dynamic URL for the API call
+        const response = await fetch(`${API_BASE_URL}/api/submit/excel`, {
             method: 'POST',
             headers: {
-                // 2. Add the Authorization header
                 'Authorization': `Bearer ${token}`
             },
             body: formData,
@@ -64,8 +67,6 @@ excelForm.addEventListener('submit', async (event) => {
 
         const data = await response.json();
         alert(data.message);
-        // Optionally redirect or show a final screen
-        // window.location.href = '/some-other-page.html';
 
     } catch (error) {
         console.error('File upload error:', error);

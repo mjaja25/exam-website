@@ -1,5 +1,10 @@
 const signupForm = document.getElementById('signup-form');
 
+// --- Dynamic URL Configuration ---
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
+// --- End of Configuration ---
+
 signupForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -7,7 +12,8 @@ signupForm.addEventListener('submit', async (event) => {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('/api/auth/register', {
+        // Use the dynamic URL for the API call
+        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

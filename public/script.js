@@ -1,6 +1,9 @@
-// -------------------
-//  Element Grabbing
-// -------------------
+// --- Dynamic URL Configuration ---
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
+// --- End of Configuration ---
+
+// --- Element Grabbing ---
 const timerElement = document.getElementById('timer');
 const wpmElement = document.getElementById('wpm');
 const accuracyElement = document.getElementById('accuracy');
@@ -9,28 +12,20 @@ const userInputElement = document.getElementById('user-input');
 const resultsScreenElement = document.getElementById('results-screen');
 const restartBtn = document.getElementById('restart-btn');
 
-// -------------------
-//  Sample Passages
-// -------------------
+// --- Sample Passages ---
 const passages = [
     "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. Typing it helps in practicing all keys.",
     "Technology has revolutionized the way we live and work. From communication to transportation, advancements continue to shape our future.",
-    "The sun always shines brightest after the rain. It's a reminder that even after difficult times, there is hope and a new beginning.",
     "To be successful, you must be willing to work hard and persevere through challenges. Consistency and dedication are the keys to achieving your goals."
 ];
 
-// -------------------
-//  State Management
-// -------------------
-let timeRemaining = 300; // 5 minutes in seconds
+// --- State Management ---
+let timeRemaining = 300;
 let timerInterval;
 let testInProgress = false;
 let currentPassage = '';
 
-// -------------------
-//  Functions
-// -------------------
-
+// --- Functions ---
 function loadNewPassage() {
     currentPassage = passages[Math.floor(Math.random() * passages.length)];
     passageDisplayElement.innerHTML = '';
@@ -39,7 +34,6 @@ function loadNewPassage() {
         charSpan.innerText = char;
         passageDisplayElement.appendChild(charSpan);
     });
-    // Reset input and results for a new test
     userInputElement.value = null;
     userInputElement.disabled = false;
     resultsScreenElement.classList.add('hidden');
@@ -48,7 +42,6 @@ function loadNewPassage() {
 function handleInput() {
     const passageChars = passageDisplayElement.querySelectorAll('span');
     const userChars = userInputElement.value.split('');
-
     passageChars.forEach((charSpan, index) => {
         const userChar = userChars[index];
         if (userChar == null) {
@@ -71,7 +64,6 @@ function startTimer() {
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
             timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
             if (timeRemaining <= 0) {
                 endTest();
             }
@@ -80,7 +72,6 @@ function startTimer() {
 }
 
 async function endTest() {
-    const token = localStorage.getItem('token'); // Get the token
     clearInterval(timerInterval);
     userInputElement.disabled = true;
 
@@ -88,52 +79,38 @@ async function endTest() {
     const totalTypedChars = userInputElement.value.length;
     const grossWPM = (totalTypedChars / 5) / 5;
     const accuracy = totalTypedChars > 0 ? (correctChars / totalTypedChars) * 100 : 100;
-
     const finalWPM = Math.round(grossWPM);
     const finalAccuracy = Math.round(accuracy);
 
     wpmElement.textContent = finalWPM;
     accuracyElement.textContent = `${finalAccuracy}%`;
 
-    // --- Send data to backend ---
+    const token = localStorage.getItem('token');
     try {
-        const response = await fetch('/api/submit/typing', {
+        const response = await fetch(`${API_BASE_URL}/api/submit/typing`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                wpm: finalWPM,
-                accuracy: finalAccuracy
-            })
+            body: JSON.stringify({ wpm: finalWPM, accuracy: finalAccuracy })
         });
-
-        const data = await response.json();
-        console.log('Server response:', data.message);
-
+        await response.json();
     } catch (error) {
-        console.error('Error submitting test results:', error);
+        console.error('Error submitting typing results:', error);
     }
-    // ----------------------------
 
     resultsScreenElement.classList.remove('hidden');
 }
 
-// -------------------
-//  Event Listeners
-// -------------------
+// --- Event Listeners ---
 userInputElement.addEventListener('input', () => {
     startTimer();
     handleInput();
 });
 
-// Restart button functionality
 restartBtn.addEventListener('click', () => {
-    // We will build this out later to properly reset everything for the next stage.
-    // For now, it can just reload the page for a new typing test.
     location.reload(); 
 });
 
-// Load a passage as soon as the script runs
 loadNewPassage();

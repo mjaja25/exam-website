@@ -164,8 +164,12 @@ app.post('/api/auth/register', async (req, res) => {
         res.status(500).json({ message: 'An error occurred while creating the user.' });
     }
 });
+app.get('/api/auth/verify-token', authMiddleware, (req, res) => {
+    // If authMiddleware passes, the token is valid.
+    res.status(200).json({ message: 'Token is valid.' });
+});
 
-
+// login
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
