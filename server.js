@@ -164,26 +164,47 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
 });
 
 // In server.js
+// In server.js
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
-    // Log that the route was hit
-    console.log(`--- [${new Date().toISOString()}] Received request for Letter Test grading.`);
-    
     try {
         const letterContent = req.body.content;
-        
-        // Log the content being sent (optional, for debugging)
-        // console.log("Submitting content to AI:", letterContent);
 
+        // --- Improved AI Grading Logic ---
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const gradingPrompt = `...`; // Your full AI grading prompt here
+        const gradingPrompt = `
+            Please act as a strict examiner. Your response must be ONLY a valid JSON object.
+            Grade the following formal letter out of 10 based on these criteria:
+            1.  Format (3 marks): Check for sender's address, date, receiver's address, subject, salutation, and closing. Deduct marks for missing elements.
+            2.  Content (4 marks): Assess clarity, relevance, and tone.
+            3.  Grammar & Spelling (3 marks): Deduct for significant errors.
 
-        console.log("--- Sending request to Gemini AI...");
+            If the text below is not a valid letter or is too short to grade, return a score of 0 with appropriate feedback.
+
+            Analyze this text:
+            ---
+            ${letterContent}
+            ---
+
+            Return your response ONLY in this exact JSON format:
+            {
+              "score": <total_score_out_of_10>,
+              "feedback": "<brief_feedback_explaining_the_score>"
+            }
+        `;
+
         const result = await model.generateContent(gradingPrompt);
         const responseText = await result.response.text();
-        console.log("--- Received raw response from AI:", responseText);
-
-        const cleanedText = responseText.replace(/```json|```/g, '').trim();
-        const grade = JSON.parse(cleanedText);
+        
+        let grade;
+        // Safety check to ensure the response is valid JSON
+        try {
+            const cleanedText = responseText.replace(/```json|```/g, '').trim();
+            grade = JSON.parse(cleanedText);
+        } catch (parseError) {
+            // If AI response is not JSON, create a default error response
+            console.error("AI returned non-JSON response:", responseText);
+            grade = { score: 0, feedback: "Could not grade the submission due to an invalid format." };
+        }
         
         const newResult = new TestResult({
             testType: 'Letter',
@@ -194,12 +215,10 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         });
 
         await newResult.save();
-        console.log("--- Successfully saved graded letter to database.");
         res.status(201).json({ message: 'Letter graded and saved successfully!', grade: grade });
 
     } catch (error) {
-        // This will now definitely log any error that occurs
-        console.error("!!! ERROR in /api/submit/letter route:", error);
+        console.error("!!! LETTER GRADING FAILED !!!", error);
         res.status(500).json({ message: 'Failed to grade or save letter.' });
     }
 });
