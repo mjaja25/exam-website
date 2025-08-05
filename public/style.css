@@ -16,12 +16,20 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px;
+    padding: 50px; /* Increased from 40px */
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+#login-form {
+    width: 100%;
+    max-width: 320px; /* Increased from 300px */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .logo-container {
@@ -40,14 +48,14 @@ h2 {
     font-weight: 600;
     margin-bottom: 30px;
 }
-
+/* 
 #login-form {
     width: 100%;
     max-width: 300px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
+} */
 
 #login-form input {
     width: 100%;
