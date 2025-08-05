@@ -1,114 +1,23 @@
-/* Import Google Fonts (optional, but looks good) */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+/* Custom styles that work with Pico.css */
 
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    /* The gradient background from the image */
-    background: linear-gradient(160deg, #e0eafc 0%, #cfdef3 100%);
+/* Typing test real-time feedback */
+.passage span.correct {
+    color: var(--pico-color-green-500);
 }
 
-.login-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 50px 60px; /* Increased from 40px */
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-#login-form button {
-    padding: 15px;
-    border: none;
-    border-radius: 30px;
-    color: white;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(90deg, #4a90e2, #50e3c2, #4a90e2);
-    background-size: 200% 100%; /* Make the gradient larger than the button */
-    transition: background-position 0.5s ease;
-}
-
-.logo-container {
-    margin-bottom: 20px; /* Adjust spacing below the logo */
-}
-
-.logo {
-    width: 250px; /* Adjust the width */
-    height: auto; /* Maintain aspect ratio */
-    display: block; /* Prevents inline spacing issues */
-    margin: 0 auto; /* Centers the logo within its container */
-}
-
-h2 {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 30px;
-}
-/* 
-#login-form {
-    width: 100%;
-    max-width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-} */
-
-#login-form input {
-    width: 100%;
-    padding: 15px 20px;
-    border: 1px solid #ddd;
-    border-radius: 30px; /* This creates the rounded pill shape */
-    background-color: white;
-    font-size: 16px;
-    box-sizing: border-box;
-    transition: box-shadow 0.3s;
-}
-
-#login-form input:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
-}
-
-#login-form button {
-    padding: 15px;
-    border: none;
-    border-radius: 30px;
-    color: white;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
-    /* The gradient button from the image */
-    background: linear-gradient(90deg, #4a90e2 0%, #50e3c2 100%);
-    transition: transform 0.2s;
-}
-
-#login-form button:hover {
-    transform: translateY(-2px);
-    background-position: 100% 0;
-}
-
-.form-link {
-    margin-top: 20px;
-    color: #666; /* A neutral color for the non-link part */
-    font-size: 14px;
-    text-align: center;
-}
-
-.form-link a {
-    color: #4a90e2; /* The link color from our design */
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.form-link a:hover {
+.passage span.incorrect {
+    color: var(--pico-color-red-600);
     text-decoration: underline;
+}
+
+/* Custom class to hide elements */
+.hidden {
+    display: none;
+}
+
+/* Make the test links on the dashboard stack nicely */
+.test-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
 }
