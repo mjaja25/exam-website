@@ -16,7 +16,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 50px; /* Increased from 40px */
+    padding: 50px 60px; /* Increased from 40px */
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     backdrop-filter: blur(10px);
@@ -24,12 +24,17 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-#login-form {
-    width: 100%;
-    max-width: 320px; /* Increased from 300px */
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+#login-form button {
+    padding: 15px;
+    border: none;
+    border-radius: 30px;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(90deg, #4a90e2, #50e3c2, #4a90e2);
+    background-size: 200% 100%; /* Make the gradient larger than the button */
+    transition: background-position 0.5s ease;
 }
 
 .logo-container {
@@ -37,7 +42,7 @@ body {
 }
 
 .logo {
-    width: 150px; /* Adjust the width */
+    width: 250px; /* Adjust the width */
     height: auto; /* Maintain aspect ratio */
     display: block; /* Prevents inline spacing issues */
     margin: 0 auto; /* Centers the logo within its container */
@@ -88,11 +93,22 @@ h2 {
 
 #login-form button:hover {
     transform: translateY(-2px);
+    background-position: 100% 0;
 }
 
-.forgot-password {
+.form-link {
     margin-top: 20px;
-    color: #4a90e2;
-    text-decoration: none;
+    color: #666; /* A neutral color for the non-link part */
     font-size: 14px;
+    text-align: center;
+}
+
+.form-link a {
+    color: #4a90e2; /* The link color from our design */
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.form-link a:hover {
+    text-decoration: underline;
 }
