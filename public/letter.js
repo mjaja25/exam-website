@@ -2,12 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Dynamic URL Configuration ---
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
-    // --- End of Configuration ---
 
     // Grab the elements
     const timerElement = document.getElementById('timer');
     const userInputElement = document.getElementById('user-input');
-    const resultsScreenElement = document.getElementById('results-screen');
     const submitBtn = document.getElementById('submit-btn');
 
     // State Management
@@ -39,30 +37,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const letterContent = userInputElement.value;
         const token = localStorage.getItem('token');
+        const sessionId = localStorage.getItem('currentSessionId'); // Get the session ID
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/submit/letter`, {
+            await fetch(`${API_BASE_URL}/api/submit/letter`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ content: letterContent })
+                body: JSON.stringify({ 
+                    content: letterContent,
+                    sessionId: sessionId // Send the session ID
+                })
             });
-            const data = await response.json();
 
-            if (data.grade) {
-                resultsScreenElement.innerHTML = `
-                    <h2>Test Complete!</h2>
-                    <p>Your Score: ${data.grade.score} / 10</p>
-                    <p><strong>Feedback:</strong> ${data.grade.feedback}</p>
-                    <button onclick="location.reload()">Try Again</button>
-                `;
-            }
-            resultsScreenElement.classList.remove('hidden');
+            // **NEW:** Redirect to the next test
+            window.location.href = '/excel.html';
+
         } catch (error) {
-            resultsScreenElement.innerHTML = `<h2>Error</h2><p>Could not submit your letter for grading.</p>`;
-            resultsScreenElement.classList.remove('hidden');
+            alert('An error occurred while submitting your letter. Please try again.');
         }
     }
 

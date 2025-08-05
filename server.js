@@ -64,6 +64,7 @@ mongoose.connect(process.env.MONGO_URI)
 //  DATABASE SCHEMAS & MODELS
 // -------------------
 const testResultSchema = new mongoose.Schema({
+    sessionId: { type: String, index: true },
     testType: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     wpm: { type: Number },
@@ -153,6 +154,7 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
         const newResult = new TestResult({
             testType: 'Typing',
             user: req.userId,
+            sessionId: req.body.sessionId,
             wpm: req.body.wpm,
             accuracy: req.body.accuracy
         });
@@ -163,7 +165,6 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     }
 });
 
-// In server.js
 // In server.js
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
     try {
@@ -209,6 +210,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         const newResult = new TestResult({
             testType: 'Letter',
             user: req.userId,
+            sessionId: req.body.sessionId,
             content: letterContent,
             score: grade.score,
             feedback: grade.feedback
@@ -231,12 +233,32 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
         const newResult = new TestResult({
             testType: 'Excel',
             user: req.userId,
+            sessionId: req.body.sessionId,
             filePath: req.file.path
         });
         await newResult.save();
         res.status(201).json({ message: 'Excel file uploaded successfully!' });
     } catch (error) {
         next(error);
+    }
+});
+
+// --- Route to fetch results for a specific session ---
+app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const results = await TestResult.find({ 
+            user: req.userId, 
+            sessionId: sessionId 
+        });
+
+        if (!results) {
+            return res.status(404).json({ message: 'Results not found for this session.' });
+        }
+
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching results.' });
     }
 });
 

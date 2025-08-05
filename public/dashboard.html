@@ -4,36 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
     <link rel="stylesheet" href="style.css">
-    <script src="auth.js" defer></script> </head>
+    <script src="auth.js" defer></script>
+</head>
 <body>
-    <div class="admin-container">
-        <div class="header-bar">
-            <h1>Welcome to Your Dashboard</h1>
-            <button id="logout-btn" class="logout-button">Logout</button>
-        </div>
-        
-        <h2>Start a New Test</h2>
-        <div class="test-links">
-            <a href="/typing.html" class="test-link-btn">Typing Test</a>
-            <a href="/letter.html" class="test-link-btn">Letter Test</a>
-            <a href="/excel.html" class="test-link-btn">Excel Test</a>
-        </div>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><strong>Proficiency Test Dashboard</strong></li>
+            </ul>
+            <ul>
+                <li><button id="logout-btn" class="secondary">Logout</button></li>
+            </ul>
+        </nav>
 
-        <h2>Your Past Results</h2>
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>Test Type</th>
-                    <th>Score / Details</th>
-                    <th>Submitted At</th>
-                    <th>Submission</th>
-                </tr>
-            </thead>
-            <tbody id="results-tbody">
-                </tbody>
-        </table>
-    </div>
+        <article>
+            <header>
+                <h2>Start a New Test</h2>
+            </header>
+            <div class="test-links">
+                <a href="/typing.html" role="button">Typing Test</a>
+                <a href="/letter.html" role="button">Letter Test</a>
+                <a href="/excel.html" role="button">Excel Test</a>
+            </div>
+        </article>
+
+        <article>
+            <header>
+                <h2>Your Past Results</h2>
+            </header>
+            <figure>
+                <table role="grid">
+                    <thead>
+                        <tr>
+                            <th scope="col">Test Type</th>
+                            <th scope="col">Score / Details</th>
+                            <th scope="col">Submitted At</th>
+                            <th scope="col">Submission</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        </tbody>
+                </table>
+            </figure>
+        </article>
+    </main>
+
     <script src="dashboard.js"></script>
 </body>
 </html>

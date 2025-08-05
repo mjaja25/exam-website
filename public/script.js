@@ -86,21 +86,29 @@ async function endTest() {
     accuracyElement.textContent = `${finalAccuracy}%`;
 
     const token = localStorage.getItem('token');
+    const sessionId = localStorage.getItem('currentSessionId'); // Get the session ID
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/submit/typing`, {
+        await fetch(`${API_BASE_URL}/api/submit/typing`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ wpm: finalWPM, accuracy: finalAccuracy })
+            body: JSON.stringify({ 
+                wpm: finalWPM, 
+                accuracy: finalAccuracy, 
+                sessionId: sessionId // Send the session ID with the result
+            })
         });
-        await response.json();
+        
+        // **NEW:** Redirect to the next test
+        window.location.href = '/letter.html';
+
     } catch (error) {
         console.error('Error submitting typing results:', error);
+        alert("There was an error submitting your result. Please try again.");
     }
-
-    resultsScreenElement.classList.remove('hidden');
 }
 
 // --- Event Listeners ---

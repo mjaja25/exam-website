@@ -9,7 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
     // --- End of Configuration ---
 
-    // --- Logout Functionality ---
+    const startTestBtn = document.getElementById('start-test-btn');
+
+    startTestBtn.addEventListener('click', () => {
+        if (confirm("You are about to start a 3-stage test. Each stage will have a 5-minute timer. Are you ready?")) {
+            
+            // Create a unique ID for this specific test session
+            const sessionId = 'session_' + Date.now();
+            localStorage.setItem('currentSessionId', sessionId);
+
+            // Redirect to the first test
+            window.location.href = '/typing.html';
+        }
+    });
+        // --- Logout Functionality ---
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('token');
         window.location.href = '/login.html';

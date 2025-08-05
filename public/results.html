@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Exam Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
+</head>
+<body>
+    <main class="container">
+        <article>
+            <header>
+                <h2>Exam Complete!</h2>
+                <p>Here is a summary of your performance.</p>
+            </header>
+            
+            <div id="results-summary">
+                <p aria-busy="true">Loading your results...</p>
+            </div>
+
+            <footer>
+                <a href="/dashboard.html" role="button" class="secondary">Back to Dashboard</a>
+                <a href="/typing.html" role="button">Redo Test</a>
+            </footer>
+        </article>
+    </main>
+    <script src="results.js"></script>
+</body>
+</html>
