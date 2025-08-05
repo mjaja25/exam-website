@@ -163,15 +163,28 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     }
 });
 
+// In server.js
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
+    // Log that the route was hit
+    console.log(`--- [${new Date().toISOString()}] Received request for Letter Test grading.`);
+    
     try {
         const letterContent = req.body.content;
+        
+        // Log the content being sent (optional, for debugging)
+        // console.log("Submitting content to AI:", letterContent);
+
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `...`; // Your full AI grading prompt here
+
+        console.log("--- Sending request to Gemini AI...");
         const result = await model.generateContent(gradingPrompt);
         const responseText = await result.response.text();
+        console.log("--- Received raw response from AI:", responseText);
+
         const cleanedText = responseText.replace(/```json|```/g, '').trim();
         const grade = JSON.parse(cleanedText);
+        
         const newResult = new TestResult({
             testType: 'Letter',
             user: req.userId,
@@ -179,9 +192,14 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
             score: grade.score,
             feedback: grade.feedback
         });
+
         await newResult.save();
+        console.log("--- Successfully saved graded letter to database.");
         res.status(201).json({ message: 'Letter graded and saved successfully!', grade: grade });
+
     } catch (error) {
+        // This will now definitely log any error that occurs
+        console.error("!!! ERROR in /api/submit/letter route:", error);
         res.status(500).json({ message: 'Failed to grade or save letter.' });
     }
 });
