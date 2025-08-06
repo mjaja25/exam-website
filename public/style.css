@@ -49,3 +49,14 @@ h1, h2, h3, h4, h5, h6 {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
 }
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem; /* Add some space below the logo */
+}
+
+.logo {
+    width: 80px; /* Adjust the size as needed */
+    height: auto;
+}
