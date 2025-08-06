@@ -77,9 +77,22 @@ const testResultSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' }
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true, // Store emails in lowercase for consistency
+        match: [/\S+@\S+\.\S+/, 'is invalid'] // Basic email validation
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    }
 });
 
 const TestResult = mongoose.model('TestResult', testResultSchema);
@@ -102,25 +115,27 @@ const upload = multer({ storage: storage });
 app.get('/', (req, res) => { res.redirect('/login.html') });
 
 // --- Auth Routes ---
+// Register a new user
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { email, password } = req.body; // Changed from username
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
+        const newUser = new User({ email, password: hashedPassword }); // Use email
         await newUser.save();
-        res.status(201).json({ message: 'User created successfully!' });
+        res.status(201).json({ message: 'User created successfully! Please log in.' });
     } catch (error) {
         if (error.code === 11000) {
-            return res.status(409).json({ message: 'Username is already taken.' });
+            return res.status(409).json({ message: 'Email is already registered.' });
         }
         res.status(500).json({ message: 'An error occurred while creating the user.' });
     }
 });
 
+// Login an existing user
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        const user = await User.findOne({ username });
+        const { email, password } = req.body; // Changed from username
+        const user = await User.findOne({ email }); // Find by email
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials.' });
         }

@@ -60,3 +60,11 @@ h1, h2, h3, h4, h5, h6 {
     width: 280px; /* Adjust the size as needed */
     height: auto;
 }
+
+/* In style.css */
+.error-text {
+    color: var(--pico-color-red-600); /* A nice red from the Pico color palette */
+    text-align: center;
+    margin-top: 1rem;
+    min-height: 1.2em; /* Prevents layout shift when message appears */
+}
