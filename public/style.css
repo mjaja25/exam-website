@@ -1,4 +1,32 @@
-/* Custom styles that work with Pico.css */
+/* Import Google Fonts (optional but recommended) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Inter:wght@400;500&display=swap');
+
+/* --- Refinements for a Sleeker Look --- */
+:root {
+  --pico-spacing: 0.75rem; /* Tighten up vertical spacing */
+}
+
+main.container, .container {
+  max-width: 960px; /* Make the main content area narrower */
+}
+
+article, table, input, button, select {
+  border-radius: var(--pico-border-radius); /* Add subtle rounded corners to elements */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Add a very soft shadow for depth */
+}
+/* --- End of Refinements --- */
+
+/* Apply Custom Fonts */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+/* --- App-Specific Styles --- */
 
 /* Typing test real-time feedback */
 .passage span.correct {
