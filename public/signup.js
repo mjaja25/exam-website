@@ -25,9 +25,10 @@ signupForm.addEventListener('submit', async (event) => {
 
         const data = await response.json();
 
-        if (response.status === 201) {
+        if (response.ok) {
             alert(data.message);
-            window.location.href = '/login.html';
+            // We no longer redirect to login, just show the success message.
+            // The user will go to their email to verify.
         } else {
             alert(data.message);
         }
