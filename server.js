@@ -192,6 +192,12 @@ app.get('/api/auth/verify-email', async (req, res) => {
         user.verificationToken = undefined; // Clear the token
         await user.save();
 
+        // **NEW:** Create a login token for the now-verified user
+        const loginToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // **NEW:** Redirect to the auth-success page to save the token and go to the dashboard
+        res.redirect(`/auth-success.html?token=${loginToken}`);
+
         res.send('<h1>Email successfully verified!</h1><p>You can now <a href="/login.html">log in</a> to your account.</p>');
     } catch (error) {
         res.status(400).send('<h1>Invalid or expired verification link.</h1>');
