@@ -14,6 +14,8 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 require('./passport-setup');
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // -------------------
 //  INITIALIZATIONS
@@ -137,16 +139,62 @@ app.get('/api/auth/google/callback',
 // Register a new user
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { email, password } = req.body; // Changed from username
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ email, password: hashedPassword }); // Use email
-        await newUser.save();
-        res.status(201).json({ message: 'User created successfully! Please log in.' });
-    } catch (error) {
-        if (error.code === 11000) {
+        const { email, password } = req.body;
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
             return res.status(409).json({ message: 'Email is already registered.' });
         }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Create a verification token (can be a simple JWT)
+        const verificationToken = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+        const newUser = new User({ 
+            email, 
+            password: hashedPassword,
+            verificationToken: verificationToken
+        });
+        await newUser.save();
+
+        // Send the verification email
+        const verificationUrl = `${process.env.BASE_URL}/api/auth/verify-email?token=${verificationToken}`;
+        const msg = {
+            to: email,
+            from: process.env.VERIFIED_SENDER_EMAIL,
+            subject: 'Please Verify Your Email Address',
+            html: `
+                <h2>Welcome to nssbcpt.com!</h2>
+                <p>Thank you for registering. Please click the link below to verify your email address:</p>
+                <a href="${verificationUrl}" target="_blank">Verify My Email</a>
+            `,
+        };
+        await sgMail.send(msg);
+
+        res.status(201).json({ message: 'User created successfully! Please check your email to verify your account.' });
+    } catch (error) {
         res.status(500).json({ message: 'An error occurred while creating the user.' });
+    }
+});
+
+app.get('/api/auth/verify-email', async (req, res) => {
+    try {
+        const { token } = req.query;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findOne({ email: decoded.email, verificationToken: token });
+
+        if (!user) {
+            return res.status(400).send('<h1>Invalid or expired verification link.</h1>');
+        }
+
+        user.isVerified = true;
+        user.verificationToken = undefined; // Clear the token
+        await user.save();
+
+        res.send('<h1>Email successfully verified!</h1><p>You can now <a href="/login.html">log in</a> to your account.</p>');
+    } catch (error) {
+        res.status(400).send('<h1>Invalid or expired verification link.</h1>');
     }
 });
 
@@ -157,6 +205,10 @@ app.post('/api/auth/login', async (req, res) => {
         const user = await User.findOne({ email }); // Find by email
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials.' });
+        }
+        // **NEW:** Check if the user's email is verified
+        if (!user.isVerified) {
+            return res.status(403).json({ message: 'Please verify your email address before logging in.' });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
