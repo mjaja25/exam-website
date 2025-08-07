@@ -1,0 +1,8 @@
+# Environment variables - DO NOT COMMIT
+.env
+
+# User-submitted files
+/uploads
+
+# Node.js dependencies
+/node_modules
