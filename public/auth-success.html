@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Authenticating...</title>
+</head>
+<body>
+    <p>Please wait, you are being redirected...</p>
+    <script>
+        // This script runs as soon as the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the URL parameters
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            if (token) {
+                // If a token is found, save it to localStorage
+                localStorage.setItem('token', token);
+                // Redirect to the main dashboard
+                window.location.href = '/dashboard.html';
+            } else {
+                // If no token is found, redirect to login with an error
+                window.location.href = '/login.html?error=auth_failed';
+            }
+        });
+    </script>
+</body>
+</html>

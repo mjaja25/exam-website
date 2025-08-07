@@ -20,6 +20,12 @@
             <form id="login-form">
                 <input type="email" id="email" name="email" placeholder="Email" required>
                 <input type="password" id="password" name="password" placeholder="Password" required>
+                <div class="social-login">
+                <hr>
+                <a href="/api/auth/google" role="button" class="contrast">
+                    Sign in with Google
+                </a>
+                </div>
                 <button type="submit">Log In</button>
             </form>
             <p id="error-message" class="error-text"></p>

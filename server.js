@@ -2,6 +2,7 @@
 //  IMPORTS
 // -------------------
 require('dotenv').config();
+const User = require('./models/User');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,6 +11,9 @@ const jwt = require('jsonwebtoken');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require('multer');
 const path = require('path');
+const session = require('express-session');
+const passport = require('passport');
+require('./passport-setup');
 
 // -------------------
 //  INITIALIZATIONS
@@ -24,6 +28,16 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+// Session Middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET, // Add a SESSION_SECRET to your .env file
+  resave: false,
+  saveUninitialized: true,
+}));
+
+// Passport Middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 // --- Authentication Middleware ---
 // This function verifies the JWT token for any logged-in user.
@@ -76,28 +90,9 @@ const testResultSchema = new mongoose.Schema({
     submittedAt: { type: Date, default: Date.now }
 });
 
-const userSchema = new mongoose.Schema({
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true, // Store emails in lowercase for consistency
-        match: [/\S+@\S+\.\S+/, 'is invalid'] // Basic email validation
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    role: {
-        type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
-    }
-});
+
 
 const TestResult = mongoose.model('TestResult', testResultSchema);
-const User = mongoose.model('User', userSchema);
-
 // -------------------
 //  MULTER CONFIGURATION
 // -------------------
@@ -113,6 +108,29 @@ const upload = multer({ storage: storage });
 
 // --- General Routes ---
 app.get('/', (req, res) => { res.redirect('/login.html') });
+
+// --- GOOGLE AUTHENTICATION ROUTES ---
+
+// Route 1: The "Login with Google" button will point here
+// This route tells Passport to kick off the Google authentication process
+app.get('/api/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+// Route 2: Google will redirect the user back to this URL after they grant permission
+// This route is where we handle the user's profile information
+app.get('/api/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // On successful authentication, Passport attaches the user to req.user.
+    // We can now create our own JWT to send to the frontend.
+    const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    
+    // Instead of directly sending the token, we'll redirect to a special
+    // frontend page that can save the token and then go to the dashboard.
+    res.redirect(`/auth-success?token=${token}`);
+  }
+);
 
 // --- Auth Routes ---
 // Register a new user
