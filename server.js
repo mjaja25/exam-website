@@ -129,7 +129,7 @@ app.get('/api/auth/google/callback',
     
     // Instead of directly sending the token, we'll redirect to a special
     // frontend page that can save the token and then go to the dashboard.
-    res.redirect(`/auth-success?token=${token}`);
+    res.redirect(`/auth-success.html?token=${token}`);
   }
 );
 
