@@ -8,20 +8,24 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         match: [/\S+@\S+\.\S+/, 'is invalid']
     },
-    password: { // Password is not required for Google users
-        type: String,
+    password: {
+        type: String, // Not required for Google sign-in
     },
-    googleId: { // Field to store the user's Google ID
+    googleId: {
         type: String,
         unique: true,
-        sparse: true // Allows multiple documents to have a null value for this field
+        sparse: true // Allows multiple users to have a null value
     },
     role: {
         type: String,
         enum: ['user', 'admin'],
         default: 'user'
     },
-      isVerified: {
+    testCredits: {
+        type: Number,
+        default: 0
+    },
+    isVerified: {
         type: Boolean,
         default: false
     },
