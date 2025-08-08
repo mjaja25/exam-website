@@ -73,6 +73,13 @@ function handleInput() {
             charSpan.classList.remove('correct');
         }
     });
+    
+    // --- NEW: Auto-submit logic ---
+    // If the number of typed characters equals the passage length, end the test.
+    if (userChars.length === passageChars.length) {
+        endTest();
+    }
+    // --- End of new logic ---
 }
 
 function startTimer() {
@@ -129,6 +136,17 @@ async function endTest() {
         alert("There was an error submitting your result. Please try again.");
     }
 }
+
+// --- Prevent Copy-Paste Functionality ---
+// This stops users from pasting text into the input area or copying the passage.
+const eventsToBlock = ['paste', 'copy', 'cut'];
+eventsToBlock.forEach(eventType => {
+    userInputElement.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        // Optional: You could show a small, temporary message here if you want.
+    });
+});
+// --- End of Prevent Copy-Paste ---
 
 // --- Event Listeners ---
 userInputElement.addEventListener('input', () => {
