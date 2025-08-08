@@ -25,6 +25,24 @@
                 </tbody>
         </table>
     </div>
+    <article class="container">
+        <header>
+            <h2>Add New Typing Passage</h2>
+        </header>
+        <form id="add-passage-form">
+            <label for="passage-content">Passage Content</label>
+            <textarea id="passage-content" name="content" rows="6" required></textarea>
+            
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty" name="difficulty" required>
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            
+            <button type="submit">Add Passage</button>
+        </form>
+    </article>
     <script src="admin.js"></script>
 </body>
 </html>

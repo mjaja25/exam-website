@@ -100,5 +100,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- NEW: Logic for the 'Add Passage' form ---
+    const addPassageForm = document.getElementById('add-passage-form');
+
+    addPassageForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const content = document.getElementById('passage-content').value;
+        const difficulty = document.getElementById('difficulty').value;
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/passages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ content, difficulty })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Passage added successfully!');
+                addPassageForm.reset(); // Clear the form
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            alert('A network error occurred.');
+        }
+    });
+    // --- End of new logic ---
+
     fetchResults();
 });
