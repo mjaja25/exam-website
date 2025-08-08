@@ -9,15 +9,13 @@ const wpmElement = document.getElementById('wpm');
 const accuracyElement = document.getElementById('accuracy');
 const passageDisplayElement = document.getElementById('passage-display');
 const userInputElement = document.getElementById('user-input');
-const resultsScreenElement = document.getElementById('results-screen');
-const restartBtn = document.getElementById('restart-btn');
 
 // --- Sample Passages ---
-// const passages = [
-//     "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. Typing it helps in practicing all keys.",
-//     "Technology has revolutionized the way we live and work. From communication to transportation, advancements continue to shape our future.",
-//     "To be successful, you must be willing to work hard and persevere through challenges. Consistency and dedication are the keys to achieving your goals."
-// ];
+const passages = [
+    // "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. Typing it helps in practicing all keys.",
+    // "Technology has revolutionized the way we live and work. From communication to transportation, advancements continue to shape our future.",
+    // "To be successful, you must be willing to work hard and persevere through challenges. Consistency and dedication are the keys to achieving your goals."
+];
 
 // --- State Management ---
 let timeRemaining = 300;
@@ -73,7 +71,7 @@ function handleInput() {
             charSpan.classList.remove('correct');
         }
     });
-    
+
     // --- NEW: Auto-submit logic ---
     // If the number of typed characters equals the passage length, end the test.
     if (userChars.length === passageChars.length) {
@@ -98,6 +96,9 @@ function startTimer() {
 }
 
 async function endTest() {
+
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+
     clearInterval(timerInterval);
     userInputElement.disabled = true;
 
@@ -132,19 +133,30 @@ async function endTest() {
         window.location.href = '/letter.html';
 
     } catch (error) {
+        window.addEventListener('beforeunload', handleBeforeUnload);
         console.error('Error submitting typing results:', error);
         alert("There was an error submitting your result. Please try again.");
     }
 }
 
-// --- Prevent Copy-Paste Functionality ---
-// This stops users from pasting text into the input area or copying the passage.
-const eventsToBlock = ['paste', 'copy', 'cut'];
-eventsToBlock.forEach(eventType => {
-    userInputElement.addEventListener(eventType, (e) => {
-        e.preventDefault();
-        // Optional: You could show a small, temporary message here if you want.
-    });
+// --- MORE ROBUST Prevent Copy-Paste Functionality ---
+userInputElement.addEventListener('paste', (e) => {
+    // Prevent the default paste action
+    e.preventDefault();
+    
+    // Immediately clear the input's value in case of a "force paste"
+    setTimeout(() => {
+        e.target.value = e.target.value;
+    }, 0);
+});
+
+// We can still block copy and cut as before
+userInputElement.addEventListener('copy', (e) => {
+    e.preventDefault();
+});
+
+userInputElement.addEventListener('cut', (e) => {
+    e.preventDefault();
 });
 // --- End of Prevent Copy-Paste ---
 
