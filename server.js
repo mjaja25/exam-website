@@ -139,7 +139,7 @@ app.get('/api/auth/google/callback',
 // Register a new user
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { username, email, password } = req.body;
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(409).json({ message: 'Email is already registered.' });
@@ -151,6 +151,7 @@ app.post('/api/auth/register', async (req, res) => {
         const verificationToken = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
         const newUser = new User({ 
+            username,
             email, 
             password: hashedPassword,
             verificationToken: verificationToken
@@ -164,7 +165,7 @@ app.post('/api/auth/register', async (req, res) => {
             from: process.env.VERIFIED_SENDER_EMAIL,
             subject: 'Please Verify Your Email Address',
             html: `
-                <h2>Welcome to nssbcpt.com!</h2>
+                <h2>Welcome to nssbcpt!</h2>
                 <p>Thank you for registering. Please click the link below to verify your email address:</p>
                 <a href="${verificationUrl}" target="_blank">Verify My Email</a>
             `,
@@ -234,8 +235,12 @@ app.get('/api/auth/verify-token', authMiddleware, (req, res) => {
 // --- User-Specific Routes ---
 app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     try {
+        // Find the user making the request
+        const user = await User.findById(req.userId);
+        // Find the results for that user
         const results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
-        res.json({ results });
+        // Send back both the user details and their results
+        res.json({ user: { username: user.username }, results });
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching dashboard data.' });
     }

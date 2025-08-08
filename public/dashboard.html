@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"/>
     <link rel="stylesheet" href="style.css">
     <script src="auth.js" defer></script>
 </head>
@@ -12,7 +12,7 @@
     <main class="container">
         <nav>
             <ul>
-                <li><strong>Proficiency Test Dashboard</strong></li>
+                <li><h1 id="welcome-header">Welcome!</h1></li>
             </ul>
             <ul>
                 <li><button id="logout-btn" class="secondary">Logout</button></li>
@@ -23,11 +23,6 @@
             <header>
                 <h2>Start a New Test</h2>
             </header>
-            <!-- <div class="test-links">
-                <a href="/typing.html" role="button">Typing Test</a>
-                <a href="/letter.html" role="button">Letter Test</a>
-                <a href="/excel.html" role="button">Excel Test</a>
-            </div> -->
             <div class="test-links">
                 <button id="start-test-btn">Start Full Test (15 Minutes)</button>
             </div>

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+     const welcomeHeader = document.getElementById('welcome-header');
     const resultsBody = document.getElementById('results-tbody');
     const logoutBtn = document.getElementById('logout-btn');
     const token = localStorage.getItem('token');
@@ -38,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Set the welcome message
+                if (data.user) {
+                    welcomeHeader.textContent = `Welcome, ${data.user.username}!`;
+                }
                 displayResults(data.results);
             } else {
                 throw new Error(data.message);
