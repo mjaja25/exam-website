@@ -213,6 +213,16 @@ app.post('/api/auth/login', async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials.' });
         }
+        
+        // --- NEW LOGIC ---
+        // Check if the user has a password. If not, they signed up with Google.
+        if (!user.password) {
+            return res.status(400).json({ 
+                message: 'You have previously signed in with Google. Please use the "Sign in with Google" button.' 
+            });
+        }
+        // --- END OF NEW LOGIC ---
+
         // **NEW:** Check if the user's email is verified
         if (!user.isVerified) {
             return res.status(403).json({ message: 'Please verify your email address before logging in.' });
