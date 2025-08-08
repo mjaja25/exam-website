@@ -19,7 +19,7 @@ passport.use(new GoogleStrategy({
       }
 
       // Step 2: If not, check if a user exists with the same email address.
-      user = await User.findOne({ email: email });
+      user = await User.findOne({ email: profile.emails[0].value });
       if (user) {
         // This user registered with email/password before. Link their Google ID.
         user.googleId = googleId;
