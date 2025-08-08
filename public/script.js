@@ -13,11 +13,11 @@ const resultsScreenElement = document.getElementById('results-screen');
 const restartBtn = document.getElementById('restart-btn');
 
 // --- Sample Passages ---
-const passages = [
-    "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. Typing it helps in practicing all keys.",
-    "Technology has revolutionized the way we live and work. From communication to transportation, advancements continue to shape our future.",
-    "To be successful, you must be willing to work hard and persevere through challenges. Consistency and dedication are the keys to achieving your goals."
-];
+// const passages = [
+//     "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. Typing it helps in practicing all keys.",
+//     "Technology has revolutionized the way we live and work. From communication to transportation, advancements continue to shape our future.",
+//     "To be successful, you must be willing to work hard and persevere through challenges. Consistency and dedication are the keys to achieving your goals."
+// ];
 
 // --- State Management ---
 let timeRemaining = 300;
@@ -26,17 +26,36 @@ let testInProgress = false;
 let currentPassage = '';
 
 // --- Functions ---
-function loadNewPassage() {
-    currentPassage = passages[Math.floor(Math.random() * passages.length)];
-    passageDisplayElement.innerHTML = '';
-    currentPassage.split('').forEach(char => {
-        const charSpan = document.createElement('span');
-        charSpan.innerText = char;
-        passageDisplayElement.appendChild(charSpan);
-    });
-    userInputElement.value = null;
-    userInputElement.disabled = false;
-    resultsScreenElement.classList.add('hidden');
+// REPLACE your old loadNewPassage function with this new async version.
+async function loadNewPassage() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/passages/random`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            throw new Error('Could not fetch a new passage.');
+        }
+
+        const passageData = await response.json();
+        currentPassage = passageData.content; // Store the content
+
+        passageDisplayElement.innerHTML = '';
+        currentPassage.split('').forEach(char => {
+            const charSpan = document.createElement('span');
+            charSpan.innerText = char;
+            passageDisplayElement.appendChild(charSpan);
+        });
+        
+        // Reset input for the new test
+        userInputElement.value = null;
+        userInputElement.disabled = false;
+        
+    } catch (error) {
+        passageDisplayElement.textContent = `Error: ${error.message} Please refresh the page.`;
+        userInputElement.disabled = true;
+    }
 }
 
 function handleInput() {

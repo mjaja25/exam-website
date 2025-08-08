@@ -16,6 +16,7 @@ const passport = require('passport');
 require('./passport-setup');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const Passage = require('./models/Passage');
 
 // -------------------
 //  INITIALIZATIONS
@@ -256,14 +257,53 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     }
 });
 
+app.get('/api/passages/random', authMiddleware, async (req, res) => {
+    try {
+        // Get a count of all passages
+        const count = await Passage.countDocuments();
+        // Generate a random number
+        const random = Math.floor(Math.random() * count);
+        // Find one random passage
+        const passage = await Passage.findOne().skip(random);
+        
+        if (!passage) {
+            return res.status(404).json({ message: 'No passages found.' });
+        }
+        res.json(passage);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching passage.' });
+    }
+});
+
 app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     try {
+        const { wpm, accuracy, sessionId } = req.body;
+        let score = 0; // Default score is 0
+
+        // --- New Scoring Logic ---
+        const meetsQualification = wpm >= 35 && accuracy >= 95;
+
+        if (meetsQualification) {
+            // 1. Base score for qualifying
+            score = 10;
+
+            // 2. Speed bonus (max 5 points)
+            const speedBonus = Math.floor((wpm - 35) / 5);
+            score += Math.min(speedBonus, 5);
+
+            // 3. Accuracy bonus (max 5 points)
+            const accuracyBonus = Math.floor(accuracy - 95);
+            score += Math.min(accuracyBonus, 5);
+        }
+        // If they don't meet qualification, score remains 0.
+        // --- End of Scoring Logic ---
         const newResult = new TestResult({
             testType: 'Typing',
             user: req.userId,
             sessionId: req.body.sessionId,
             wpm: req.body.wpm,
-            accuracy: req.body.accuracy
+            accuracy: req.body.accuracy,
+            score: Math.min(score, 20)
         });
         await newResult.save();
         res.status(201).json({ message: 'Result saved successfully!' });
@@ -376,6 +416,19 @@ app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) 
         res.json(results);
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching results.' });
+    }
+});
+app.post('/api/admin/passages', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { content, difficulty } = req.body;
+        if (!content) {
+            return res.status(400).json({ message: 'Passage content is required.' });
+        }
+        const newPassage = new Passage({ content, difficulty });
+        await newPassage.save();
+        res.status(201).json({ message: 'Passage added successfully!', passage: newPassage });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error adding passage.' });
     }
 });
 
