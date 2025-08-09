@@ -265,15 +265,16 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
     try {
         const count = await ExcelQuestion.countDocuments();
         const random = Math.floor(Math.random() * count);
-        const question = await ExcelQuestion.findOne().skip(random);
-        if (!question) return res.status(404).json({ message: 'No excel questions found.' });
+        const question = await ExcelQuestion.findOne().skip(random); // 'question' is correctly defined here
+        
+        if (!question) {
+            return res.status(404).json({ message: 'No excel questions found.' });
+        }
         res.json(question);
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching question.' });
     }
-    res.json(question);
 });
-
 app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     try {
         const { wpm, accuracy, sessionId } = req.body;
