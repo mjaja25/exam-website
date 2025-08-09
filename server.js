@@ -341,13 +341,21 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         const { sessionId, questionId } = req.body;
         const originalQuestion = await ExcelQuestion.findById(questionId);
         if (!originalQuestion) return res.status(404).json({ message: 'Excel question not found.' });
+
+        // --- THE FIX IS HERE ---
+        // 1. Download the solution file from Cloudinary into a buffer
+        const solutionFileResponse = await axios.get(originalQuestion.solutionFilePath, { responseType: 'arraybuffer' });
+        const solutionFileBuffer = Buffer.from(solutionFileResponse.data);
+
         const solutionWorkbook = new ExcelJS.Workbook();
-        await solutionWorkbook.xlsx.readFile(originalQuestion.solutionFilePath);
+        await solutionWorkbook.xlsx.load(solutionFileBuffer);
         const solutionSheet1Data = JSON.stringify(solutionWorkbook.getWorksheet(1).getSheetValues());
         const solutionSheet2Instructions = JSON.stringify(solutionWorkbook.getWorksheet(2).getSheetValues());
+
         const userWorkbook = new ExcelJS.Workbook();
         await userWorkbook.xlsx.readFile(req.file.path);
         const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
+        
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `
             Act as an expert Excel grader. Your response must be ONLY a valid JSON object.
