@@ -514,6 +514,33 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
 });
 
 // --- Route to fetch results for a specific session ---
+app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+
+        // Find the total score for the user's current session
+        const userResults = await TestResult.find({ sessionId });
+        const totalScore = userResults.reduce((sum, result) => sum + (result.score || 0), 0);
+        
+        // Count how many other sessions had a lower total score
+        const lowerScoringSessions = await TestResult.aggregate([
+            { $group: { _id: "$sessionId", totalScore: { $sum: "$score" } } },
+            { $match: { totalScore: { $lt: totalScore } } },
+            { $count: "count" }
+        ]);
+
+        // Count all unique sessions
+        const totalSessions = await TestResult.distinct("sessionId").countDocuments();
+
+        const percentile = totalSessions > 0 
+            ? (lowerScoringSessions[0]?.count || 0) / totalSessions * 100 
+            : 100;
+
+        res.json({ percentile: Math.round(percentile) });
+    } catch (error) {
+        res.status(500).json({ message: 'Error calculating percentile.' });
+    }
+});
 app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
         const { sessionId } = req.params;
