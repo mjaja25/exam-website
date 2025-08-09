@@ -271,6 +271,7 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching question.' });
     }
+    res.json(question);
 });
 
 app.post('/api/submit/typing', authMiddleware, async (req, res) => {

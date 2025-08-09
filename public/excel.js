@@ -33,6 +33,12 @@ async function loadRandomExcelQuestion() {
         currentQuestionId = question._id; // Save the question ID for submission
 
         // **THE FIX IS HERE:**
+        // Set the button's link directly to the full Cloudinary URL from the database.
+        downloadBtn.href = question.questionFilePath; 
+        
+        currentQuestionId = question._id;
+
+        // **THE FIX IS HERE:**
         // Enable the button only after the link is ready.
         downloadBtn.removeAttribute('disabled');
         downloadBtn.textContent = 'Download Question File'; // Restore original text
