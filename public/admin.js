@@ -134,5 +134,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // --- End of new logic ---
 
+    // --- NEW: Logic for the 'Add Letter Question' form ---
+    const addQuestionForm = document.getElementById('add-question-form');
+
+    addQuestionForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const questionText = document.getElementById('question-text').value;
+        const category = document.getElementById('question-category').value;
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/letter-questions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ questionText, category })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Letter question added successfully!');
+                addQuestionForm.reset(); // Clear the form
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            alert('A network error occurred.');
+        }
+    });
+    // --- End of new logic ---
+    
     fetchResults();
 });

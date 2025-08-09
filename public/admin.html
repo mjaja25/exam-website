@@ -43,6 +43,24 @@
             <button type="submit">Add Passage</button>
         </form>
     </article>
+    <article class="container">
+        <header>
+            <h2>Add New Letter Question</h2>
+        </header>
+        <form id="add-question-form">
+            <label for="question-text">Question Text</label>
+            <textarea id="question-text" name="questionText" rows="4" required></textarea>
+            
+            <label for="question-category">Category</label>
+            <select id="question-category" name="category" required>
+                <option value="formal" selected>Formal</option>
+                <option value="informal">Informal</option>
+                <option value="business">Business</option>
+            </select>
+            
+            <button type="submit">Add Question</button>
+        </form>
+    </article>
     <script src="admin.js"></script>
 </body>
 </html>
