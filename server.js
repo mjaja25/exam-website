@@ -59,7 +59,7 @@ const storage = new CloudinaryStorage({
         return {
             folder: folder,
             resource_type: 'raw',
-            public_id: `${path.parse(file.originalname).name}-${Date.now()}`
+            public_id: `${path.parse(file.originalname).name}-${Date.now()}${path.extname(file.originalname)}`
         };
     },
 });
