@@ -38,19 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             switch (result.testType) {
                 case 'Typing':
-                    details = `WPM: ${result.wpm}, Accuracy: ${result.accuracy}%`;
-                    submission = 'N/A';
+                    details = `Score: ${result.score}/20`;
+                    submission = `WPM: ${result.wpm}, Acc: ${result.accuracy}%`;
                     break;
                 case 'Letter':
                     details = `AI Score: ${result.score}/10`;
-                    submission = `<button onclick="alert('Feedback: ${result.feedback.replace(/'/g, "\\'")}\\n\\nContent:\\n${result.content.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">View Details</button>`;
+                    submission = `<button onclick="alert('Feedback: ${result.feedback.replace(/'/g, "\\'")}')">View Feedback</button>`;
                     break;
                 case 'Excel':
-                    details = result.score ? `Score: ${result.score}/10` : `<input type="number" class="score-input" placeholder="0-10" min="0" max="10">`;
-                    submission = `
-                        <a href="${API_BASE_URL}/${result.filePath}" target="_blank" download>Download</a>
-                        ${!result.score ? `<button class="save-score-btn" data-id="${result._id}">Save</button>` : ''}
-                    `;
+                    details = result.score ? `Score: ${result.score}/20` : 'AI Grading...';
+                    // The 'download' attribute ensures it saves with the correct name
+                    submission = `<a href="${result.filePath}" role="button" class="contrast" download>Download</a>`;
                     break;
             }
 

@@ -107,6 +107,14 @@ const adminMiddleware = async (req, res, next) => {
     }
 };
 
+// ADD THIS HELPER FUNCTION (e.g., after your middleware definitions)
+function createDownloadUrl(url) {
+    if (!url || !url.includes('cloudinary')) return url;
+    const parts = url.split('/upload/');
+    // Inserts '/fl_attachment' into the URL to force a download
+    return `${parts[0]}/upload/fl_attachment/${parts[1]}`;
+}
+
 // -------------------
 //  DATABASE CONNECTION
 // -------------------
@@ -286,17 +294,21 @@ app.get('/api/auth/verify-token', authMiddleware, (req, res) => {
 // --- User-Specific Routes ---
 app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     try {
-        // Find the user making the request
         const user = await User.findById(req.userId);
-        // Find the results for that user
-        const results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
-        // Send back both the user details and their results
+        let results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
+
+        results = results.map(r => {
+            if (r.testType === 'Excel' && r.filePath) {
+                r.filePath = createDownloadUrl(r.filePath);
+            }
+            return r;
+        });
+        
         res.json({ user: { username: user.username }, results });
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching dashboard data.' });
     }
 });
-
 //  Random Passage and Typing Test Route
 app.get('/api/passages/random', authMiddleware, async (req, res) => {
     try {
@@ -568,14 +580,24 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
 });
 
 // --- Admin-Only Routes ---
+// REPLACE your existing Admin route with this
 app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const results = await TestResult.find({}).sort({ submittedAt: -1 }).populate('user', 'username');
+        let results = await TestResult.find({}).sort({ submittedAt: -1 }).populate('user', 'username');
+        
+        results = results.map(r => {
+            if (r.testType === 'Excel' && r.filePath) {
+                r.filePath = createDownloadUrl(r.filePath);
+            }
+            return r;
+        });
+        
         res.json(results);
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching results.' });
     }
 });
+
 app.post('/api/admin/passages', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const { content, difficulty } = req.body;

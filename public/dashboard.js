@@ -60,8 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        resultsBody.innerHTML = ''; // Clear existing rows
-
+        resultsBody.innerHTML = '';
         results.forEach(result => {
             const row = document.createElement('tr');
             const submittedDate = new Date(result.submittedAt).toLocaleString();
@@ -70,17 +69,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             switch (result.testType) {
                 case 'Typing':
-                    details = `WPM: ${result.wpm}, Accuracy: ${result.accuracy}%`;
-                    submissionLink = 'N/A';
+                    details = `Score: ${result.score}/20`;
+                    submissionLink = `WPM: ${result.wpm}, Acc: ${result.accuracy}%`;
                     break;
                 case 'Letter':
                     details = `Score: ${result.score}/10`;
-                    submissionLink = `<button onclick="alert('${result.feedback.replace(/'/g, "\\'")}')">View Feedback</button>`;
+                    submissionLink = `<button onclick="alert('Feedback: ${result.feedback.replace(/'/g, "\\'")}')">View Feedback</button>`;
                     break;
                 case 'Excel':
-                    details = 'File Submitted';
-                    // Use the dynamic URL for the download link
-                    submissionLink = `<a href="${API_BASE_URL}/${result.filePath}" target="_blank" download>Download</a>`;
+                    details = result.score ? `Score: ${result.score}/20` : 'AI Grading...';
+                    // The 'download' attribute ensures it saves with the correct name
+                    submissionLink = `<a href="${result.filePath}" role="button" class="contrast" download>Download</a>`;
                     break;
             }
 
