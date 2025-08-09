@@ -32,6 +32,11 @@ async function loadRandomExcelQuestion() {
         downloadBtn.href = `${API_BASE_URL}/${question.questionFilePath}`;
         currentQuestionId = question._id; // Save the question ID for submission
 
+        // **THE FIX IS HERE:**
+        // Enable the button only after the link is ready.
+        downloadBtn.removeAttribute('disabled');
+        downloadBtn.textContent = 'Download Question File'; // Restore original text
+
     } catch (error) {
         questionNameElement.textContent = 'Error loading question. Please refresh.';
         downloadBtn.style.display = 'none'; // Hide button if there's an error
