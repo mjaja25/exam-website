@@ -114,11 +114,13 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 //  MULTER CONFIGURATION
 // -------------------
 // Configure Multer to use Cloudinary for storage
+// In server.js
+
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-        folder: 'excel_submissions', // A folder name in your Cloudinary account
-        format: async (req, file) => 'xlsx', // or other supported formats
+        folder: 'excel_submissions',
+        resource_type: 'raw', // <-- ADD THIS LINE: Tell Cloudinary it's a raw file
         public_id: (req, file) => 'submission-' + Date.now(),
     },
 });
