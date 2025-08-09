@@ -105,8 +105,18 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 //  MULTER CONFIGURATION
 // -------------------
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => { cb(null, 'uploads/') },
-  filename: (req, file, cb) => { cb(null, 'submission-' + Date.now() + path.extname(file.originalname)) }
+  destination: function (req, file, cb) {
+    // Check which route is being used to determine the save location
+    if (req.path.includes('/admin/excel-questions')) {
+      cb(null, 'private/excel_files/'); // Admin uploads go to the permanent folder
+    } else {
+      cb(null, 'uploads/'); // User submissions go to the temporary folder
+    }
+  },
+  filename: function (req, file, cb) {
+    // Use a clean, original filename for templates
+    cb(null, Date.now() + '-' + file.originalname);
+  }
 });
 const upload = multer({ storage: storage });
 
@@ -430,38 +440,44 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
         }
 
         // 2. Read the correct solution workbook and convert its data to JSON
+        // Read the solution file
         const solutionWorkbook = new ExcelJS.Workbook();
         await solutionWorkbook.xlsx.readFile(originalQuestion.solutionFilePath);
-        const solutionData = JSON.stringify(solutionWorkbook.getWorksheet(1).getSheetValues());
+        const solutionSheet1Data = JSON.stringify(solutionWorkbook.getWorksheet(1).getSheetValues());
+        const solutionSheet2Instructions = JSON.stringify(solutionWorkbook.getWorksheet(2).getSheetValues());
 
         // 3. Read the user's submitted workbook and convert its data to JSON
         const userWorkbook = new ExcelJS.Workbook();
         await userWorkbook.xlsx.readFile(req.file.path);
-        const userData = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
+        const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
         
         // 4. Create the AI Grading Prompt
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `
-            Act as an automated Excel test grader. Your response must be ONLY a valid JSON object.
-            The user was given an Excel task named "${originalQuestion.questionName}". Compare the user's submission to the correct solution.
-            
-            Grade the submission out of 20 marks based on:
-            1.  Correctness of formulas and final values (12 marks).
-            2.  Correctness of totals/summaries (3 marks).
-            3.  Correct application of formatting like currency and bolding (5 marks).
+            Act as an expert Excel test grader. Your response must be ONLY a valid JSON object.
+            The user was given an Excel test with two worksheets.
+            - The first worksheet is the exercise.
+            - The second worksheet contains a list of 5 instructions.
+
+            You must grade the user's work on the first worksheet based *only* on the 5 instructions provided. Each instruction is worth 4 marks, for a total of 20 marks.
 
             ---
-            Correct Solution Data (JSON):
-            ${solutionData}
+            GRADING RUBRIC (Instructions from the 2nd worksheet of the solution file):
+            ${solutionSheet2Instructions}
             ---
-            User Submission Data (JSON):
-            ${userData}
+            CORRECT SOLUTION DATA (From the 1st worksheet of the solution file):
+            ${solutionSheet1Data}
             ---
+            USER SUBMISSION DATA (From the 1st worksheet of the user's file):
+            ${userSheet1Data}
+            ---
+
+            Analyze the user's submission against the correct solution, following the instructions in the rubric. Award 4 marks for each correctly completed instruction. Provide a final score out of 20.
 
             Return your analysis ONLY in this exact JSON format:
             {
-              "score": <total_score_out_of_20>,
-              "feedback": "<Brief, constructive feedback on what the user did correctly and what they missed.>"
+            "score": <total_score_out_of_20>,
+            "feedback": "<Detailed, point-by-point feedback explaining how many marks were awarded for each of the 5 instructions.>"
             }
         `;
         
