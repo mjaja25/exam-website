@@ -344,9 +344,13 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         if (!originalQuestion) return res.status(404).json({ message: 'Excel question not found.' });
 
         // --- THE FIX IS HERE ---
-        // 1. Download the solution file from Cloudinary into a buffer
+        // 1. Download the solution file from its Cloudinary URL
         const solutionFileResponse = await axios.get(originalQuestion.solutionFilePath, { responseType: 'arraybuffer' });
         const solutionFileBuffer = Buffer.from(solutionFileResponse.data);
+
+        // 2. Download the user's submitted file from its Cloudinary URL
+        const userFileResponse = await axios.get(req.file.path, { responseType: 'arraybuffer' });
+        const userFileBuffer = Buffer.from(userFileResponse.data);
 
         const solutionWorkbook = new ExcelJS.Workbook();
         await solutionWorkbook.xlsx.load(solutionFileBuffer);
@@ -354,7 +358,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         const solutionSheet2Instructions = JSON.stringify(solutionWorkbook.getWorksheet(2).getSheetValues());
 
         const userWorkbook = new ExcelJS.Workbook();
-        await userWorkbook.xlsx.readFile(req.file.path);
+        await userWorkbook.xlsx.load(userFileBuffer);
         const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
