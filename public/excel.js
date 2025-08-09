@@ -76,10 +76,8 @@ downloadBtn.addEventListener('click', startTimer);
 
 // Handle the form submission
 excelForm.addEventListener('submit', async (event) => {
-
-    window.removeEventListener('beforeunload', handleBeforeUnload);
-
-    event.preventDefault();
+    // This prevents the page from reloading
+    event.preventDefault(); 
     clearInterval(timerInterval);
 
     const token = localStorage.getItem('token');
@@ -87,10 +85,11 @@ excelForm.addEventListener('submit', async (event) => {
 
     const formData = new FormData();
     formData.append('excelFile', fileInput.files[0]);
-    formData.append('sessionId', sessionId); // Add the session ID to the form data
+    formData.append('sessionId', sessionId);
     formData.append('questionId', currentQuestionId);
 
     try {
+        // We wait for the file to be uploaded...
         await fetch(`${API_BASE_URL}/api/submit/excel`, {
             method: 'POST',
             headers: {
@@ -99,7 +98,7 @@ excelForm.addEventListener('submit', async (event) => {
             body: formData,
         });
 
-        // **NEW:** Redirect to the final results page
+        // ...and THEN we redirect to the results page.
         window.location.href = '/results.html';
 
     } catch (error) {
