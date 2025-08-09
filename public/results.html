@@ -4,25 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Exam Results</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"/>
     <link rel="stylesheet" href="style.css">
-    <script src=/auth.js" defer></script>
+    <script src="/auth.js" defer></script>
 </head>
 <body>
     <main class="container">
         <article>
             <header>
                 <h2>Exam Complete!</h2>
-                <p>Here is a summary of your performance.</p>
+                <p>Here is your performance summary.</p>
             </header>
             
-            <div id="results-summary">
-                <p aria-busy="true">Loading your results...</p>
+            <div class="results-grid">
+                <div class="score-summary">
+                    <div class="progress-circle" id="progress-circle">
+                        <span id="total-score">0</span> / 50
+                    </div>
+                    <p id="percentile-rank">Calculating percentile...</p>
+                </div>
+                <div id="results-details">
+                    </div>
             </div>
 
             <footer>
-                <a href="/dashboard.html" role="button" class="secondary">Back to Dashboard</a>
-                <a href="/typing.html" role="button">Redo Test</a>
+                <a href="/dashboard.html" role="button">Back to Dashboard</a>
             </footer>
         </article>
     </main>
