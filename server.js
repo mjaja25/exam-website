@@ -31,6 +31,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// --- STORAGE DEFINITIONS ---
+
+// 1. Storage for USER submissions (sends files to Cloudinary)
+const cloudinaryStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'excel_submissions',
+        resource_type: 'raw',
+        public_id: (req, file) => 'submission-' + Date.now(),
+    },
+});
+
+// 2. Storage for ADMIN uploads (saves files locally)
+const localDiskStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // This route is only for admin uploads
+    cb(null, 'public/excel_files/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
 // --- CONFIGURATIONS ---
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -116,22 +139,12 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 // Configure Multer to use Cloudinary for storage
 // In server.js
 
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'excel_submissions',
-        resource_type: 'raw', // <-- ADD THIS LINE: Tell Cloudinary it's a raw file
-        public_id: (req, file) => 'submission-' + Date.now(),
-    },
-});
+// Multer instance for USER submissions
+const uploadToCloudinary = multer({ storage: cloudinaryStorage });
 
-const upload = multer({ storage: storage });
+// Multer instance for ADMIN uploads
+const uploadLocally = multer({ storage: localDiskStorage });
 
-// This multer configuration will handle two different file fields
-const excelUpload = upload.fields([
-    { name: 'questionFile', maxCount: 1 },
-    { name: 'solutionFile', maxCount: 1 }
-]);
 
 // -------------------
 //  API ROUTES
@@ -432,7 +445,10 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async (req, res, next) => {
+app.post('/api/submit/excel', authMiddleware, adminMiddleware, uploadLocally.fields([
+    { name: 'questionFile', maxCount: 1 },
+    { name: 'solutionFile', maxCount: 1 }
+]), async (req, res, next) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded.' });
