@@ -34,7 +34,7 @@ async function loadRandomExcelQuestion() {
 
         // **THE FIX IS HERE:**
         // Enable the button only after the link is ready.
-        // downloadBtn.removeAttribute('disabled');
+        downloadBtn.removeAttribute('disabled');
         downloadBtn.textContent = 'Download Question File'; // Restore original text
 
     } catch (error) {
