@@ -2,28 +2,28 @@
 //  IMPORTS
 // -------------------
 require('dotenv').config();
-const express = 'express';
-const mongoose = 'mongoose';
-const cors = 'cors';
-const bcrypt = 'bcryptjs';
-const jwt = 'jsonwebtoken';
-const { GoogleGenerativeAI } = ("@google/generative-ai");
-const multer = 'multer';
-const path = 'path';
-const session = 'express-session';
-const passport = 'passport';
-const sgMail = '@sendgrid/mail';
-const ExcelJS = 'exceljs';
-const fs = 'fs';
-const cloudinary = ('cloudinary').v2;
-const { CloudinaryStorage } = ('multer-storage-cloudinary');
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const multer = require('multer');
+const path = require('path');
+const session = require('express-session');
+const passport = require('passport');
+const sgMail = require('@sendgrid/mail');
+const ExcelJS = require('exceljs');
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // --- MODEL IMPORTS ---
-const User = './models/User';
-const TestResult = './models/TestResult';
-const Passage = './models/Passage';
-const LetterQuestion = './models/LetterQuestion';
-const ExcelQuestion = './models/ExcelQuestion';
+const User = require('./models/User');
+const TestResult = require('./models/TestResult');
+const Passage = require('./models/Passage');
+const LetterQuestion = require('./models/LetterQuestion');
+const ExcelQuestion = require('./models/ExcelQuestion');
 
 // -------------------
 //  INITIALIZATIONS & CONFIGURATIONS
