@@ -17,6 +17,7 @@ require('./passport-setup');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const Passage = require('./models/Passage');
+const LetterQuestion = require('./models/LetterQuestion');
 
 // -------------------
 //  INITIALIZATIONS
@@ -312,15 +313,33 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     }
 });
 
+app.get('/api/letter-questions/random', authMiddleware, async (req, res) => {
+    try {
+        const count = await LetterQuestion.countDocuments();
+        const random = Math.floor(Math.random() * count);
+        const question = await LetterQuestion.findOne().skip(random);
+        res.json(question);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching question.' });
+    }
+});
+
 // In server.js
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
     try {
-        const letterContent = req.body.content;
+        // We now get both the user's answer and the ID of the question they answered
+        const { content, sessionId, questionId } = req.body; 
 
-        // --- Improved AI Grading Logic ---
+        // Fetch the original question text from the database
+        const originalQuestion = await LetterQuestion.findById(questionId);
+        if (!originalQuestion) {
+            return res.status(404).json({ message: 'Original question not found.' });
+        }
+
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `
             Please act as a strict examiner. Your response must be ONLY a valid JSON object.
+            The user was asked the following question: "${originalQuestion.questionText}"
             Grade the following formal letter out of 10 based on these criteria:
             1.  Format (3 marks): Check for sender's address, date, receiver's address, subject, salutation, and closing. Deduct marks for missing elements.
             2.  Content (4 marks): Assess clarity, relevance, and tone.
@@ -429,6 +448,17 @@ app.post('/api/admin/passages', authMiddleware, adminMiddleware, async (req, res
         res.status(201).json({ message: 'Passage added successfully!', passage: newPassage });
     } catch (error) {
         res.status(500).json({ message: 'Server error adding passage.' });
+    }
+});
+
+app.post('/api/admin/letter-questions', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { questionText, category } = req.body;
+        const newQuestion = new LetterQuestion({ questionText, category });
+        await newQuestion.save();
+        res.status(201).json({ message: 'Letter question added successfully!', question: newQuestion });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error adding question.' });
     }
 });
 

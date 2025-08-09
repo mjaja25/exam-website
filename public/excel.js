@@ -40,6 +40,9 @@ downloadBtn.addEventListener('click', startTimer);
 
 // Handle the form submission
 excelForm.addEventListener('submit', async (event) => {
+
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    
     event.preventDefault();
     clearInterval(timerInterval);
 
