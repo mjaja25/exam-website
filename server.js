@@ -18,6 +18,9 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const Passage = require('./models/Passage');
 const LetterQuestion = require('./models/LetterQuestion');
+const ExcelQuestion = require('./models/ExcelQuestion');
+const ExcelJS = require('exceljs');
+const fs = require('fs');
 
 // -------------------
 //  INITIALIZATIONS
@@ -106,6 +109,12 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => { cb(null, 'submission-' + Date.now() + path.extname(file.originalname)) }
 });
 const upload = multer({ storage: storage });
+
+// This multer configuration will handle two different file fields
+const excelUpload = upload.fields([
+    { name: 'questionFile', maxCount: 1 },
+    { name: 'solutionFile', maxCount: 1 }
+]);
 
 // -------------------
 //  API ROUTES
@@ -258,6 +267,7 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     }
 });
 
+//  Random Passage and Typing Test Route
 app.get('/api/passages/random', authMiddleware, async (req, res) => {
     try {
         // Get a count of all passages
@@ -313,6 +323,7 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     }
 });
 
+//  Random Letter Question and AI Grading
 app.get('/api/letter-questions/random', authMiddleware, async (req, res) => {
     try {
         const count = await LetterQuestion.countDocuments();
@@ -338,24 +349,25 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `
-            Please act as a strict examiner. Your response must be ONLY a valid JSON object.
-            The user was asked the following question: "${originalQuestion.questionText}"
-            Grade the following formal letter out of 10 based on these criteria:
-            1.  Format (3 marks): Check for sender's address, date, receiver's address, subject, salutation, and closing. Deduct marks for missing elements.
-            2.  Content (4 marks): Assess clarity, relevance, and tone.
-            3.  Grammar & Spelling (3 marks): Deduct for significant errors.
+            Please act as a strict examiner. Your entire response must be ONLY a valid JSON object and nothing else.
 
-            If the text below is not a valid letter or is too short to grade, return a score of 0 with appropriate feedback.
+            You are grading a formal letter written in response to a specific question. Grade the letter out of 10 based on the following criteria:
+            1.  **Content (4 marks):** How well does the letter's body address the specific question asked? Assess clarity, relevance, and tone.
+            2.  **Format (3 marks):** Check for sender's address, date, receiver's address, subject, salutation, and closing. Deduct marks for missing elements.
+            3.  **Grammar & Spelling (3 marks):** Deduct marks for significant errors.
 
-            Analyze this text:
+            If the provided response is not a valid letter or is too short to grade, return a score of 0 with appropriate feedback.
+
             ---
-            ${letterContent}
+            CONTEXT
+            Question Asked: "${originalQuestion.questionText}"
+            User's Letter: "${content}"
             ---
 
-            Return your response ONLY in this exact JSON format:
+            Return your analysis ONLY in this exact JSON format:
             {
-              "score": <total_score_out_of_10>,
-              "feedback": "<brief_feedback_explaining_the_score>"
+            "score": <total_score_out_of_10>,
+            "feedback": "<brief_feedback_explaining_the_score>"
             }
         `;
 
@@ -391,21 +403,97 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
     }
 });
 
+//  Random Excel File and Submit Excel 
+app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
+    try {
+        const count = await ExcelQuestion.countDocuments();
+        const random = Math.floor(Math.random() * count);
+        const question = await ExcelQuestion.findOne().skip(random);
+        res.json(question);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching question.' });
+    }
+});
+
 app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async (req, res, next) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded.' });
         }
+
+        const { sessionId, questionId } = req.body;
+        
+        // 1. Find the original question and its solution path from the database
+        const originalQuestion = await ExcelQuestion.findById(questionId);
+        if (!originalQuestion) {
+            return res.status(404).json({ message: 'Excel question not found.' });
+        }
+
+        // 2. Read the correct solution workbook and convert its data to JSON
+        const solutionWorkbook = new ExcelJS.Workbook();
+        await solutionWorkbook.xlsx.readFile(originalQuestion.solutionFilePath);
+        const solutionData = JSON.stringify(solutionWorkbook.getWorksheet(1).getSheetValues());
+
+        // 3. Read the user's submitted workbook and convert its data to JSON
+        const userWorkbook = new ExcelJS.Workbook();
+        await userWorkbook.xlsx.readFile(req.file.path);
+        const userData = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
+        
+        // 4. Create the AI Grading Prompt
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const gradingPrompt = `
+            Act as an automated Excel test grader. Your response must be ONLY a valid JSON object.
+            The user was given an Excel task named "${originalQuestion.questionName}". Compare the user's submission to the correct solution.
+            
+            Grade the submission out of 20 marks based on:
+            1.  Correctness of formulas and final values (12 marks).
+            2.  Correctness of totals/summaries (3 marks).
+            3.  Correct application of formatting like currency and bolding (5 marks).
+
+            ---
+            Correct Solution Data (JSON):
+            ${solutionData}
+            ---
+            User Submission Data (JSON):
+            ${userData}
+            ---
+
+            Return your analysis ONLY in this exact JSON format:
+            {
+              "score": <total_score_out_of_20>,
+              "feedback": "<Brief, constructive feedback on what the user did correctly and what they missed.>"
+            }
+        `;
+        
+        // 5. Get and parse the AI's grade
+        const result = await model.generateContent(gradingPrompt);
+        const responseText = await result.response.text();
+        
+        let grade;
+        try {
+            const cleanedText = responseText.replace(/```json|```/g, '').trim();
+            grade = JSON.parse(cleanedText);
+        } catch (parseError) {
+            console.error("AI returned non-JSON response for Excel grading:", responseText);
+            grade = { score: 0, feedback: "Automated grading failed due to an unexpected format from the AI." };
+        }
+        
+        // 6. Save the final result to the database
         const newResult = new TestResult({
             testType: 'Excel',
             user: req.userId,
-            sessionId: req.body.sessionId,
-            filePath: req.file.path
+            sessionId: sessionId,
+            filePath: req.file.path,
+            score: grade.score,
+            feedback: grade.feedback // You can save the feedback for review
         });
         await newResult.save();
-        res.status(201).json({ message: 'Excel file uploaded successfully!' });
+        
+        // 7. Send success response to the frontend
+        res.status(201).json({ message: 'Excel file graded and submitted successfully!', grade: grade });
+
     } catch (error) {
-        next(error);
+        next(error); // Pass any other errors to the global error handler
     }
 });
 
@@ -461,6 +549,31 @@ app.post('/api/admin/letter-questions', authMiddleware, adminMiddleware, async (
         res.status(500).json({ message: 'Server error adding question.' });
     }
 });
+
+app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, excelUpload, async (req, res) => {
+    try {
+        const { questionName } = req.body;
+        // req.files will contain the uploaded file objects
+        const questionFile = req.files.questionFile[0];
+        const solutionFile = req.files.solutionFile[0];
+
+        if (!questionName || !questionFile || !solutionFile) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
+        const newExcelQuestion = new ExcelQuestion({
+            questionName: questionName,
+            questionFilePath: questionFile.path,
+            solutionFilePath: solutionFile.path
+        });
+        await newExcelQuestion.save();
+
+        res.status(201).json({ message: 'Excel question added successfully!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error adding Excel question.' });
+    }
+});
+
 
 // -------------------
 //  GLOBAL ERROR HANDLER

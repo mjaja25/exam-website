@@ -61,6 +61,23 @@
             <button type="submit">Add Question</button>
         </form>
     </article>
+    <article class="container">
+        <header>
+            <h2>Add New Excel Question</h2>
+        </header>
+        <form id="add-excel-form" enctype="multipart/form-data">
+            <label for="question-name">Question Name</label>
+            <input type="text" id="question-name" name="questionName" placeholder="e.g., Q3 Sales Commission Report" required>
+            
+            <label for="question-file">Question File (Blank Template)</label>
+            <input type="file" id="question-file" name="questionFile" required>
+
+            <label for="solution-file">Solution File (Completed)</label>
+            <input type="file" id="solution-file" name="solutionFile" required>
+            
+            <button type="submit">Add Excel Question</button>
+        </form>
+    </article>
     <script src="admin.js"></script>
 </body>
 </html>

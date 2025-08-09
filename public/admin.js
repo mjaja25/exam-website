@@ -167,6 +167,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     // --- End of new logic ---
-    
+
+    // --- Add Excel Files ---
+    const addExcelForm = document.getElementById('add-excel-form');
+
+    addExcelForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const token = localStorage.getItem('token');
+        
+        // FormData is required for sending files
+        const formData = new FormData(addExcelForm);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/excel-questions`, {
+                method: 'POST',
+                headers: {
+                    // For multipart/form-data, we don't set Content-Type. The browser does it.
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Excel question added successfully!');
+                addExcelForm.reset();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            alert('A network error occurred.');
+        }
+    });
+    // --- End of Add Excel Files ---
+
     fetchResults();
 });

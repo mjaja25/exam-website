@@ -7,11 +7,36 @@ const timerElement = document.getElementById('timer');
 const excelForm = document.getElementById('excel-form');
 const fileInput = document.getElementById('excel-file');
 const downloadBtn = document.getElementById('download-btn');
+const questionNameElement = document.getElementById('question-name');
 
 // State Management
-let timeRemaining = 300; // 5 minutes
+let timeRemaining = 300;
 let timerInterval;
 let testInProgress = false;
+let currentQuestionId = null;
+
+// --- NEW: Function to load a random Excel question ---
+async function loadRandomExcelQuestion() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/excel-questions/random`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Could not fetch question.');
+        
+        const question = await response.json();
+        
+        // Update the UI with the fetched question details
+        questionNameElement.textContent = question.questionName;
+        downloadBtn.href = `${API_BASE_URL}/${question.questionFilePath}`;
+        currentQuestionId = question._id; // Save the question ID for submission
+
+    } catch (error) {
+        questionNameElement.textContent = 'Error loading question. Please refresh.';
+        downloadBtn.style.display = 'none'; // Hide button if there's an error
+    }
+}
 
 // Starts the timer
 function startTimer() {
@@ -42,7 +67,7 @@ downloadBtn.addEventListener('click', startTimer);
 excelForm.addEventListener('submit', async (event) => {
 
     window.removeEventListener('beforeunload', handleBeforeUnload);
-    
+
     event.preventDefault();
     clearInterval(timerInterval);
 
@@ -52,6 +77,7 @@ excelForm.addEventListener('submit', async (event) => {
     const formData = new FormData();
     formData.append('excelFile', fileInput.files[0]);
     formData.append('sessionId', sessionId); // Add the session ID to the form data
+    formData.append('questionId', currentQuestionId);
 
     try {
         await fetch(`${API_BASE_URL}/api/submit/excel`, {
@@ -71,3 +97,5 @@ excelForm.addEventListener('submit', async (event) => {
         window.location.href = '/results.html';
     }
 });
+
+loadRandomExcelQuestion();
