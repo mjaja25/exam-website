@@ -44,6 +44,29 @@ cloudinary.config({
 // -------------------
 //  STORAGE & UPLOAD CONFIGURATION
 // -------------------
+
+// Configure Cloudinary Storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: (req, file) => {
+        // This function sets the destination folder dynamically
+        let folder;
+        if (req.path.includes('/admin/excel-questions')) {
+            folder = 'excel_templates'; // Admin uploads go here
+        } else {
+            folder = 'excel_submissions'; // User submissions go here
+        }
+        return {
+            folder: folder,
+            resource_type: 'raw',
+            public_id: file.originalname + '-' + Date.now(),
+        };
+    },
+});
+
+// Create a single, powerful multer instance
+const upload = multer({ storage: storage });
+
 const cloudinaryStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: { folder: 'excel_submissions', resource_type: 'raw', public_id: (req, file) => 'submission-' + Date.now() }
@@ -426,11 +449,15 @@ app.post('/api/admin/letter-questions', authMiddleware, adminMiddleware, async (
 });
 
 const adminExcelUpload = uploadLocally.fields([{ name: 'questionFile', maxCount: 1 }, { name: 'solutionFile', maxCount: 1 }]);
-app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, adminExcelUpload, async (req, res) => {
+app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, upload.fields([
+    { name: 'questionFile', maxCount: 1 },
+    { name: 'solutionFile', maxCount: 1 }
+]), async (req, res) => {
     try {
         const { questionName } = req.body;
         const questionFile = req.files.questionFile[0];
         const solutionFile = req.files.solutionFile[0];
+        
         if (!questionName || !questionFile || !solutionFile) {
             return res.status(400).json({ message: 'All fields are required.' });
         }
