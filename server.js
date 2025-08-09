@@ -21,6 +21,8 @@ const LetterQuestion = require('./models/LetterQuestion');
 const ExcelQuestion = require('./models/ExcelQuestion');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // -------------------
 //  INITIALIZATIONS
@@ -28,6 +30,13 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// --- CONFIGURATIONS ---
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // -------------------
 //  MIDDLEWARE SETUP
@@ -104,20 +113,16 @@ const TestResult = mongoose.model('TestResult', testResultSchema);
 // -------------------
 //  MULTER CONFIGURATION
 // -------------------
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Check which route is being used to determine the save location
-    if (req.path.includes('/admin/excel-questions')) {
-      cb(null, 'private/excel_files/'); // Admin uploads go to the permanent folder
-    } else {
-      cb(null, 'uploads/'); // User submissions go to the temporary folder
-    }
-  },
-  filename: function (req, file, cb) {
-    // Use a clean, original filename for templates
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+// Configure Multer to use Cloudinary for storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'excel_submissions', // A folder name in your Cloudinary account
+        format: async (req, file) => 'xlsx', // or other supported formats
+        public_id: (req, file) => 'submission-' + Date.now(),
+    },
 });
+
 const upload = multer({ storage: storage });
 
 // This multer configuration will handle two different file fields
@@ -439,14 +444,13 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
             return res.status(404).json({ message: 'Excel question not found.' });
         }
 
-        // 2. Read the correct solution workbook and convert its data to JSON
-        // Read the solution file
+        // 2. Read the correct solution workbook (from your local project files)
         const solutionWorkbook = new ExcelJS.Workbook();
         await solutionWorkbook.xlsx.readFile(originalQuestion.solutionFilePath);
         const solutionSheet1Data = JSON.stringify(solutionWorkbook.getWorksheet(1).getSheetValues());
         const solutionSheet2Instructions = JSON.stringify(solutionWorkbook.getWorksheet(2).getSheetValues());
 
-        // 3. Read the user's submitted workbook and convert its data to JSON
+        // 3. Read the user's submitted workbook (from the temporary upload path)
         const userWorkbook = new ExcelJS.Workbook();
         await userWorkbook.xlsx.readFile(req.file.path);
         const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
@@ -455,30 +459,17 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `
             Act as an expert Excel test grader. Your response must be ONLY a valid JSON object.
-            The user was given an Excel test with two worksheets.
-            - The first worksheet is the exercise.
-            - The second worksheet contains a list of 5 instructions.
-
-            You must grade the user's work on the first worksheet based *only* on the 5 instructions provided. Each instruction is worth 4 marks, for a total of 20 marks.
-
+            The user was given an Excel test with two worksheets. The instructions from the second sheet are the grading rubric.
+            Grade the user's work on their first worksheet based on the 5 instructions provided. Each instruction is worth 4 marks, for a total of 20 marks.
             ---
-            GRADING RUBRIC (Instructions from the 2nd worksheet of the solution file):
-            ${solutionSheet2Instructions}
+            GRADING RUBRIC (Instructions): ${solutionSheet2Instructions}
             ---
-            CORRECT SOLUTION DATA (From the 1st worksheet of the solution file):
-            ${solutionSheet1Data}
+            CORRECT SOLUTION DATA: ${solutionSheet1Data}
             ---
-            USER SUBMISSION DATA (From the 1st worksheet of the user's file):
-            ${userSheet1Data}
+            USER SUBMISSION DATA: ${userSheet1Data}
             ---
-
-            Analyze the user's submission against the correct solution, following the instructions in the rubric. Award 4 marks for each correctly completed instruction. Provide a final score out of 20.
-
             Return your analysis ONLY in this exact JSON format:
-            {
-            "score": <total_score_out_of_20>,
-            "feedback": "<Detailed, point-by-point feedback explaining how many marks were awarded for each of the 5 instructions.>"
-            }
+            { "score": <total_score_out_of_20>, "feedback": "<Detailed, point-by-point feedback for each of the 5 instructions.>" }
         `;
         
         // 5. Get and parse the AI's grade
@@ -490,18 +481,17 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
             const cleanedText = responseText.replace(/```json|```/g, '').trim();
             grade = JSON.parse(cleanedText);
         } catch (parseError) {
-            console.error("AI returned non-JSON response for Excel grading:", responseText);
             grade = { score: 0, feedback: "Automated grading failed due to an unexpected format from the AI." };
         }
         
-        // 6. Save the final result to the database
+        // 6. Save the final result with the PERMANENT Cloudinary URL
         const newResult = new TestResult({
             testType: 'Excel',
             user: req.userId,
             sessionId: sessionId,
-            filePath: req.file.path,
+            filePath: req.file.path, // This is now the permanent Cloudinary URL
             score: grade.score,
-            feedback: grade.feedback // You can save the feedback for review
+            feedback: grade.feedback
         });
         await newResult.save();
         
@@ -509,7 +499,7 @@ app.post('/api/submit/excel', authMiddleware, upload.single('excelFile'), async 
         res.status(201).json({ message: 'Excel file graded and submitted successfully!', grade: grade });
 
     } catch (error) {
-        next(error); // Pass any other errors to the global error handler
+        next(error);
     }
 });
 
