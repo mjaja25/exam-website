@@ -34,12 +34,12 @@ async function loadRandomExcelQuestion() {
 
         // **THE FIX IS HERE:**
         // Enable the button only after the link is ready.
-        downloadBtn.removeAttribute('disabled');
+        // downloadBtn.removeAttribute('disabled');
         downloadBtn.textContent = 'Download Question File'; // Restore original text
 
     } catch (error) {
         questionNameElement.textContent = 'Error loading question. Please refresh.';
-        downloadBtn.style.display = 'none'; // Hide button if there's an error
+        downloadBtn.textContent = 'Unavailable'; // Show error on button
     }
 }
 
