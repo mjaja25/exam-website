@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
 
+    const chartCanvas = document.getElementById('skills-chart-canvas');
+
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
         if (!sessionId) return;
@@ -67,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
         totalScoreCircle.textContent = `${totalScore} / 50`;
 
         // --- NEW RADAR CHART LOGIC ---
-        const chartCanvas = document.getElementById('skills-chart-canvas');
         new Chart(chartCanvas, {
             type: 'radar',
             data: {
