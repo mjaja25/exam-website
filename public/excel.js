@@ -54,16 +54,6 @@ async function loadRandomExcelQuestion() {
 // Starts the timer
 function startTimer() {
 
-    
-    // --- Refresh-blocking logic ---
-    const handleBeforeUnload = (event) => {
-        event.preventDefault();
-        event.returnValue = '';
-        };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-
-
     if (!testInProgress) {
         testInProgress = true;
         timerInterval = setInterval(() => {
@@ -89,7 +79,6 @@ downloadBtn.addEventListener('click', startTimer);
 
 // Handle the form submission
 excelForm.addEventListener('submit', async (event) => {
-    window.removeEventListener('beforeunload', handleBeforeUnload); // Disable refresh warning
     // This prevents the page from reloading
     event.preventDefault(); 
     clearInterval(timerInterval);

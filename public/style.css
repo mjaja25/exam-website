@@ -801,3 +801,66 @@ body.test-page {
     border-radius: 8px;
     border: 1px solid var(--border-color);
 }
+
+
+
+
+
+
+
+
+
+
+
+/* In public/style.css */
+body.results-page {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    padding: 2rem;
+}
+
+.results-card-main {
+    max-width: 900px;
+    margin: auto;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.results-header {
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    transition: all 0.5s ease;
+}
+
+.results-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.skills-chart-container {
+    padding-right: 2rem;
+    border-right: 1px solid var(--border-color);
+}
+
+.result-detail-card {
+    background: var(--background-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.results-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
