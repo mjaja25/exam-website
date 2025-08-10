@@ -233,6 +233,15 @@ body.auth-page {
 
 
 
+
+
+
+
+
+
+
+
+
 /* --- DASHBOARD PAGE STYLES --- */
 body.dashboard-page {
     background-color: var(--background-color);
@@ -335,4 +344,102 @@ body.dashboard-page {
 .past-results-card #results-summary .session:last-child {
     border-bottom: none;
     margin-bottom: 0;
+}
+
+
+
+
+
+
+
+
+
+/* --- ADMIN PAGE STYLES --- */
+body.admin-page {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+}
+
+.admin-content {
+    padding: 2rem;
+}
+
+.admin-content h2 {
+    margin-bottom: 1.5rem;
+}
+
+.admin-content .card {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Make table scrollable on small screens */
+.table-container {
+    overflow-x: auto;
+}
+
+.admin-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-content th, .admin-content td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-content th {
+    font-weight: 700;
+}
+
+.content-management {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.content-management h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.content-management form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.content-management input,
+.content-management textarea,
+.content-management select {
+    width: 100%;
+    padding: 10px;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.content-management button {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.content-management button:hover {
+    box-shadow: 0 0 15px var(--primary-yellow);
+    transform: translateY(-2px);
 }

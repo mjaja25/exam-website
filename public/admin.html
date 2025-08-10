@@ -1,83 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Submissions</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
 </head>
-<body>
-    <div class="admin-container">
-        <h1>Admin Panel: All Test Submissions</h1>
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Test Type</th>
-                    <th>Score / Details</th>
-                    <th>Submitted At</th>
-                    <th>Submission</th>
-                </tr>
-            </thead>
-            <tbody id="results-tbody">
-                </tbody>
-        </table>
-    </div>
-    <article class="container">
-        <header>
-            <h2>Add New Typing Passage</h2>
-        </header>
-        <form id="add-passage-form">
-            <label for="passage-content">Passage Content</label>
-            <textarea id="passage-content" name="content" rows="6" required></textarea>
-            
-            <label for="difficulty">Difficulty</label>
-            <select id="difficulty" name="difficulty" required>
-                <option value="easy">Easy</option>
-                <option value="medium" selected>Medium</option>
-                <option value="hard">Hard</option>
-            </select>
-            
-            <button type="submit">Add Passage</button>
-        </form>
-    </article>
-    <article class="container">
-        <header>
-            <h2>Add New Letter Question</h2>
-        </header>
-        <form id="add-question-form">
-            <label for="question-text">Question Text</label>
-            <textarea id="question-text" name="questionText" rows="4" required></textarea>
-            
-            <label for="question-category">Category</label>
-            <select id="question-category" name="category" required>
-                <option value="formal" selected>Formal</option>
-                <option value="informal">Informal</option>
-                <option value="business">Business</option>
-            </select>
-            
-            <button type="submit">Add Question</button>
-        </form>
-    </article>
-    <article class="container">
-        <header>
-            <h2>Add New Excel Question</h2>
-        </header>
-        <form id="add-excel-form" enctype="multipart/form-data">
-            <label for="question-name">Question Name</label>
-            <input type="text" id="question-name" name="questionName" placeholder="e.g., Q3 Sales Commission Report" required>
-            
-            <label for="question-file">Question File (Blank Template)</label>
-            <input type="file" id="question-file" name="questionFile" required>
+<body class="admin-page">
+    <header class="dashboard-header">
+        <div class="logo-area">
+            <img src="/logo.png" alt="Logo" class="logo" />
+            <h1>Admin Panel</h1>
+        </div>
+        <nav class="dashboard-nav">
+            <a href="/dashboard.html" class="nav-button">Back to Dashboard</a>
+            <button id="logout-btn" class="nav-button secondary">Logout</button>
+        </nav>
+    </header>
 
-            <label for="solution-file">Solution File (Completed)</label>
-            <input type="file" id="solution-file" name="solutionFile" required>
-            
-            <button type="submit">Add Excel Question</button>
-        </form>
-    </article>
+    <main class="admin-content">
+        <div class="card">
+            <h2>All User Submissions</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Test Type</th>
+                            <th>Score / Details</th>
+                            <th>Submitted At</th>
+                            <th>Submission</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="content-management">
+            <div class="card">
+                <h3>Add New Typing Passage</h3>
+                <form id="add-passage-form">
+                    <textarea id="passage-content" name="content" rows="4" placeholder="Enter new passage text..."></textarea>
+                    <select id="difficulty" name="difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <button type="submit">Add Passage</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Add New Letter Question</h3>
+                <form id="add-question-form">
+                    <textarea id="question-text" name="questionText" rows="4" placeholder="Enter new letter question..."></textarea>
+                    <select id="question-category" name="category">
+                        <option value="formal" selected>Formal</option>
+                        <option value="business">Business</option>
+                    </select>
+                    <button type="submit">Add Question</button>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Add New Excel Question</h3>
+                <form id="add-excel-form" enctype="multipart/form-data">
+                    <input type="text" id="question-name" name="questionName" placeholder="Question Name" required>
+                    <label>Question File (Blank)</label>
+                    <input type="file" id="question-file" name="questionFile" required>
+                    <label>Solution File (Completed)</label>
+                    <input type="file" id="solution-file" name="solutionFile" required>
+                    <button type="submit">Add Excel Question</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
     <script src="admin.js"></script>
 </body>
 </html>
