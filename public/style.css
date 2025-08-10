@@ -11,7 +11,7 @@
     --text-color: #111827; /* Darker text for better contrast */
     --text-muted: #6b7280;
     --border-color: #e5e7eb;
-    --dark-text-on-btn: #422006;
+    --dark-text-on-btn: #ffffff;
 }
 
 /* 2. Dark Mode Theme (Stays the same) */
@@ -64,7 +64,7 @@ h1, h2, h3, h4, h5, h6 {
     --light-gray: #2e2e2e;
     --text-color: #706363;
     --text-muted: #888888;
-    --dark-text-on-btn: #422006;
+    --dark-text-on-btn: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
     :root {
