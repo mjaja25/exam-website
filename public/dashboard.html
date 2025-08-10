@@ -1,52 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"/>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
 </head>
-<body>
-    <main class="container">
-        <nav>
-            <ul>
-                <li><h1 id="welcome-header">Welcome!</h1></li>
-            </ul>
-            <ul>
-                <li><button id="logout-btn" class="secondary">Logout</button></li>
-            </ul>
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <div class="logo-area">
+            <img src="/logo.png" alt="Logo" class="logo" />
+            <h1 id="welcome-header">Welcome!</h1>
+        </div>
+        <nav class="dashboard-nav">
+            <a href="/admin.html" id="admin-btn" class="nav-button" style="display: none;">Admin Panel</a>
+            <button id="logout-btn" class="nav-button secondary">Logout</button>
         </nav>
+    </header>
 
-        <article>
-            <header>
-                <h2>Start a New Test</h2>
-            </header>
-            <div class="test-links">
-                <button id="start-test-btn">Start Full Test (15 Minutes)</button>
+    <main class="dashboard-content">
+        <div class="card start-test-card">
+            <h2>Proficiency Test</h2>
+            <p>This is a 3-stage test. Each stage is timed for 5 minutes.</p>
+            <button id="start-test-btn">Start Full Test</button>
+        </div>
+
+        <div class="card past-results-card">
+            <h2>Your Past Sessions</h2>
+            <div id="results-summary">
+                <p>Loading your past results...</p>
             </div>
-        </article>
-
-        <article>
-            <header>
-                <h2>Your Past Results</h2>
-            </header>
-            <figure>
-                <table role="grid">
-                    <thead>
-                        <tr>
-                            <th scope="col">Test Type</th>
-                            <th scope="col">Score / Details</th>
-                            <th scope="col">Submitted At</th>
-                            <th scope="col">Submission</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody">
-                        </tbody>
-                </table>
-            </figure>
-        </article>
+        </div>
     </main>
 
     <script src="dashboard.js"></script>

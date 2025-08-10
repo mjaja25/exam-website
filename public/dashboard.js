@@ -1,97 +1,86 @@
 document.addEventListener('DOMContentLoaded', () => {
-     const welcomeHeader = document.getElementById('welcome-header');
-    const resultsBody = document.getElementById('results-tbody');
-    const logoutBtn = document.getElementById('logout-btn');
-    const token = localStorage.getItem('token');
-
-    // --- Dynamic URL Configuration ---
-    // This block automatically detects if you are on localhost or a deployed server.
+    // --- Dynamic URL Config ---
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
-    // --- End of Configuration ---
-
+    
+    // --- Element Grabbing ---
+    const welcomeHeader = document.getElementById('welcome-header');
+    const logoutBtn = document.getElementById('logout-btn');
+    const adminBtn = document.getElementById('admin-btn');
     const startTestBtn = document.getElementById('start-test-btn');
+    const resultsSummary = document.getElementById('results-summary');
+    const token = localStorage.getItem('token');
 
-    startTestBtn.addEventListener('click', () => {
-        if (confirm("You are about to start a 3-stage test. Each stage will have a 5-minute timer. Are you ready?")) {
-            
-            // Create a unique ID for this specific test session
-            const sessionId = 'session_' + Date.now();
-            localStorage.setItem('currentSessionId', sessionId);
-
-            // Redirect to the first test
-            window.location.href = '/typing.html';
-        }
-    });
-        // --- Logout Functionality ---
+    // --- Event Listeners ---
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('token');
         window.location.href = '/login.html';
     });
+    
+    startTestBtn.addEventListener('click', () => {
+        if (confirm("You are about to start a 3-stage test. Are you ready?")) {
+            const sessionId = 'session_' + Date.now();
+            localStorage.setItem('currentSessionId', sessionId);
+            window.location.href = '/typing.html';
+        }
+    });
 
-    // --- Fetch and Display User's Past Results ---
-    async function fetchUserResults() {
+    // --- Main Fetch Function ---
+    async function fetchDashboardData() {
         try {
-            // Use the dynamic URL to make the API call
             const response = await fetch(`${API_BASE_URL}/api/user/dashboard`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await response.json();
 
-            if (response.ok) {
-                // Set the welcome message
-                if (data.user) {
-                    welcomeHeader.textContent = `Welcome, ${data.user.username}!`;
+            if (!response.ok) throw new Error(data.message);
+            
+            // 1. Update Welcome Message
+            if (data.user) {
+                welcomeHeader.textContent = `Welcome, ${data.user.username}!`;
+                // 2. Check for Admin Role and show button
+                if (data.user.role === 'admin') {
+                    adminBtn.style.display = 'inline-block';
                 }
-                displayResults(data.results);
-            } else {
-                throw new Error(data.message);
             }
+            
+            // 3. Display Simplified Past Results
+            displaySimpleResults(data.results);
+
         } catch (error) {
             console.error('Error loading dashboard:', error);
-            resultsBody.innerHTML = `<tr><td colspan="4">Error loading results. Please log in again.</td></tr>`;
         }
     }
+    
+    function displaySimpleResults(results) {
+        // Group results by sessionId
+        const sessions = results.reduce((acc, result) => {
+            acc[result.sessionId] = acc[result.sessionId] || [];
+            acc[result.sessionId].push(result);
+            return acc;
+        }, {});
 
-    // --- Render the Results in the Table ---
-    function displayResults(results) {
-        if (results.length === 0) {
-            resultsBody.innerHTML = `<tr><td colspan="4">You have no submissions yet.</td></tr>`;
+        if (Object.keys(sessions).length === 0) {
+            resultsSummary.innerHTML = '<p>You have no past results.</p>';
             return;
         }
 
-        resultsBody.innerHTML = '';
-        results.forEach(result => {
-            const row = document.createElement('tr');
-            const submittedDate = new Date(result.submittedAt).toLocaleString();
-            let details = '';
-            let submissionLink = '';
+        resultsSummary.innerHTML = ''; // Clear loading message
 
-            switch (result.testType) {
-                case 'Typing':
-                    details = `Score: ${result.score}/20`;
-                    submissionLink = `WPM: ${result.wpm}, Acc: ${result.accuracy}%`;
-                    break;
-                case 'Letter':
-                    details = `Score: ${result.score}/10`;
-                    submissionLink = `<button onclick="alert('Feedback: ${result.feedback.replace(/'/g, "\\'")}')">View Feedback</button>`;
-                    break;
-                case 'Excel':
-                    details = result.score ? `Score: ${result.score}/20` : 'AI Grading...';
-                    // The 'download' attribute ensures it saves with the correct name
-                    submissionLink = `<a href="${result.filePath}" role="button" class="contrast" download>Download</a>`;
-                    break;
-            }
+        for (const sessionId in sessions) {
+            const sessionResults = sessions[sessionId];
+            const totalScore = sessionResults.reduce((sum, r) => sum + (r.score || 0), 0);
+            const sessionDate = new Date(sessionResults[0].submittedAt).toLocaleString();
 
-            row.innerHTML = `
-                <td>${result.testType}</td>
-                <td>${details}</td>
-                <td>${submittedDate}</td>
-                <td>${submissionLink}</td>
+            const sessionDiv = document.createElement('div');
+            sessionDiv.className = 'session';
+            sessionDiv.innerHTML = `
+                <p><strong>Date:</strong> ${sessionDate}</p>
+                <h4>Total Score: ${totalScore} / 50</h4>
             `;
-            resultsBody.appendChild(row);
-        });
+            resultsSummary.appendChild(sessionDiv);
+        }
     }
 
-    fetchUserResults();
+    fetchDashboardData();
 });

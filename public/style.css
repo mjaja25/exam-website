@@ -230,3 +230,109 @@ body.auth-page {
     position: relative; /* Add this */
     z-index: 10;      /* Add this to place it on top */
 }
+
+
+
+/* --- DASHBOARD PAGE STYLES --- */
+body.dashboard-page {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--card-background);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo-area .logo {
+    width: 40px;
+    height: 40px;
+}
+
+.logo-area h1 {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.dashboard-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-color);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-button.secondary {
+    border-color: var(--text-muted);
+}
+
+.nav-button:hover {
+    background-color: var(--border-color);
+}
+
+.dashboard-content {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.card {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.start-test-card {
+    text-align: center;
+}
+
+.start-test-card button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.start-test-card button:hover {
+    box-shadow: 0 0 15px var(--primary-yellow);
+    transform: translateY(-2px);
+}
+
+.past-results-card #results-summary .session {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.past-results-card #results-summary .session:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
