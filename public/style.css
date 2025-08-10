@@ -587,6 +587,8 @@ body.test-page {
     font-size: 1.2rem;
     line-height: 1.8;
     margin-bottom: 1.5rem;
+    max-height: 250px; /* Set a maximum height for the passage box */
+    overflow-y: auto;
 }
 
 .test-page textarea {

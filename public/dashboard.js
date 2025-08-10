@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const proceedBtn = document.getElementById('proceed-btn');
 
 
-    
+
     // --- Modal Logic ---
     startTestBtn.addEventListener('click', () => {
         instructionsModal.style.display = 'flex';
@@ -43,13 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/login.html';
     });
     
-    startTestBtn.addEventListener('click', () => {
-        if (confirm("You are about to start a 3-stage test. Are you ready?")) {
-            const sessionId = 'session_' + Date.now();
-            localStorage.setItem('currentSessionId', sessionId);
-            window.location.href = '/typing.html';
-        }
-    });
+    // startTestBtn.addEventListener('click', () => {
+    //     if (confirm("You are about to start a 3-stage test. Are you ready?")) {
+    //         const sessionId = 'session_' + Date.now();
+    //         localStorage.setItem('currentSessionId', sessionId);
+    //         window.location.href = '/typing.html';
+    //     }
+    // });
 
     // --- Main Fetch Function ---
     async function fetchDashboardData() {
