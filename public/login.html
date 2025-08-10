@@ -1,36 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log In - Proficiency Test</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"/>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <main class="container">
-        <article>
+<body class="auth-page">
+    <div class="background-shapes"></div>
+    <main class="auth-container">
+        <div class="auth-card">
             <div class="logo-container">
-                <img src="/h_logo_transparent.svg" alt="Logo" class="logo">
+                <img src="/logo.png" alt="Logo" class="logo">
             </div>
-            <hgroup>
-                <h1>Log In</h1>
-                <h2>Please enter your credentials to continue.</h2>
-            </hgroup>
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Enter your credentials to access your account.</p>
+            
             <form id="login-form">
-                <input type="email" id="email" name="email" placeholder="Email" required>
-                <input type="password" id="password" name="password" placeholder="Password" required>
-                <div class="social-login">
-                <hr>
-                <a href="/api/auth/google" role="button" class="contrast">
-                    Sign in with Google
-                </a>
+                <div class="input-group">
+                    <input type="email" id="email" name="email" required>
+                    <label for="email">Email</label>
                 </div>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" required>
+                    <label for="password">Password</label>
+                </div>
+                <p id="error-message" class="error-text"></p>
                 <button type="submit">Log In</button>
             </form>
-            <p id="error-message" class="error-text"></p>
-            <p>New here? <a href="/signup.html"><strong>Create an account</strong></a></p>
-        </article>
+
+            <div class="separator">or</div>
+
+            <a href="/api/auth/google" class="social-button google">
+                <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo">
+                Sign in with Google
+            </a>
+
+            <p class="footer-link">
+                New here? <a href="/signup.html">Create an account</a>
+            </p>
+        </div>
     </main>
     <script src="login.js"></script>
 </body>
