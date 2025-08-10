@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let testInProgress = false;
     let currentPassage = '';
 
+    // --- Refresh-blocking logic ---
+    const handleBeforeUnload = (event) => {
+        event.preventDefault();
+        event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     // --- Main Test Functions ---
     async function loadNewPassage() {
         try {
@@ -66,13 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userChars.length < passageChars.length) {
             const nextCharSpan = passageChars[userChars.length];
             nextCharSpan.classList.add('current');
-            // --- IMPROVED AUTO-SCROLL LOGIC ---
-            // Checks if the cursor's position is outside the visible area of the passage box
-            if (nextCharSpan.offsetTop > passageDisplayElement.scrollTop + passageDisplayElement.clientHeight - 50) {
-                // Scrolls just enough to bring the next line into view
-                passageDisplayElement.scrollTop = nextCharSpan.offsetTop - passageDisplayElement.clientHeight + 50;
-            }
-            // --- END OF IMPROVEMENT ---
+            // --- FINAL, CORRECTED AUTO-SCROLL LOGIC ---
+            // This tells the browser to smoothly scroll the element into the visible area if it's not already.
+            nextCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // --- END OF FIX ---
         }
 
         // Auto-submit if completed
