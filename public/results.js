@@ -33,6 +33,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatExcelFeedback(feedback) {
+        // Splits the feedback string by "Instruction X:" and filters out empty parts
+        const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
+
+        if (points.length > 1) {
+            let formattedHtml = '<ul>';
+            points.forEach((point, index) => {
+                // Re-add the instruction number and format as a list item
+                formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
+            });
+            formattedHtml += '</ul>';
+            return formattedHtml;
+        }
+        
+        // If the feedback isn't in the expected format, return it as a simple paragraph
+        return `<p>${feedback}</p>`;
+    }
+
     function displayResults(results) {
         const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
         const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
@@ -47,6 +65,52 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update Total Score Circle
         totalScoreCircle.textContent = `${totalScore} / 50`;
+
+        // --- NEW RADAR CHART LOGIC ---
+        const chartCanvas = document.getElementById('skills-chart-canvas');
+        new Chart(chartCanvas, {
+            type: 'radar',
+            data: {
+                labels: ['Typing Speed', 'Letter Writing', 'Excel Skills'],
+                datasets: [{
+                    label: 'Your Score',
+                    // We normalize the scores to be out of 100 for the chart
+                    data: [
+                        (typingResult.score / 20) * 100, 
+                        (letterResult.score / 10) * 100, 
+                        (excelResult.score / 20) * 100
+                    ],
+                    fill: true,
+                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                    borderColor: 'rgb(33, 150, 243)',
+                    pointBackgroundColor: 'rgb(33, 150, 243)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(33, 150, 243)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                        pointLabels: { font: { size: 14 } },
+                        ticks: {
+                            backdropColor: 'rgba(255, 255, 255, 0.75)',
+                            stepSize: 20
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // Hide the dataset label "Your Score"
+                    }
+                }
+            }
+        });
+        // --- END OF RADAR CHART LOGIC ---
 
         // Update Skills Breakdown
         skillsBreakdown.innerHTML = `
@@ -66,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         excelResultsDiv.innerHTML = `
             <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
-            <div class="feedback">${excelResult.feedback}</div>
+            <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
         `;
 
         localStorage.removeItem('currentSessionId');
