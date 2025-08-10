@@ -15,12 +15,7 @@ let timerInterval;
 let testInProgress = false;
 let currentQuestionId = null;
 
-// --- Refresh-blocking logic ---
-const handleBeforeUnload = (event) => {
-    event.preventDefault();
-    event.returnValue = '';
-    };
-window.addEventListener('beforeunload', handleBeforeUnload);
+
 
 // --- NEW: Function to load a random Excel question ---
 async function loadRandomExcelQuestion() {
@@ -58,6 +53,17 @@ async function loadRandomExcelQuestion() {
 
 // Starts the timer
 function startTimer() {
+
+    
+    // --- Refresh-blocking logic ---
+    const handleBeforeUnload = (event) => {
+        event.preventDefault();
+        event.returnValue = '';
+        };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+
+
     if (!testInProgress) {
         testInProgress = true;
         timerInterval = setInterval(() => {
