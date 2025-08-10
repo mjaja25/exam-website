@@ -608,3 +608,11 @@ body.test-page {
     border-color: var(--primary-yellow);
     box-shadow: 0 0 10px var(--primary-yellow);
 }
+/* In public/style.css */
+
+/* Blinking cursor for the current character in the typing test */
+.passage-card span.current {
+    background-color: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    border-radius: 2px;
+}

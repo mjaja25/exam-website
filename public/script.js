@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Dynamic URL Configuration ---
+    // --- Dynamic URL & Element Grabbing ---
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
-
-    // --- Element Grabbing ---
     const timerElement = document.getElementById('timer');
     const wpmElement = document.getElementById('wpm');
     const accuracyElement = document.getElementById('accuracy');
@@ -11,19 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInputElement = document.getElementById('user-input');
 
     // --- State Management ---
-    let timeRemaining = 300; // 5 minutes in seconds
+    let timeRemaining = 300;
     let timerInterval;
     let testInProgress = false;
     let currentPassage = '';
 
-    // --- Refresh-blocking logic ---
-    const handleBeforeUnload = (event) => {
-        event.preventDefault();
-        event.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // --- Functions ---
+    // --- Main Test Functions ---
     async function loadNewPassage() {
         try {
             const token = localStorage.getItem('token');
@@ -31,20 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Could not fetch passage.');
-            
             const passageData = await response.json();
             currentPassage = passageData.content;
 
-            passageDisplayElement.innerHTML = '';
+            passageDisplayElement.innerHTML = ''; // Clear previous content
             currentPassage.split('').forEach(char => {
                 const charSpan = document.createElement('span');
                 charSpan.innerText = char;
                 passageDisplayElement.appendChild(charSpan);
             });
+            // Set the first character as 'current'
+            passageDisplayElement.querySelector('span').classList.add('current');
             userInputElement.value = null;
             userInputElement.disabled = false;
         } catch (error) {
-            passageDisplayElement.textContent = `Error: ${error.message}. Please add passages in the admin panel.`;
+            passageDisplayElement.textContent = `Error: ${error.message}`;
             userInputElement.disabled = true;
         }
     }
@@ -52,8 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleInput() {
         const passageChars = passageDisplayElement.querySelectorAll('span');
         const userChars = userInputElement.value.split('');
+
         passageChars.forEach((charSpan, index) => {
             const userChar = userChars[index];
+            
+            // Remove 'current' class from all
+            charSpan.classList.remove('current');
+
             if (userChar == null) {
                 charSpan.classList.remove('correct', 'incorrect');
             } else if (userChar === charSpan.innerText) {
@@ -65,6 +62,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Add 'current' class to the next character to be typed
+        if (userChars.length < passageChars.length) {
+            const nextCharSpan = passageChars[userChars.length];
+            nextCharSpan.classList.add('current');
+            // Auto-scroll logic
+            if (nextCharSpan.getBoundingClientRect().top > passageDisplayElement.getBoundingClientRect().bottom - 20) {
+                passageDisplayElement.scrollTop = nextCharSpan.offsetTop;
+            }
+        }
+
+        // Auto-submit if completed
         if (userChars.length === passageChars.length) {
             endTest();
         }
@@ -133,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     userInputElement.addEventListener('input', () => {
-        startTimer();
+        if (!testInProgress) startTimer();
         handleInput();
     });
 
