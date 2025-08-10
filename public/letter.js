@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userInputElement.contentEditable = false; // Disable editing
         submitBtn.disabled = true;
 
-        const letterContent = userInputElement.innerHTML; // Get HTML content
+        const letterContent = userInputElement.innerText; // Gets ONLY the plain text
         const sessionId = localStorage.getItem('currentSessionId');
 
         try {

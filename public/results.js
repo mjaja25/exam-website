@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsHeader = document.getElementById('results-header');
     const chartCanvas = document.getElementById('skills-chart');
     const shareBtn = document.getElementById('share-btn');
+    const totalScoreElement = document.getElementById('total-score');
+    const progressCircle = document.getElementById('progress-circle');
+    const percentileRankElement = document.getElementById('percentile-rank');
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
 
@@ -20,15 +23,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error(results.message);
             
             displayResults(results);
+            fetchPercentile(sessionId);
 
         } catch (error) {
             resultsDetails.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
 
+    function formatExcelFeedback(feedback) {
+        // Splits the feedback by numbers (e.g., "1.", "2.") and formats it as a list
+        const points = feedback.split(/\d\./).filter(p => p.trim() !== '');
+        if (points.length > 1) {
+            return '<ul>' + points.map(point => `<li>${point.trim()}</li>`).join('') + '</ul>';
+        }
+        return `<p>${feedback}</p>`; // Return as paragraph if not formatted as a list
+    }
+
     function displayResults(results) {
         resultsDetails.innerHTML = '';
-        const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0 };
+        const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
         const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
         
@@ -47,18 +60,21 @@ document.addEventListener('DOMContentLoaded', () => {
             headerTitle.style.color = '#f87171';
         }
 
-        // 2. Create Skills Chart
+        // 2. Create Readable Skills Chart
         new Chart(chartCanvas, {
             type: 'radar',
             data: {
                 labels: ['Speed (Typing)', 'Comprehension (Letter)', 'Technical (Excel)'],
                 datasets: [{
                     label: 'Your Skills',
-                    data: [typingResult.score, letterResult.score * 2, excelResult.score], // Scale letter score to match others
+                    data: [typingResult.score, letterResult.score * 2, excelResult.score],
                     fill: true,
                     backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                    borderColor: 'rgb(245, 158, 11)',
-                    pointBackgroundColor: 'rgb(245, 158, 11)',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(245, 158, 11, 1)'
                 }]
             },
             options: {
@@ -66,7 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     r: {
                         angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
                         grid: { color: 'rgba(255, 255, 255, 0.2)' },
-                        pointLabels: { font: { size: 14 }, color: '#e0e0e0' },
+                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
+                        ticks: {
+                            color: 'var(--text-muted)',
+                            backdropColor: 'var(--card-background)',
+                            stepSize: 5 // Increase gap between numbers
+                        },
                         suggestedMin: 0,
                         suggestedMax: 20
                     }
@@ -79,26 +100,51 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsDetails.innerHTML = `
             <div class="result-detail-card">
                 <h4>Typing Test: ${typingResult.score} / 20</h4>
-                <p>WPM: ${typingResult.wpm}, Accuracy: ${typingResult.accuracy || 'N/A'}%</p>
+                <p>WPM: ${typingResult.wpm}, Accuracy: ${typingResult.accuracy}%</p>
             </div>
             <div class="result-detail-card">
                 <h4>Letter Test: ${letterResult.score} / 10</h4>
-                <p>Feedback: ${letterResult.feedback}</p>
+                <p><strong>Feedback:</strong> ${letterResult.feedback}</p>
             </div>
             <div class="result-detail-card">
                 <h4>Excel Test: ${excelResult.score} / 20</h4>
-                <p>Feedback: ${excelResult.feedback}</p>
+                <div><strong>Feedback:</strong> ${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
         `;
 
-        // 4. Setup Share Button
+        // 4. Update Total Score and Progress Circle
+        totalScoreElement.textContent = totalScore;
+        const degree = (totalScore / 50) * 360;
+        setTimeout(() => {
+            progressCircle.style.background = `conic-gradient(var(--primary-yellow) ${degree}deg, var(--border-color) 0deg)`;
+        }, 100);
+        
+        // 5. Setup Share Button for LinkedIn
         shareBtn.addEventListener('click', () => {
-            const shareText = `I just scored ${totalScore}/50 on the Proficiency Test! Check it out.`;
-            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${window.location.origin}`;
+            const shareText = `I scored ${totalScore}/50 on the NSSB Computer Proficiency Test!`;
+            const appUrl = window.location.origin;
+            // Facebook's sharer URL
+            const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent(shareText)}`;
             window.open(shareUrl, '_blank');
         });
 
         localStorage.removeItem('currentSessionId');
+    }
+
+    async function fetchPercentile(sessionId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/results/percentile/${sessionId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                percentileRankElement.innerHTML = `You performed better than <strong>${data.percentile}%</strong> of other test-takers.`;
+            } else {
+                percentileRankElement.textContent = 'Could not calculate percentile.';
+            }
+        } catch (error) {
+            percentileRankElement.textContent = 'Could not calculate percentile.';
+        }
     }
 
     fetchSessionResults();

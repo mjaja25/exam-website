@@ -818,6 +818,10 @@ body.results-page {
     color: var(--text-color);
     font-family: 'Inter', sans-serif;
     padding: 2rem;
+    display: grid; /* Add this */
+    place-items: center; /* Add this */
+    min-height: 100vh; /* Add this */
+    box-sizing: border-box; /* Add this */
 }
 
 .results-card-main {
@@ -863,4 +867,19 @@ body.results-page {
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
+}
+
+/* In public/style.css */
+
+.results-footer button#share-btn.facebook {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #1877F2; /* Official Facebook Blue */
+    color: white;
+}
+
+.results-footer button#share-btn.facebook:hover {
+    background-color: #166fe5; /* Slightly darker blue */
+    box-shadow: 0 0 15px rgba(24, 119, 242, 0.5);
 }
