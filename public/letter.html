@@ -1,38 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Proficiency Test - Typing</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Letter Test</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
+    <script src="/test-ui.js" defer></script>
 </head>
-<body>
-
-    <div class="test-container">
-        <h1>Letter Writing Test</h1>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <span>Time Left</span>
-                <p id="timer">5:00</p>
+<body class="test-page">
+    <!-- Main Test Container -->
+    <main class="test-container">
+        <!-- Unified Header with Progress Bar -->
+        <header class="test-header">
+            <hgroup>
+                <h2 id="stage-title">Stage 2 of 3: Letter Test</h2>
+                <p>Compose a formal letter based on the prompt below.</p>
+            </hgroup>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
-        </div>
-
-        <header>
-            <p id="question-display">Loading question...</p>
         </header>
 
-        <textarea id="user-input" class="input-area" placeholder="Start typing here..."></textarea>
-        <button id="submit-btn" class="submit-button">Submit Test</button>
-        
-        <div id="results-screen" class="hidden">
-            <h2>Time's Up!</h2>
-            <p>Well done. Here are your results.</p>
-            <button id="restart-btn">Take Again</button>
+        <!-- Question Display -->
+        <div class="question-card">
+            <strong>Prompt:</strong>
+            <p id="question-display">Loading question...</p>
         </div>
-    </div>
+
+        <!-- Rich Text Editor -->
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <button id="bold-btn" class="toolbar-btn"><b>B</b></button>
+                <button id="italic-btn" class="toolbar-btn"><i>I</i></button>
+                <button id="underline-btn" class="toolbar-btn"><u>U</u></button>
+            </div>
+            <div id="user-input" class="text-editor" contenteditable="true" spellcheck="false"></div>
+        </div>
+        
+        <!-- Timer and Submit Button -->
+        <footer class="test-footer">
+            <div class="timer-display">
+                <span>Time Left:</span>
+                <strong id="timer">5:00</strong>
+            </div>
+            <button id="submit-btn" class="submit-btn-main">Submit & Proceed</button>
+        </footer>
+    </main>
 
     <script src="letter.js"></script>
 </body>

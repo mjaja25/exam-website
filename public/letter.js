@@ -8,7 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInputElement = document.getElementById('user-input');
     const submitBtn = document.getElementById('submit-btn');
     const questionDisplay = document.getElementById('question-display');
-    
+    const boldBtn = document.getElementById('bold-btn');
+    const italicBtn = document.getElementById('italic-btn');
+    const underlineBtn = document.getElementById('underline-btn');
+
     // --- State Management ---
     const token = localStorage.getItem('token');
     let currentQuestionId = null;
@@ -60,10 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function endTest() {
         window.removeEventListener('beforeunload', handleBeforeUnload); // Disable refresh warning
         clearInterval(timerInterval);
-        userInputElement.disabled = true;
+        userInputElement.contentEditable = false; // Disable editing
         submitBtn.disabled = true;
 
-        const letterContent = userInputElement.value;
+        const letterContent = userInputElement.innerHTML; // Get HTML content
         const sessionId = localStorage.getItem('currentSessionId');
 
         try {
@@ -85,6 +88,17 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('An error occurred while submitting your letter. Please try again.');
         }
     }
+
+    // --- Editor Toolbar Logic ---
+    boldBtn.addEventListener('click', () => {
+        document.execCommand('bold', false, null);
+    });
+    italicBtn.addEventListener('click', () => {
+        document.execCommand('italic', false, null);
+    });
+    underlineBtn.addEventListener('click', () => {
+        document.execCommand('underline', false, null);
+    });
 
     // --- Initial Load & Event Listeners ---
     loadRandomQuestion();

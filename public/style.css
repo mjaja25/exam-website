@@ -633,3 +633,97 @@ body.test-page {
     color: var(--dark-text-on-btn);
     border-radius: 2px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* In public/style.css */
+
+/* --- LETTER TEST PAGE STYLES --- */
+.question-card {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.editor-container {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-background);
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toolbar-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background-color: transparent;
+    color: var(--text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.toolbar-btn:hover {
+    background-color: var(--border-color);
+}
+
+.text-editor {
+    min-height: 250px;
+    padding: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-color);
+    outline: none;
+}
+
+.test-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+.timer-display {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+}
+
+.timer-display strong {
+    color: var(--primary-yellow);
+    font-variant-numeric: tabular-nums;
+}
+
+.submit-btn-main {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn-main:hover {
+    box-shadow: 0 0 15px var(--primary-yellow);
+    transform: translateY(-2px);
+}
