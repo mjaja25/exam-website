@@ -26,6 +26,7 @@ const TestResult = require('./models/TestResult');
 const Passage = require('./models/Passage');
 const LetterQuestion = require('./models/LetterQuestion');
 const ExcelQuestion = require('./models/ExcelQuestion');
+const Feedback = require('./models/Feedback');
 
 // -------------------
 //  INITIALIZATIONS & CONFIGURATIONS
@@ -495,6 +496,28 @@ app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, upload.f
         res.status(500).json({ message: 'Server error adding Excel question.' });
     }
 });
+
+
+// FEEDBACK ROUTE ---
+
+app.post('/api/feedback', authMiddleware, async (req, res) => {
+    try {
+        const { feedbackType, message } = req.body;
+        const newFeedback = new Feedback({
+            user: req.userId,
+            feedbackType,
+            message
+        });
+        await newFeedback.save();
+        res.status(201).json({ message: 'Feedback submitted successfully. Thank you!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error. Please try again.' });
+    }
+});
+
+//  END OF FEEDBACK ===
+
+
 
 // -------------------
 //  GLOBAL ERROR HANDLER & SERVER START

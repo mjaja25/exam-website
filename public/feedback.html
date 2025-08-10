@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"/>
+    <link rel="stylesheet" href="style.css">
+    <script src="/auth.js" defer></script>
+</head>
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <h1>Provide Feedback</h1>
+        <nav class="dashboard-nav">
+            <a href="/dashboard.html" class="nav-button">Back to Dashboard</a>
+        </nav>
+    </header>
+    <main class="container">
+        <article>
+            <p>We appreciate you taking the time to provide feedback to help us improve.</p>
+            <form id="feedback-form">
+                <label for="feedback-type">Feedback Type</label>
+                <select id="feedback-type" required>
+                    <option value="suggestion">Suggestion</option>
+                    <option value="bug_report">Bug Report</option>
+                    <option value="general_feedback">General Feedback</option>
+                </select>
+
+                <label for="feedback-message">Your Message</label>
+                <textarea id="feedback-message" rows="6" required></textarea>
+
+                <button type="submit">Submit Feedback</button>
+            </form>
+        </article>
+    </main>
+    <script src="feedback.js"></script>
+</body>
+</html>
