@@ -224,15 +224,23 @@ app.get('/api/auth/google/callback', passport.authenticate('google', { failureRe
 // --- User-Specific Routes ---
 app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     try {
+        // Find the user making the request
         const user = await User.findById(req.userId);
+        
+        // Find the results for that user
         let results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
+
+        // Modify the filePath for any Excel results before sending
         results = results.map(r => {
             if (r.testType === 'Excel' && r.filePath) {
                 r.filePath = createDownloadUrl(r.filePath);
             }
             return r;
         });
+        
+        // Send back both the user details and their modified results
         res.json({ user: { username: user.username }, results });
+
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching dashboard data.' });
     }
