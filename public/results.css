@@ -22,8 +22,9 @@ body {
 .action-btn.primary { background-color: var(--primary-yellow); color: var(--dark-text-on-btn); border-color: var(--primary-yellow); }
 .skills-layout {
     display: flex;
-    align-items: center;
+    align-items: center; /* This vertically aligns the chart and the text */
     gap: 2rem;
+    flex-wrap: wrap; /* Allows items to wrap on smaller screens */
 }
 .chart-container {
     flex: 1;
@@ -43,13 +44,23 @@ body {
     margin-top: 20px;
 }
 
-/* Style all links in the footer to look like buttons */
-.footer-actions a[role="button"] {
+.footer-actions .action-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
     text-decoration: none;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    background-color: var(--card-background);
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
-/* Style the primary action button with the yellow theme */
-.footer-actions a[role="button"]:not(.secondary) {
+.footer-actions .action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.footer-actions .action-btn.primary {
     background-color: var(--primary-yellow);
     color: var(--dark-text-on-btn);
     border-color: var(--primary-yellow);
