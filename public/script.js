@@ -66,10 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userChars.length < passageChars.length) {
             const nextCharSpan = passageChars[userChars.length];
             nextCharSpan.classList.add('current');
-            // Auto-scroll logic
-            if (nextCharSpan.getBoundingClientRect().top > passageDisplayElement.getBoundingClientRect().bottom - 20) {
-                passageDisplayElement.scrollTop = nextCharSpan.offsetTop;
+            // --- IMPROVED AUTO-SCROLL LOGIC ---
+            // Checks if the cursor's position is outside the visible area of the passage box
+            if (nextCharSpan.offsetTop > passageDisplayElement.scrollTop + passageDisplayElement.clientHeight - 50) {
+                // Scrolls just enough to bring the next line into view
+                passageDisplayElement.scrollTop = nextCharSpan.offsetTop - passageDisplayElement.clientHeight + 50;
             }
+            // --- END OF IMPROVEMENT ---
         }
 
         // Auto-submit if completed
