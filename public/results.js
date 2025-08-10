@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
 
-    const chartCanvas = document.getElementById('skills-chart-canvas');
+    
 
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalScoreCircle.textContent = `${totalScore} / 50`;
 
         // --- NEW RADAR CHART LOGIC ---
+        const chartCanvas = document.getElementById('skills-chart-canvas');
         new Chart(chartCanvas, {
             type: 'radar',
             data: {
@@ -82,12 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         (excelResult.score / 20) * 100
                     ],
                     fill: true,
-                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                    borderColor: 'rgb(33, 150, 243)',
-                    pointBackgroundColor: 'rgb(33, 150, 243)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgb(33, 150, 243)'
+                    backgroundColor: 'rgba(214, 168, 150, 0.2)',
+                    borderColor: 'rgba(207, 140, 76, 1)',
+                    pointBackgroundColor: 'rgba(255, 178, 63, 1)',
+                    pointBorderColor: '#ceb172ff',
+                    pointHoverBackgroundColor: '#ebb7b7ff',
+                    pointHoverBorderColor: 'rgba(250, 229, 44, 1)'
                 }]
             },
             options: {
@@ -114,11 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- END OF RADAR CHART LOGIC ---
 
         // Update Skills Breakdown
-        skillsBreakdown.innerHTML = `
+        const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
+        skillsTextBreakdown.innerHTML = `
             <p>⌨ Typing: <strong>${typingResult.score} / 20</strong></p>
             <p>✉ Letter: <strong>${letterResult.score} / 10</strong></p>
             <p>📊 Excel: <strong>${excelResult.score} / 20</strong></p>
         `;
+
 
         // Populate Detailed Cards
         typingResultsDiv.innerHTML = `

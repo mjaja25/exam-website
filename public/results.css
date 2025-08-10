@@ -20,5 +20,17 @@ body {
 .footer-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 20px; }
 .action-btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; border: 1px solid var(--border-color); color: var(--text-color); background-color: var(--card-background); cursor: pointer; }
 .action-btn.primary { background-color: var(--primary-yellow); color: var(--dark-text-on-btn); border-color: var(--primary-yellow); }
+.skills-layout {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+.chart-container {
+    flex: 1;
+    max-width: 300px;
+}
+.skills-text {
+    flex: 1;
+}
 
 @media (max-width: 768px) { .score-section { flex-direction: column; } }
