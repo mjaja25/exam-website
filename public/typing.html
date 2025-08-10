@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Proficiency Test - Typing</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Test</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
+    <script src="/test-ui.js" defer></script>
 </head>
-<body>
-
-    <div class="test-container">
-        <h1>Typing Speed Test</h1>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <span>Time Left</span>
-                <p id="timer">5:00</p>
+<body class="test-page">
+    <main class="test-container">
+        <header class="test-header">
+            <hgroup>
+                <h2 id="stage-title">Stage 1 of 3: Typing Test</h2>
+                <p>Your test is in progress. Do not close this window.</p>
+            </hgroup>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
+        </header>
+
+        <div class="stats-bar">
             <div class="stat-item">
                 <span>WPM</span>
                 <p id="wpm">0</p>
@@ -26,20 +29,18 @@
                 <span>Accuracy</span>
                 <p id="accuracy">100%</p>
             </div>
+            <div class="stat-item">
+                <span>Time Left</span>
+                <p id="timer">5:00</p>
+            </div>
         </div>
 
-        <div id="passage-display" class="passage">
-            This is a sample passage. The actual text for the test will be loaded here using JavaScript. Click on the area below to start the test.
+        <div id="passage-display" class="passage-card">
+            Loading passage...
         </div>
 
-        <textarea id="user-input" class="input-area" placeholder="Start typing here..."></textarea>
-
-        <div id="results-screen" class="hidden">
-            <h2>Time's Up!</h2>
-            <p>Well done. Here are your results.</p>
-            <button id="restart-btn">Take Again</button>
-        </div>
-    </div>
+        <textarea id="user-input" rows="5" placeholder="Start typing here to begin the test..."></textarea>
+    </main>
 
     <script src="script.js"></script>
 </body>

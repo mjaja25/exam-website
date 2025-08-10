@@ -520,3 +520,89 @@ body.admin-page {
     box-shadow: 0 0 15px var(--primary-yellow);
     transform: translateY(-2px);
 }
+
+
+
+
+
+
+
+
+
+
+
+/* In public/style.css */
+
+/* --- TEST PAGE STYLES --- */
+body.test-page {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to top */
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.test-container {
+    width: 100%;
+    max-width: 800px;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.stats-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 1rem 0;
+    margin-bottom: 1.5rem;
+    background-color: var(--background-color);
+    border-radius: 8px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item span {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.stat-item p {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-yellow);
+    margin: 0.25rem 0 0 0;
+}
+
+.passage-card {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.test-page textarea {
+    width: 100%;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    resize: none;
+    box-sizing: border-box;
+}
+
+.test-page textarea:focus {
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 10px var(--primary-yellow);
+}
