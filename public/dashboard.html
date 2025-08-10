@@ -35,5 +35,38 @@
     </main>
 
     <script src="dashboard.js"></script>
+
+    <div id="instructions-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <header>
+                <h2>Exam Instructions</h2>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </header>
+            <section>
+                <h3>General Rules</h3>
+                <ul>
+                    <li>The exam consists of 3 stages: Typing, Letter, and Excel.</li>
+                    <li>Each stage is timed for 5 minutes.</li>
+                    <li>Once you start, you cannot pause the test.</li>
+                    <li>Refreshing or closing the page is disabled during the test.</li>
+                </ul>
+
+                <hr>
+
+                <h4>1. Typing Test (20 Marks)</h4>
+                <p>You must achieve at least 35 WPM with 95% accuracy to qualify. Your final score is based on your speed and precision.</p>
+
+                <h4>2. Letter Test (10 Marks)</h4>
+                <p>You will be given a prompt to write a formal letter. An AI will grade your response on its format, content, and grammar.</p>
+
+                <h4>3. Excel Test (20 Marks)</h4>
+                <p>You will download an Excel file, complete the tasks inside, and re-upload it. An AI will grade your submission against the correct solution.</p>
+            </section>
+            <footer>
+                <button id="proceed-btn">I Understand, Start the Test</button>
+            </footer>
+        </div>
+    </div>
+    
 </body>
 </html>

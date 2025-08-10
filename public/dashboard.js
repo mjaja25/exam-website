@@ -10,6 +10,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTestBtn = document.getElementById('start-test-btn');
     const resultsSummary = document.getElementById('results-summary');
     const token = localStorage.getItem('token');
+    const instructionsModal = document.getElementById('instructions-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const proceedBtn = document.getElementById('proceed-btn');
+
+
+    
+    // --- Modal Logic ---
+    startTestBtn.addEventListener('click', () => {
+        instructionsModal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        instructionsModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    });
+
+    // --- Proceed Button Logic ---
+    proceedBtn.addEventListener('click', () => {
+        const sessionId = 'session_' + Date.now();
+        localStorage.setItem('currentSessionId', sessionId);
+        window.location.href = '/typing.html';
+    });
+
+
+
 
     // --- Event Listeners ---
     logoutBtn.addEventListener('click', () => {
