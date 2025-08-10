@@ -2,13 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Dynamic URL & Element Grabbing ---
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
-    const resultsDetails = document.getElementById('results-details');
-    const resultsHeader = document.getElementById('results-header');
-    const chartCanvas = document.getElementById('skills-chart');
-    const shareBtn = document.getElementById('share-btn');
-    const totalScoreElement = document.getElementById('total-score');
-    const progressCircle = document.getElementById('progress-circle');
+    
+    const resultsTitle = document.getElementById('results-title');
+    const totalScoreCircle = document.getElementById('total-score-circle');
     const percentileRankElement = document.getElementById('percentile-rank');
+    const skillsBreakdown = document.getElementById('skills-breakdown');
+    
+    const typingResultsDiv = document.getElementById('typing-results');
+    const letterResultsDiv = document.getElementById('letter-results');
+    const excelResultsDiv = document.getElementById('excel-results');
+
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
 
@@ -26,116 +29,45 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchPercentile(sessionId);
 
         } catch (error) {
-            resultsDetails.innerHTML = `<p>Error loading results: ${error.message}</p>`;
+            console.error("Error fetching results:", error);
         }
-    }
-
-    function formatExcelFeedback(feedback) {
-        // Splits the feedback string by "Instruction X:" and filters out empty parts
-        const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
-
-        if (points.length > 1) {
-            let formattedHtml = '<ul>';
-            points.forEach((point, index) => {
-                // Re-add the instruction number and format as a list item
-                formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
-            });
-            formattedHtml += '</ul>';
-            return formattedHtml;
-        }
-        
-        // If the feedback isn't in the expected format, return it as a simple paragraph
-        return `<p>${feedback}</p>`;
     }
 
     function displayResults(results) {
-        resultsDetails.innerHTML = '';
         const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
         const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
         
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
-        // 1. Update Dynamic Header
-        const headerTitle = resultsHeader.querySelector('h2');
-        if (totalScore >= 40) {
-            headerTitle.textContent = 'Excellent Performance!';
-            headerTitle.style.color = '#4ade80';
-        } else if (totalScore >= 25) {
-            headerTitle.textContent = 'Great Effort!';
-            headerTitle.style.color = '#f59e0b';
-        } else {
-            headerTitle.textContent = 'Keep Practicing!';
-            headerTitle.style.color = '#f87171';
-        }
-
-        // 2. Create Readable Skills Chart
-        new Chart(chartCanvas, {
-            type: 'radar',
-            data: {
-                labels: ['Speed (Typing)', 'Comprehension (Letter)', 'Technical (Excel)'],
-                datasets: [{
-                    label: 'Your Skills',
-                    data: [typingResult.score, letterResult.score * 2, excelResult.score],
-                    fill: true,
-                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                    borderColor: 'rgba(245, 158, 11, 1)',
-                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(245, 158, 11, 1)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
-                        grid: { color: 'rgba(255, 255, 255, 0.2)' },
-                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
-                        ticks: {
-                            color: 'var(--text-muted)',
-                            backdropColor: 'var(--card-background)',
-                            stepSize: 5 // Increase gap between numbers
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 20
-                    }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
+        // Update Header Title based on score
+        if (totalScore >= 40) resultsTitle.textContent = 'Excellent Performance!';
+        else if (totalScore >= 25) resultsTitle.textContent = 'Great Effort!';
+        else resultsTitle.textContent = 'Keep Practicing!';
         
-        // 3. Display Detailed Breakdown
-        resultsDetails.innerHTML = `
-            <div class="result-detail-card">
-                <h4>Typing Test: ${typingResult.score} / 20</h4>
-                <p>WPM: ${typingResult.wpm}, Accuracy: ${typingResult.accuracy}%</p>
-            </div>
-            <div class="result-detail-card">
-                <h4>Letter Test: ${letterResult.score} / 10</h4>
-                <p><strong>Feedback:</strong> ${letterResult.feedback}</p>
-            </div>
-            <div class="result-detail-card">
-                <h4>Excel Test: ${excelResult.score} / 20</h4>
-                <div><strong>Feedback:</strong> ${formatExcelFeedback(excelResult.feedback)}</div>
-            </div>
+        // Update Total Score Circle
+        totalScoreCircle.textContent = `${totalScore} / 50`;
+
+        // Update Skills Breakdown
+        skillsBreakdown.innerHTML = `
+            <p>⌨ Typing: <strong>${typingResult.score} / 20</strong></p>
+            <p>✉ Letter: <strong>${letterResult.score} / 10</strong></p>
+            <p>📊 Excel: <strong>${excelResult.score} / 20</strong></p>
         `;
 
-        // 4. Update Total Score and Progress Circle
-        totalScoreElement.textContent = totalScore;
-        const degree = (totalScore / 50) * 360;
-        setTimeout(() => {
-            progressCircle.style.background = `conic-gradient(var(--primary-yellow) ${degree}deg, var(--border-color) 0deg)`;
-        }, 100);
-        
-        // 5. Setup Share Button for LinkedIn
-        shareBtn.addEventListener('click', () => {
-            const shareText = `I scored ${totalScore}/50 on the NSSB Computer Proficiency Test!`;
-            const appUrl = window.location.origin;
-            // Facebook's sharer URL
-            const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent(shareText)}`;
-            window.open(shareUrl, '_blank');
-        });
+        // Populate Detailed Cards
+        typingResultsDiv.innerHTML = `
+            <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
+            <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
+        `;
+        letterResultsDiv.innerHTML = `
+            <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
+            <div class="feedback">${letterResult.feedback}</div>
+        `;
+        excelResultsDiv.innerHTML = `
+            <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
+            <div class="feedback">${excelResult.feedback}</div>
+        `;
 
         localStorage.removeItem('currentSessionId');
     }

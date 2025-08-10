@@ -1,51 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your Exam Results</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="/auth.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Results</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+    <link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="results.css"> <script src="/auth.js" defer></script>
 </head>
-<body class="results-page">
-    <main class="results-card-main">
-        <header id="results-header" class="results-header">
-            <h2>Exam Complete!</h2>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="results-title">Great Effort!</h1>
             <p>Here is your performance summary.</p>
-        </header>
-
-        <div class="results-layout">
-            <div class="score-summary">
-                <h3>Total Score</h3>
-                <div class="progress-circle" id="progress-circle">
-                    <div>
-                        <span id="total-score">0</span>
-                        <span>/ 50</span> </div>
-                </div>
-                <p id="percentile-rank">Calculating percentile...</p>
-                <div class="skills-chart-container">
-                    <h3>Skills Breakdown</h3>
-                    <div class="chart-circle-wrapper">
-                        <canvas id="skills-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div id="results-details" class="results-details"></div>
         </div>
 
-        <footer class="results-footer">
-            <a href="/dashboard.html" role="button" class="secondary">Back to Dashboard</a>
-    
-            <button id="share-btn" class="facebook">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20px" height="20px">
-                    <path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z"></path>
-                </svg>
-                <span>Share on Facebook</span>
-            </button>
-        </footer>
-    </main>
+        <div class="score-section">
+            <div class="card" style="text-align: center;">
+                <div class="score-circle" id="total-score-circle">0 / 50</div>
+                <p>You performed better than <strong id="percentile-rank">0%</strong> of test-takers.</p>
+            </div>
+            <div class="card">
+                <h2>Skills Breakdown</h2>
+                <div id="skills-breakdown" class="skills-chart">
+                    </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <div id="typing-results" class="test-block"></div>
+            <div id="letter-results" class="test-block"></div>
+            <div id="excel-results" class="test-block"></div>
+        </div>
+        
+        <div class="footer-actions">
+             <a href="/dashboard.html" class="action-btn">Back to Dashboard</a>
+             <button id="share-btn" class="action-btn primary">Share Score</button>
+        </div>
+    </div>
     <script src="results.js"></script>
 </body>
 </html>
