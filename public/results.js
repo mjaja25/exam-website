@@ -15,7 +15,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
 
-    
+    // Grab the new score value element
+    const scoreValueElement = document.getElementById('score-value');
+
+    // ... (your existing logic to calculate totalScore) ...
+    const totalScore = typingResult.score + letterResult.score + excelResult.score;
+
+    // --- NEW: Update the Score Circle ---
+    scoreValueElement.textContent = totalScore;
+    const scorePercentage = (totalScore / 50) * 100;
+    const scoreDegrees = (scorePercentage / 100) * 360;
+
+    // Apply the calculated degrees to the conic-gradient
+    totalScoreCircle.style.background = `conic-gradient(
+        var(--primary-yellow) ${scoreDegrees}deg,
+        var(--border-color, #eee) ${scoreDegrees}deg
+    )`;
+    // --- End of new logic ---
 
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
