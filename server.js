@@ -239,7 +239,7 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
         });
         
         // Send back both the user details and their modified results
-        res.json({ user: { username: user.username }, results });
+        res.json({ user: user, results: results });
 
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching dashboard data.' });
