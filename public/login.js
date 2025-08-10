@@ -20,20 +20,20 @@ peekButton.addEventListener('click', () => {
     }
 });
 
+// Mobile Warning ---
+const mobileWarning = document.getElementById('mobile-warning');
+
+// Simple check to see if the user agent string indicates a mobile device
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+if (isMobile) {
+    mobileWarning.style.display = 'block'; // Show the banner
+}
+//  Mobile Warning ---
+
 loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     errorMessage.textContent = ''; // Clear previous errors
-
-    // Mobile Warning ---
-    const mobileWarning = document.getElementById('mobile-warning');
-
-    // Simple check to see if the user agent string indicates a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        mobileWarning.style.display = 'block'; // Show the banner
-    }
-    //  Mobile Warning ---
 
     const email = document.getElementById('email').value; // Changed from username
     const password = document.getElementById('password').value;

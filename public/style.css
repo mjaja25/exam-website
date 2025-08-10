@@ -171,6 +171,11 @@ body.auth-page {
 .auth-page #login-form button[type="submit"], 
 .auth-page #signup-form button[type="submit"] {
     width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 0 auto;
     padding: 12px;
     border: none;
     border-radius: 8px;
@@ -188,7 +193,7 @@ body.auth-page {
     transform: translateY(-2px);
 }
 .auth-page .separator { margin: 1.5rem 0; color: var(--text-muted); }
-.auth-page .social-button { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; padding: 12px; border: 1px solid var(--light-gray); border-radius: 8px; background-color: transparent; color: var(--text-color); text-decoration: none; transition: all 0.3s ease; }
+.auth-page .social-button { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; max-width: 380px; margin: 0 auto; box-sizing: border-box; padding: 12px; border: 1px solid var(--light-gray); border-radius: 8px; background-color: transparent; color: var(--text-color); text-decoration: none; transition: all 0.3s ease; }
 .auth-page .social-button:hover { background-color: var(--light-gray); }
 .auth-page .social-button img { width: 20px; }
 .auth-page .footer-link { margin-top: 1.5rem; color: var(--text-muted); }
@@ -222,4 +227,6 @@ body.auth-page {
     font-size: 0.9rem;
     font-weight: 500;
     box-sizing: border-box;
+    position: relative; /* Add this */
+    z-index: 10;      /* Add this to place it on top */
 }
