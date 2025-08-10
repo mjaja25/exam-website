@@ -242,6 +242,42 @@ body.auth-page {
 
 
 
+
+/* --- Progress Bar Styles --- */
+
+/* The outer container or "track" of the progress bar */
+.progress-container {
+    width: 100%;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* Or use var(--pico-border-radius) if you prefer */
+    padding: 0.25rem;
+}
+
+/* The inner bar that fills up to show progress */
+.progress-bar {
+    width: 33%; /* This is the default starting width for stage 1 */
+    height: 1rem;
+    background-color: var(--primary-yellow);
+    border-radius: 4px; /* A slightly smaller radius for the inner bar */
+    transition: width 0.5s ease-in-out; /* Smoothly animates the width change */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* --- DASHBOARD PAGE STYLES --- */
 body.dashboard-page {
     background-color: var(--background-color);

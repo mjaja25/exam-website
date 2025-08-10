@@ -1,36 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Your Exam Results</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css"/>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="results-page">
     <main class="container">
-        <article>
-            <header>
+        <div class="results-card-main">
+            <header id="results-header" class="results-header">
                 <h2>Exam Complete!</h2>
                 <p>Here is your performance summary.</p>
             </header>
-            
-            <div class="results-grid">
-                <div class="score-summary">
-                    <div class="progress-circle" id="progress-circle">
-                        <span id="total-score">0</span> / 50
-                    </div>
-                    <p id="percentile-rank">Calculating percentile...</p>
+
+            <div class="results-layout">
+                <div class="skills-chart-container">
+                    <h3>Skills Breakdown</h3>
+                    <canvas id="skills-chart"></canvas>
                 </div>
-                <div id="results-details">
+
+                <div id="results-details" class="results-details">
                     </div>
             </div>
 
-            <footer>
-                <a href="/dashboard.html" role="button">Back to Dashboard</a>
+            <footer class="results-footer">
+                <a href="/dashboard.html" role="button" class="secondary">Back to Dashboard</a>
+                <button id="share-btn">Share My Score</button>
             </footer>
-        </article>
+        </div>
     </main>
     <script src="results.js"></script>
 </body>
