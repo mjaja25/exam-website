@@ -1,43 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Proficiency Test - Typing</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Excel Test</title>
+    <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
+    <script src="/test-ui.js" defer></script>
 </head>
-<body>
-
-    <div class="test-container">
-        <h1>Excel Proficiency Test</h1>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <span>Time Left</span>
-                <p id="timer">5:00</p>
+<body class="test-page">
+    <main class="test-container">
+        <header class="test-header">
+            <hgroup>
+                <h2 id="stage-title">Stage 3 of 3: Excel Test</h2>
+            </hgroup>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
-        </div>
+        </header>
 
-        <div class="instructions">
-            <h3 id="question-name">Loading question...</h3> 
-            <p>1. Download the Excel file below.</p>
-            <p>2. Complete the tasks mentioned in the file.</p>
-            <p>3. Save your work and upload the completed file before the time runs out.</p>
-            <a href="#" id="download-btn" role="button" class="contrast" download disabled>Download Question File</a>
-        </div>
+        <article class="excel-content">
+            <div class="instructions-card">
+                <h3 id="question-name">Loading question...</h3>
+                <p>1. Click the button to download the Excel exercise file.</p>
+                <p>2. Complete all tasks described in the file's "Instructions" sheet.</p>
+                <p>3. Save your completed file and upload it below.</p>
+                <a href="#" id="download-btn" role="button" class="contrast" download disabled>Download Question File</a>
+            </div>
 
-        <form id="excel-form">
-            <input type="file" id="excel-file" name="excelFile" required>
-            <button type="submit" class="submit-button">Upload and Submit</button>
-        </form>
-        <div id="results-screen" class="hidden">
-            <h2>Time's Up!</h2>
-            <p>Well done. Here are your results.</p>
-            <button id="restart-btn">Take Again</button>
-        </div>
-    </div>
+            <div class="upload-card">
+                <h3>Upload Your Solution</h3>
+                <form id="excel-form">
+                    <input type="file" id="excel-file" name="excelFile" required>
+                    <button type="submit" class="submit-btn-main">Submit Final Answers</button>
+                </form>
+            </div>
+        </article>
+
+        <footer class="test-footer">
+            <div class="timer-display">
+                <span>Time Left:</span>
+                <strong id="timer">5:00</strong>
+            </div>
+        </footer>
+    </main>
 
     <script src="excel.js"></script>
 </body>
