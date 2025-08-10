@@ -853,6 +853,24 @@ body.results-page {
     border-right: 1px solid var(--border-color);
 }
 
+.skills-chart-container {
+    padding-right: 2rem;
+    border-right: 1px solid var(--border-color);
+    display: flex; /* Helps center the content */
+    flex-direction: column;
+    align-items: center;
+}
+
+/* This is the new wrapper for the chart */
+.chart-circle-wrapper {
+    border: 2px solid var(--border-color);
+    border-radius: 50%; /* This makes it a circle */
+    padding: 1.5rem; /* This gives the labels space to breathe */
+    max-width: 300px; /* Constrain the size */
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Ensures it remains a perfect circle */
+}
+
 .result-detail-card {
     background: var(--background-color);
     border-radius: 8px;
@@ -883,3 +901,4 @@ body.results-page {
     background-color: #166fe5; /* Slightly darker blue */
     box-shadow: 0 0 15px rgba(24, 119, 242, 0.5);
 }
+
