@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreValueElement = document.getElementById('score-value');
 
     // ... (your existing logic to calculate totalScore) ...
-    const totalScore = typingResult.score + letterResult.score + excelResult.score;
+    const totalScore = typingResultsDiv.score + letterResultsDiv.score + excelResultsDiv.score;
 
     // --- NEW: Update the Score Circle ---
     scoreValueElement.textContent = totalScore;
