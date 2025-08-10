@@ -577,6 +577,8 @@ body.test-page {
     font-weight: 700;
     color: var(--primary-yellow);
     margin: 0.25rem 0 0 0;
+    /* This is the fix for the shifting timer */
+    font-variant-numeric: tabular-nums;
 }
 
 .passage-card {
@@ -587,9 +589,24 @@ body.test-page {
     font-size: 1.2rem;
     line-height: 1.8;
     margin-bottom: 1.5rem;
-    max-height: 250px; /* Set a maximum height for the passage box */
+    max-height: 250px;
     overflow-y: auto;
 }
+
+/* --- These are the fixes for the error highlighting --- */
+.passage-card span.correct {
+    color: #4ade80; /* A pleasant green */
+}
+.passage-card span.incorrect {
+    color: #f87171; /* A softer red */
+    text-decoration: underline;
+}
+.passage-card span.current {
+    background-color: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    border-radius: 2px;
+}
+/* --- End of fixes --- */
 
 .test-page textarea {
     width: 100%;
