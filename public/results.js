@@ -31,12 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatExcelFeedback(feedback) {
-        // Splits the feedback by numbers (e.g., "1.", "2.") and formats it as a list
-        const points = feedback.split(/\d\./).filter(p => p.trim() !== '');
+        // Splits the feedback string by "Instruction X:" and filters out empty parts
+        const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
+
         if (points.length > 1) {
-            return '<ul>' + points.map(point => `<li>${point.trim()}</li>`).join('') + '</ul>';
+            let formattedHtml = '<ul>';
+            points.forEach((point, index) => {
+                // Re-add the instruction number and format as a list item
+                formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
+            });
+            formattedHtml += '</ul>';
+            return formattedHtml;
         }
-        return `<p>${feedback}</p>`; // Return as paragraph if not formatted as a list
+        
+        // If the feedback isn't in the expected format, return it as a simple paragraph
+        return `<p>${feedback}</p>`;
     }
 
     function displayResults(results) {
