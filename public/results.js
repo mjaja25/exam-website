@@ -5,17 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const resultsTitle = document.getElementById('results-title');
     const totalScoreCircle = document.getElementById('total-score-circle');
+    const scoreValueElement = document.getElementById('score-value');
     const percentileRankElement = document.getElementById('percentile-rank');
-    const skillsBreakdown = document.getElementById('skills-breakdown');
+    const chartCanvas = document.getElementById('skills-chart-canvas');
+    const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
+    const detailsContainer = document.getElementById('test-details-container');
     
-    const typingResultsDiv = document.getElementById('typing-results');
-    const letterResultsDiv = document.getElementById('letter-results');
-    const excelResultsDiv = document.getElementById('excel-results');
-
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
-
-    
 
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
@@ -32,24 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error fetching results:", error);
+            detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
 
     function formatExcelFeedback(feedback) {
-        // Splits the feedback string by "Instruction X:" and filters out empty parts
         const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
-
         if (points.length > 1) {
             let formattedHtml = '<ul>';
             points.forEach((point, index) => {
-                // Re-add the instruction number and format as a list item
                 formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
             });
             formattedHtml += '</ul>';
             return formattedHtml;
         }
-        
-        // If the feedback isn't in the expected format, return it as a simple paragraph
         return `<p>${feedback}</p>`;
     }
 
@@ -60,79 +53,60 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
-        // Update Header Title based on score
+        // Update Header Title
         if (totalScore >= 40) resultsTitle.textContent = 'Excellent Performance!';
         else if (totalScore >= 25) resultsTitle.textContent = 'Great Effort!';
         else resultsTitle.textContent = 'Keep Practicing!';
         
-        // Update Total Score Circle
-        totalScoreCircle.textContent = `${totalScore} / 50`;
+        // Update Score Circle
+        scoreValueElement.textContent = totalScore;
+        const scorePercentage = (totalScore / 50) * 100;
+        const scoreDegrees = (scorePercentage / 100) * 360;
+        totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
 
-        // --- NEW RADAR CHART LOGIC ---
-        const chartCanvas = document.getElementById('skills-chart-canvas');
+        // Render Radar Chart
         new Chart(chartCanvas, {
             type: 'radar',
             data: {
-                labels: ['Typing Speed', 'Letter Writing', 'Excel Skills'],
+                labels: ['Typing', 'Letter', 'Excel'],
                 datasets: [{
-                    label: 'Your Score',
-                    // We normalize the scores to be out of 100 for the chart
-                    data: [
-                        (typingResult.score / 20) * 100, 
-                        (letterResult.score / 10) * 100, 
-                        (excelResult.score / 20) * 100
-                    ],
+                    label: 'Score',
+                    data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ],
                     fill: true,
-                    backgroundColor: 'rgba(214, 168, 150, 0.2)',
-                    borderColor: 'rgba(207, 140, 76, 1)',
-                    pointBackgroundColor: 'rgba(255, 178, 63, 1)',
-                    pointBorderColor: '#ceb172ff',
-                    pointHoverBackgroundColor: '#ebb7b7ff',
-                    pointHoverBorderColor: 'rgba(250, 229, 44, 1)'
+                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
                 }]
             },
             options: {
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
-                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
-                        pointLabels: { font: { size: 14 } },
-                        ticks: {
-                            backdropColor: 'rgba(255, 255, 255, 0.75)',
-                            stepSize: 20
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false // Hide the dataset label "Your Score"
-                    }
-                }
+                scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 25 } } },
+                plugins: { legend: { display: false } }
             }
         });
-        // --- END OF RADAR CHART LOGIC ---
 
-        // Update Skills Breakdown
-        const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
-        skillsBreakdown.innerHTML = `
+        // Populate Skills Breakdown Text
+        skillsTextBreakdown.innerHTML = `
             <p>⌨ Typing: <strong>${typingResult.score} / 20</strong></p>
             <p>✉ Letter: <strong>${letterResult.score} / 10</strong></p>
             <p>📊 Excel: <strong>${excelResult.score} / 20</strong></p>
         `;
 
         // Populate Detailed Cards
-        typingResultsDiv.innerHTML = `
-            <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
+        detailsContainer.innerHTML = `
+            <div class="detail-row">
+                <span class="label">⌨ Typing Test</span>
+                <span class="score">${typingResult.score} / 20</span>
+            </div>
             <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
-        `;
-        letterResultsDiv.innerHTML = `
-            <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
+            <div class="detail-row">
+                <span class="label">✉ Letter Test</span>
+                <span class="score">${letterResult.score} / 10</span>
+            </div>
             <div class="feedback">${letterResult.feedback}</div>
-        `;
-        excelResultsDiv.innerHTML = `
-            <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
+            <div class="detail-row">
+                <span class="label">📊 Excel Test</span>
+                <span class="score">${excelResult.score} / 20</span>
+            </div>
             <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
         `;
 
@@ -146,12 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await response.json();
             if (response.ok) {
-                percentileRankElement.innerHTML = `You performed better than <strong>${data.percentile}%</strong> of other test-takers.`;
+                percentileRankElement.textContent = data.percentile + '%';
             } else {
-                percentileRankElement.textContent = 'Could not calculate percentile.';
+                percentileRankElement.textContent = 'N/A';
             }
         } catch (error) {
-            percentileRankElement.textContent = 'Could not calculate percentile.';
+            percentileRankElement.textContent = 'N/A';
         }
     }
 

@@ -6,7 +6,9 @@
     <title>Exam Results</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
-    <link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="results.css"> <script src="/auth.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="results.css">
+    <script src="/auth.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -16,7 +18,7 @@
         </div>
 
         <div class="score-section">
-            <div class="score-summary-card">
+            <div class="card score-summary-card">
                 <div class="score-circle" id="total-score-circle">
                     <span><span id="score-value">0</span> / 50</span>
                 </div>
@@ -30,20 +32,19 @@
                         <canvas id="skills-chart-canvas"></canvas>
                     </div>
                     <div id="skills-text-breakdown" class="skills-text">
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
 
         <div class="card" style="margin-top: 20px;">
-            <div id="typing-results" class="test-block"></div>
-            <div id="letter-results" class="test-block"></div>
-            <div id="excel-results" class="test-block"></div>
+            <div id="test-details-container">
+                </div>
         </div>
         
         <div class="footer-actions">
-            <a href="/dashboard.html" role="button" class="secondary">Back to Dashboard</a>
-            <a href="/feedback.html" role="button">Give Feedback</a>
+            <a href="/dashboard.html" role="button" class="action-btn secondary">Back to Dashboard</a>
+            <a href="/feedback.html" role="button" class="action-btn primary">Give Feedback</a>
         </div>
     </div>
     <script src="results.js"></script>
