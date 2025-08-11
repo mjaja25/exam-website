@@ -81,14 +81,12 @@ body.auth-page {
     display: flex;
     flex-direction: column; /* This is the fix */
     justify-content: center;
-    align-items: flex-start; /* Changed from 'center' to 'flex-start' */
+    align-items: center;
     min-height: 100vh;
     background-color: var(--background-color);
-    padding: 2rem 0; /* Add some vertical padding */
-    box-sizing: border-box; /* Ensures padding is included in the height calculation */
-    /* 'overflow: hidden' is removed to allow scrolling */
+    padding: 2rem 0;
+    box-sizing: border-box;
 }
-
 /* --- Animated Background --- */
 .background-shapes {
     position: absolute;
@@ -222,9 +220,6 @@ body.auth-page {
         width: 100%;
         height: 100vh;
         padding: 30px;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
         backdrop-filter: none;
         background-color: var(--background-color);
         display: flex;
