@@ -119,7 +119,19 @@ body.auth-page {
 
 /* --- Auth Card Styling --- */
 .auth-page .auth-container { position: relative; z-index: 1; padding: 1rem; }
-.auth-page .auth-card { width: 400px; padding: 40px; background-color: var(--card-background); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid var(--light-gray); text-align: center; color: var(--text-color); }
+
+.auth-page .auth-card {
+    width: 90%; /* This allows the card to shrink on smaller screens */
+    max-width: 420px; /* This sets a maximum size for larger screens */
+    padding: 40px;
+    background-color: var(--card-background);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    color: var(--text-color);
+    transition: background-color 0.5s ease;
+}
 .auth-page .logo { width: 80px; margin-bottom: 1rem; }
 .auth-page .auth-card h2 { font-size: 2rem; font-weight: 700; margin: 0; }
 .auth-page .auth-card .subtitle { color: var(--text-muted); margin-bottom: 2rem; }

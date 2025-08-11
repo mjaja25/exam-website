@@ -27,4 +27,6 @@ body {
 .footer-actions a.action-btn.primary { background-color: var(--primary-yellow); color: var(--dark-text-on-btn); border-color: var(--primary-yellow); }
 .footer-actions a.action-btn.secondary { background-color: transparent; }
 
+h2 { text-align: center;}
+
 @media (max-width: 768px) { .score-section, .skills-layout { flex-direction: column; } }
