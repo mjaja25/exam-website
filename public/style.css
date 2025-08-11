@@ -86,6 +86,7 @@ body.auth-page {
     background-color: var(--background-color);
     padding: 2rem 0;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 /* --- Animated Background --- */
 .background-shapes {
@@ -225,12 +226,15 @@ body.auth-page {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        overflow-x: hidden;
     }
 }
 
 /* Mobile Warning */
 .mobile-warning {
     width: 100%;
+    display: flex;
+    justify-content: center;
     background-color: var(--primary-yellow);
     color: var(--dark-text-on-btn);
     text-align: center;
