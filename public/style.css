@@ -685,9 +685,15 @@ body.test-page {
 
 
 
-/* In public/style.css */
-
 /* --- LETTER TEST PAGE STYLES --- */
+
+/* This allows the main container to grow and shrink as needed */
+.test-page .test-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 4rem); /* Fill the screen height minus padding */
+}
+
 .question-card {
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
@@ -700,6 +706,10 @@ body.test-page {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--card-background);
+    display: flex; /* Allow inner elements to flex */
+    flex-direction: column;
+    flex-grow: 1; /* This makes the editor take up available space */
+    min-height: 300px; /* Prevent it from becoming too small */
 }
 
 .editor-toolbar {
@@ -707,6 +717,7 @@ body.test-page {
     gap: 0.5rem;
     padding: 0.5rem;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0; /* Prevent the toolbar from shrinking */
 }
 
 .toolbar-btn {
@@ -726,12 +737,13 @@ body.test-page {
 }
 
 .text-editor {
-    min-height: 250px;
+    flex-grow: 1; /* Allow the text area to expand */
     padding: 1.5rem;
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-color);
     outline: none;
+    overflow-y: auto; /* This adds a scrollbar when content overflows */
 }
 
 .test-footer {
@@ -739,6 +751,7 @@ body.test-page {
     justify-content: space-between;
     align-items: center;
     margin-top: 1.5rem;
+    flex-shrink: 0; /* Prevent the footer from shrinking */
 }
 
 .timer-display {
@@ -767,7 +780,6 @@ body.test-page {
     box-shadow: 0 0 15px var(--primary-yellow);
     transform: translateY(-2px);
 }
-
 
 
 

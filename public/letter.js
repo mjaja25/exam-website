@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const question = await response.json();
             questionDisplay.textContent = question.questionText;
             currentQuestionId = question._id; // Save the question ID
+
+
+            // The timer now starts automatically after the question has loaded.
+            startTimer();
+
         } catch (error) {
             questionDisplay.textContent = 'Error: Failed to load question. Please add questions in the admin panel.';
             userInputElement.disabled = true;
@@ -102,6 +107,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load & Event Listeners ---
     loadRandomQuestion();
-    userInputElement.addEventListener('input', startTimer);
     submitBtn.addEventListener('click', endTest);
 });
