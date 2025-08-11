@@ -588,6 +588,7 @@ body.test-page {
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 2rem;
+    position: relative; /* Required for sticky positioning of children */
 }
 
 .stats-bar {
@@ -597,6 +598,9 @@ body.test-page {
     margin-bottom: 1.5rem;
     background-color: var(--background-color);
     border-radius: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Ensures it stays on top of other content */
 }
 
 .stat-item {
@@ -902,3 +906,30 @@ body.results-page {
     box-shadow: 0 0 15px rgba(24, 119, 242, 0.5);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* --- FIX for Small Laptop Screens --- */
+/* This media query applies only when the screen height is 720px or less */
+@media (max-height: 720px) {
+    .passage-card {
+        max-height: 180px; /* Reduce height on shorter screens */
+        font-size: 1.1rem; /* Slightly smaller font to fit more text */
+    }
+
+    .test-page textarea {
+        min-height: 120px; /* Reduce height of the typing area */
+        font-size: 1.1rem;
+    }
+}
+/* --- End of Small Screen Fix --- */
