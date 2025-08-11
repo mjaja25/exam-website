@@ -79,11 +79,14 @@ body.auth-page {
     margin: 0;
     font-family: 'Poppins', sans-serif;
     display: flex;
+    flex-direction: column; /* This is the fix */
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Changed from 'center' to 'flex-start' */
     min-height: 100vh;
-    background-color: var(--background-color); 
-    overflow: hidden;
+    background-color: var(--background-color);
+    padding: 2rem 0; /* Add some vertical padding */
+    box-sizing: border-box; /* Ensures padding is included in the height calculation */
+    /* 'overflow: hidden' is removed to allow scrolling */
 }
 
 /* --- Animated Background --- */
@@ -132,6 +135,7 @@ body.auth-page {
     color: var(--text-color);
     transition: background-color 0.5s ease;
 }
+
 .auth-page .logo { width: 80px; margin-bottom: 1rem; }
 .auth-page .auth-card h2 { font-size: 2rem; font-weight: 700; margin: 0; }
 .auth-page .auth-card .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
