@@ -317,14 +317,23 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         if (!originalQuestion) return res.status(404).json({ message: 'Original question not found.' });
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const gradingPrompt = `
-            Act as a strict examiner. Your entire response must be ONLY a valid JSON object.
-            You are grading a formal letter written in response to: "${originalQuestion.questionText}"
-            Grade out of 10 based on: Content (4 marks), Format (3 marks), Grammar & Spelling (3 marks).
-            If the response is not a valid letter, score 0.
+            Act as a strict examiner. Your response must be ONLY a valid JSON object.
+            The user was asked: "${originalQuestion.questionText}"
+
+            Grade the letter out of 10 based on these criteria:
+            1.  **Content (3 marks):** How well does the letter address the question? Assess clarity, relevance, and tone.
+            2.  **Format (3 marks):** Check for sender's address, date, receiver's address, subject, salutation, and closing.
+            3.  **Grammar & Spelling (2 marks):** Deduct for significant errors.
+            4.  **Font Style (1 mark):** Award 1 mark if the primary font is 'Times New Roman'.
+            5.  **Font Size (1 mark):** Award 1 mark if the primary font size is '12pt'.
+
+            Analyze the user's letter below, which is provided as HTML content.
             ---
-            User's Letter: "${content}"
+            User's Letter (HTML): "${content}"
             ---
-            Return ONLY a JSON object: { "score": <number>, "feedback": "<string>" }
+
+            Return your analysis ONLY in this exact JSON format:
+            { "score": <total_score_out_of_10>, "feedback": "<brief_feedback>" }
         `;
         const result = await model.generateContent(gradingPrompt);
         const responseText = await result.response.text();

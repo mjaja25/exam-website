@@ -686,40 +686,42 @@ body.test-page {
 
 
 /* --- LETTER TEST PAGE STYLES --- */
-
-/* This allows the main container to grow and shrink as needed */
 .test-page .test-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 4rem); /* Fill the screen height minus padding */
+    height: calc(100vh - 4rem); /* Fill screen height minus padding */
 }
-
+.letter-body {
+    flex-grow: 1; /* Allow this section to grow */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Important fix for flexbox overflow */
+}
 .question-card {
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 1rem 1.5rem;
     margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
-
 .editor-container {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--card-background);
-    display: flex; /* Allow inner elements to flex */
+    display: flex;
     flex-direction: column;
-    flex-grow: 1; /* This makes the editor take up available space */
-    min-height: 300px; /* Prevent it from becoming too small */
+    flex-grow: 1;
+    min-height: 0;
 }
-
 .editor-toolbar {
     display: flex;
+    flex-wrap: wrap; /* Allow items to wrap on small screens */
     gap: 0.5rem;
     padding: 0.5rem;
     border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0; /* Prevent the toolbar from shrinking */
+    flex-shrink: 0;
 }
-
 .toolbar-btn {
     width: 36px;
     height: 36px;
@@ -729,41 +731,41 @@ body.test-page {
     font-size: 1rem;
     cursor: pointer;
     border-radius: 4px;
-    transition: background-color 0.2s;
 }
-
-.toolbar-btn:hover {
+.toolbar-select {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    padding: 0.25rem 0.5rem;
+}
+.toolbar-btn:hover, .toolbar-select:hover {
     background-color: var(--border-color);
 }
-
 .text-editor {
-    flex-grow: 1; /* Allow the text area to expand */
+    flex-grow: 1;
     padding: 1.5rem;
     font-size: 1rem;
     line-height: 1.6;
     color: var(--text-color);
     outline: none;
-    overflow-y: auto; /* This adds a scrollbar when content overflows */
+    overflow-y: auto; /* Adds a scrollbar when content overflows */
 }
-
 .test-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end; /* Push button to the right */
     align-items: center;
     margin-top: 1.5rem;
-    flex-shrink: 0; /* Prevent the footer from shrinking */
+    flex-shrink: 0;
 }
-
 .timer-display {
     font-size: 1.2rem;
     color: var(--text-muted);
 }
-
 .timer-display strong {
     color: var(--primary-yellow);
     font-variant-numeric: tabular-nums;
 }
-
 .submit-btn-main {
     padding: 10px 20px;
     border: none;
@@ -780,7 +782,6 @@ body.test-page {
     box-shadow: 0 0 15px var(--primary-yellow);
     transform: translateY(-2px);
 }
-
 
 
 

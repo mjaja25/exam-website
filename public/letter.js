@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const boldBtn = document.getElementById('bold-btn');
     const italicBtn = document.getElementById('italic-btn');
     const underlineBtn = document.getElementById('underline-btn');
+    const fontFamilySelect = document.getElementById('font-family-select');
+    const fontSizeSelect = document.getElementById('font-size-select');
 
     // --- State Management ---
     const token = localStorage.getItem('token');
@@ -94,15 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Editor Toolbar Logic ---
-    boldBtn.addEventListener('click', () => {
-        document.execCommand('bold', false, null);
+     // --- Editor Toolbar Logic ---
+    boldBtn.addEventListener('click', () => document.execCommand('bold'));
+    italicBtn.addEventListener('click', () => document.execCommand('italic'));
+    underlineBtn.addEventListener('click', () => document.execCommand('underline'));
+
+    fontFamilySelect.addEventListener('change', (e) => {
+        document.execCommand('fontName', false, e.target.value);
     });
-    italicBtn.addEventListener('click', () => {
-        document.execCommand('italic', false, null);
-    });
-    underlineBtn.addEventListener('click', () => {
-        document.execCommand('underline', false, null);
+    fontSizeSelect.addEventListener('change', (e) => {
+        document.execCommand('fontSize', false, e.target.value);
     });
 
     // --- Initial Load & Event Listeners ---

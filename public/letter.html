@@ -9,9 +9,7 @@
     <script src="/test-ui.js" defer></script>
 </head>
 <body class="test-page">
-    <!-- Main Test Container -->
     <main class="test-container">
-        <!-- Unified Header with Progress Bar -->
         <header class="test-header">
             <hgroup>
                 <h2 id="stage-title">Stage 2 of 3: Letter Test</h2>
@@ -20,30 +18,42 @@
             <div class="progress-container">
                 <div id="progress-bar" class="progress-bar"></div>
             </div>
-        </header>
-
-        <!-- Question Display -->
-        <div class="question-card">
-            <strong>Prompt:</strong>
-            <p id="question-display">Loading question...</p>
-        </div>
-
-        <!-- Rich Text Editor -->
-        <div class="editor-container">
-            <div class="editor-toolbar">
-                <button id="bold-btn" class="toolbar-btn"><b>B</b></button>
-                <button id="italic-btn" class="toolbar-btn"><i>I</i></button>
-                <button id="underline-btn" class="toolbar-btn"><u>U</u></button>
-            </div>
-            <div id="user-input" class="text-editor" contenteditable="true" spellcheck="false"></div>
-        </div>
-        
-        <!-- Timer and Submit Button -->
-        <footer class="test-footer">
-            <div class="timer-display">
+             <div class="timer-display">
                 <span>Time Left:</span>
                 <strong id="timer">5:00</strong>
             </div>
+        </header>
+
+        <div class="letter-body">
+            <div class="question-card">
+                <strong>Prompt:</strong>
+                <p id="question-display">Loading question...</p>
+            </div>
+
+            <div class="editor-container">
+                <div class="editor-toolbar">
+                    <button id="bold-btn" class="toolbar-btn"><b>B</b></button>
+                    <button id="italic-btn" class="toolbar-btn"><i>I</i></button>
+                    <button id="underline-btn" class="toolbar-btn"><u>U</u></button>
+                    <select id="font-family-select" class="toolbar-select">
+                        <option value="Arial">Arial</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                    </select>
+                    <select id="font-size-select" class="toolbar-select">
+                        <option value="3">12pt</option>
+                        <option value="1">8pt</option>
+                        <option value="2">10pt</option>
+                        <option value="4">14pt</option>
+                        <option value="5">18pt</option>
+                    </select>
+                </div>
+                <div id="user-input" class="text-editor" contenteditable="true"></div>
+            </div>
+        </div>
+        
+        <footer class="test-footer">
             <button id="submit-btn" class="submit-btn-main">Submit & Proceed</button>
         </footer>
     </main>
