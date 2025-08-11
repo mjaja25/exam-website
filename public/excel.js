@@ -83,6 +83,15 @@ excelForm.addEventListener('submit', async (event) => {
     event.preventDefault(); 
     clearInterval(timerInterval);
 
+
+    // --- NEW: Show loader and disable button ---
+    const submitButton = excelForm.querySelector('button[type="submit"]');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    submitButton.disabled = true;
+    loadingOverlay.style.display = 'flex';
+    // --- End of new logic ---
+
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
 
@@ -105,9 +114,10 @@ excelForm.addEventListener('submit', async (event) => {
         window.location.href = '/results.html';
 
     } catch (error) {
-        console.error('File upload error:', error);
-        alert('File upload failed! You will now be taken to the results page.');
-        window.location.href = '/results.html';
+        // Hide loader on error and re-enable button
+        loadingOverlay.style.display = 'none';
+        submitButton.disabled = false;
+        alert('File upload failed! Please try again.');
     }
 });
 

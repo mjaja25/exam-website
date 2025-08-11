@@ -819,6 +819,39 @@ body.test-page {
     border: 1px solid var(--border-color);
 }
 
+/* --- LOADING OVERLAY STYLES --- */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: white;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid #fff;
+    border-top-color: var(--primary-yellow);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+/* This reuses the keyframes from your login page background */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 
 
 
