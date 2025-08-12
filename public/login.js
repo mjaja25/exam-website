@@ -20,16 +20,12 @@ peekButton.addEventListener('click', () => {
     }
 });
 
-// Mobile Warning ---
-const mobileWarning = document.getElementById('mobile-warning');
-
-// Simple check to see if the user agent string indicates a mobile device
+// --- Mobile Warning (Correct Placement) ---
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
 if (isMobile) {
     mobileWarning.style.display = 'block'; // Show the banner
+    document.body.classList.add('mobile-warning-active'); // Add padding to the body
 }
-//  Mobile Warning ---
 
 loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();

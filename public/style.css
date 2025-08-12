@@ -251,6 +251,7 @@ body.auth-page {
 /* Mobile Warning */
 .mobile-warning {
     width: 100%;
+    overflow-x: hidden;
     justify-content: center;
     background-color: var(--primary-yellow);
     color: var(--dark-text-on-btn);
