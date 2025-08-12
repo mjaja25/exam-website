@@ -14,6 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.getElementById('close-modal-btn');
     const proceedBtn = document.getElementById('proceed-btn');
 
+    const mobileWarning = document.getElementById('mobile-warning');
+
+    // --- Mobile Warning Logic ---
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        mobileWarning.style.display = 'block'; // Show the banner
+        document.body.classList.add('mobile-device'); // Add class to body for padding
+    }
+
+
 
 
     // --- Modal Logic ---
