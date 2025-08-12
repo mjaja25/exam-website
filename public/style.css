@@ -481,6 +481,7 @@ body.dashboard-page {
 .modal-content footer button {
     background-color: var(--primary-yellow);
     color: var(--dark-text-on-btn);
+    cursor: pointer; /* This is the fix */
 }
 
 /* Blur effect for the main content when modal is open */
@@ -1006,6 +1007,19 @@ body.results-page {
 
 
 
+/* FOR FEEDBACK PAGE --- */
+/* Center the header content on the feedback page */
+.dashboard-page .dashboard-header {
+    justify-content: center;
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -1044,7 +1058,8 @@ body.results-page {
     /* Reduce padding on all main pages for more space */
     body.dashboard-page,
     body.admin-page,
-    body.test-page {
+    body.test-page,
+    body.results-page {
         padding: 1rem;
     }
 
@@ -1086,14 +1101,70 @@ body.results-page {
         grid-template-columns: 1fr;
     }
 
-    /* Adjust the results page layout for mobile */
-    .results-layout {
-        grid-template-columns: 1fr; /* Stack the score and chart */
+    /* --- NEW: Results Page Mobile Styles --- */
+    .results-page .container {
+        margin: 0;
+        padding: 0;
     }
-    .skills-chart-container {
-        padding-right: 0;
-        border-right: none; /* Remove the vertical border */
-        padding-bottom: 2rem;
-        border-bottom: 1px solid var(--border-color); /* Add a horizontal border */
+    .score-section, .skills-layout {
+        flex-direction: column; /* Stack the cards vertically */
+    }
+    .card {
+        min-width: unset; /* Allow cards to shrink */
+    }
+}
+
+/* --- TYPING TEST MOBILE OPTIMIZATION --- */
+/* This applies only when the screen is small AND the body has the 'test-page' class */
+@media (max-width: 768px) {
+    body.test-page .test-container {
+        /* Allow the container to be flexible */
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.test-page .passage-card {
+        /* Allow the passage card to shrink but not grow too much */
+        flex-grow: 0;
+        flex-shrink: 1;
+        /* Make the passage scrollable if it's too long */
+        overflow-y: auto;
+        /* Set a smaller max-height for mobile */
+        max-height: 150px;
+    }
+
+    body.test-page textarea {
+        /* Allow the textarea to grow and shrink */
+        flex-grow: 1;
+        flex-shrink: 1;
+        min-height: 100px; /* Ensure it doesn't get too small */
+    }
+}
+
+body.mobile-warning-active .dashboard-header {
+    margin-top: 50px; /* Adjust this value to match your banner's height */
+}
+
+/* --- MODAL MOBILE OPTIMIZATION --- */
+@media (max-height: 680px) {
+    .modal-content {
+        /* Allow the modal to shrink */
+        height: 90vh;
+        /* Make the modal a flex container to control its children */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-content section {
+        /* Allow the main content area to scroll */
+        overflow-y: auto;
+        flex-grow: 1; /* Let it take up the available space */
+        padding-right: 1rem; /* Add some space for the scrollbar */
+    }
+
+    .modal-content header,
+    .modal-content footer {
+        /* Prevent the header and footer from shrinking */
+        flex-shrink: 0;
     }
 }

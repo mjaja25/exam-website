@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
         mobileWarning.style.display = 'block'; // Show the banner
-        document.body.classList.add('mobile-device'); // Add class to body for padding
+        document.body.classList.add('mobile-warning-active'); // Add the class to the body to apply the top margin
     }
 
 
