@@ -88,6 +88,17 @@ body.auth-page {
     box-sizing: border-box;
     overflow-x: hidden;
 }
+
+.page-wrapper {
+    position: relative;
+    width: 100vw; /* Use viewport width to ensure it fills the screen */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* Remove overflow from here as the body now handles it */
+}
 /* --- Animated Background --- */
 .background-shapes {
     position: absolute;
@@ -220,7 +231,7 @@ body.auth-page {
 @media (max-width: 768px) {
     body.auth-page {
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Poppins', sans-serif;
     display: flex;
     flex-direction: column;
     justify-content: center;
