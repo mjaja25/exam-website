@@ -1025,3 +1025,75 @@ body.results-page {
     }
 }
 /* --- End of Small Screen Fix --- */
+
+
+
+
+
+
+
+
+
+
+
+
+/* In public/style.css */
+
+/* --- GLOBAL MOBILE OPTIMIZATIONS (for all internal pages) --- */
+@media (max-width: 768px) {
+    /* Reduce padding on all main pages for more space */
+    body.dashboard-page,
+    body.admin-page,
+    body.test-page {
+        padding: 1rem;
+    }
+
+    /* Adjust header for smaller screens */
+    .dashboard-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* --- Dashboard Mobile Styles --- */
+    .dashboard-content {
+        /* Stack the cards vertically */
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    /* --- Admin Panel Mobile Styles --- */
+    .admin-content {
+        padding: 1rem;
+    }
+    .content-management {
+        /* Stack the content management cards */
+        grid-template-columns: 1fr;
+    }
+
+    /* --- Test Pages Mobile Styles --- */
+    .test-container {
+        padding: 1rem;
+        /* Make the test container fill the full screen height on mobile */
+        height: calc(100vh - 2rem);
+    }
+    .test-header hgroup h2 {
+        font-size: 1.25rem; /* Make titles smaller on mobile */
+    }
+    
+    /* Stack the Excel page layout vertically */
+    .excel-content {
+        grid-template-columns: 1fr;
+    }
+
+    /* Adjust the results page layout for mobile */
+    .results-layout {
+        grid-template-columns: 1fr; /* Stack the score and chart */
+    }
+    .skills-chart-container {
+        padding-right: 0;
+        border-right: none; /* Remove the vertical border */
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color); /* Add a horizontal border */
+    }
+}
