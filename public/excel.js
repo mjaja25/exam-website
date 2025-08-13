@@ -80,7 +80,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-    downloadBtn.addEventListener('click', startTimer);
+    downloadBtn.addEventListener('click', () => {
+        // **THE FIX IS HERE:**
+        // Temporarily remove the warning so the download can start without a pop-up.
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+
+        // Start the timer as usual
+        startTimer();
+
+        // Re-add the warning immediately after. This happens so fast the user won't notice,
+        // but it re-enables protection for any future accidental refreshes.
+        setTimeout(() => {
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        }, 100);
+    });
 
     excelForm.addEventListener('submit', async (event) => {
         event.preventDefault();

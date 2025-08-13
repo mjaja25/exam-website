@@ -325,7 +325,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
             2.  **Format (3 marks):** Check for sender's address, date, receiver's address, subject, salutation, and closing.
             3.  **Grammar & Spelling (2 marks):** Deduct for significant errors.
             4.  **Font Style (1 mark):** Award 1 mark if the primary font is 'Times New Roman'.
-            5.  **Font Size (1 mark):** Award 1 mark if the primary font size is '12pt'.
+            5.  **Font Size (1 mark):** Award 1 mark if the primary font size is '4'.
 
             Analyze the user's letter below, which is provided as HTML content.
             ---
