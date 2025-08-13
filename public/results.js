@@ -55,9 +55,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
         // Update Header Title
-        if (totalScore >= 40) resultsTitle.textContent = 'Excellent Performance!';
-        else if (totalScore >= 25) resultsTitle.textContent = 'Great Effort!';
-        else resultsTitle.textContent = 'Keep Practicing!';
+        if (totalScore >= 40) { 
+            resultsTitle.textContent = 'Excellent Performance!';
+            headerTitle.style.color = '#4ade80';
+        }
+        else if (totalScore >= 25) {
+            resultsTitle.textContent = 'Great Effort!';
+            headerTitle.style.color = '#f59e0b';
+        }
+        else {
+            resultsTitle.textContent = 'Keep Practicing!';
+            headerTitle.style.color = '#f87171';
+        }
         
         // Update Score Circle
         scoreValueElement.textContent = totalScore;
@@ -132,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
                         ticks: {
                             color: 'var(--text-muted)',
-                            backdropColor: 'var(--card-background)',
+                            // backdropColor: 'var(--card-background)',
                             stepSize: 20,
                             callback: function(value) {
                                 return value + '%';
