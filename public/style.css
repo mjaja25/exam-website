@@ -300,15 +300,22 @@ body.mobile-device {
     padding: 0.25rem;
 }
 
-/* The inner bar that fills up to show progress */
 .progress-bar {
-    width: 33%; /* This is the default starting width for stage 1 */
     height: 1rem;
-    background-color: var(--primary-yellow);
-    border-radius: 4px; /* A slightly smaller radius for the inner bar */
-    transition: width 0.5s ease-in-out; /* Smoothly animates the width change */
+    border-radius: 4px;
+    
+    /* The Glassy Glow Effect */
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.3),
+        rgba(255, 255, 255, 0.1)
+    ), var(--primary-yellow);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.2);
+    
+    /* The width will now be controlled by JavaScript */
+    width: 0%; 
+    transition: width 0.2s linear; /* Smooths the animation slightly */
 }
-
 
 
 
@@ -1200,6 +1207,7 @@ body.results-page {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        /* This is the key fix: it locks the header to the top */
         position: fixed;
         top: 0;
         left: 0;
@@ -1217,9 +1225,12 @@ body.results-page {
     }
 
     /* Adjust the main test container to account for the new header */
-    body.typing-page .test-container {
-        padding-top: 50px; /* Add space for the fixed header */
-        height: 100dvh; /* Use dynamic viewport height */
+    body.typing-page .test-container,
+    body.letter-page .test-container,
+    body.excel-page .test-container {
+        /* Add space at the top so content isn't hidden by the fixed header */
+        padding-top: 50px;
+        height: 100dvh;
         box-sizing: border-box;
     }
 

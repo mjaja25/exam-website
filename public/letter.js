@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const fontFamilySelect = document.getElementById('font-family-select');
     const fontSizeSelect = document.getElementById('font-size-select');
     const mobileTimerElement = document.getElementById('mobile-timer');
+    const progressBar = document.getElementById('progress-bar');
+
+    // Progress bar animation
+    const stageBasePercent = 33.33; // Stage 2 starts at 33.33%
+    const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
+    progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
 
     // --- State Management ---
     const token = localStorage.getItem('token');
@@ -58,6 +64,20 @@ document.addEventListener('DOMContentLoaded', () => {
             testInProgress = true;
             timerInterval = setInterval(() => {
                 timeRemaining--;
+
+                // --- THIS IS THE NEW ANIMATION LOGIC ---
+                // 1. Calculate how much time has passed
+                const timeElapsed = totalDuration - timeRemaining;
+                
+                // 2. Calculate the base percentage for the current stage
+                // Stage 1 (Typing): 0% to 33%
+                const stageBasePercent = 0; 
+                const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
+                
+                // 3. Update the progress bar width
+                progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
+                // --- END OF ANIMATION LOGIC ---
+                
                 const minutes = Math.floor(timeRemaining / 60);
                 const seconds = timeRemaining % 60;
                 const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
