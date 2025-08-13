@@ -1183,34 +1183,72 @@ body.results-page {
 
 /* --- FINAL TYPING TEST MOBILE FIX --- */
 
-/* This makes the main container fill the dynamic viewport height */
-body.typing-page .test-container {
-    height: calc(100dvh - 4rem); /* dvh = dynamic viewport height */
-    display: flex;
-    flex-direction: column;
+/* Hide the new mobile header on desktop */
+.mobile-header {
+    display: none;
 }
 
-/* This new wrapper will handle the flexible content */
-.typing-wrapper {
-    flex-grow: 1; /* Allows this container to fill available space */
-    display: flex;
-    flex-direction: column;
-    min-height: 0; /* A crucial fix for flexbox overflow */
+/* On mobile screens... */
+@media (max-width: 768px) {
+    /* Hide the large desktop header and stats bar */
+    .desktop-only {
+        display: none;
+    }
+
+    /* Show and style the new, compact mobile header */
+    .mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        background-color: var(--card-background);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 100;
+        box-sizing: border-box;
+    }
+    .mobile-header strong {
+        font-size: 1.1rem;
+        color: var(--primary-yellow);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Adjust the main test container to account for the new header */
+    body.typing-page .test-container {
+        padding-top: 50px; /* Add space for the fixed header */
+        height: 100dvh; /* Use dynamic viewport height */
+        box-sizing: border-box;
+    }
+
+    /* This new wrapper will handle the flexible content */
+    .typing-wrapper {
+        flex-grow: 1; /* Allows this container to fill available space */
+        display: flex;
+        flex-direction: column;
+        min-height: 0; /* A crucial fix for flexbox overflow */
+    }
+
+    /* The passage card will now have a fixed height and scroll if needed */
+    body.typing-page .passage-card {
+        flex-shrink: 0; /* Prevent the passage card from shrinking */
+        height: 30%;
+        max-height: none; /* Override previous max-height */
+        overflow-y: auto;
+    }
+
+    /* The textarea will grow to fill the remaining space */
+    body.typing-page textarea {
+        flex-grow: 1; /* This is the key: the textarea fills the rest of the space */
+        min-height: 80px; /* Ensure it doesn't become too small */
+    }
 }
 
-/* The passage card will now have a fixed height and scroll if needed */
-body.typing-page .passage-card {
-    flex-shrink: 0; /* Prevent the passage card from shrinking */
-    height: 40%;
-    max-height: none; /* Override previous max-height */
-    overflow-y: auto;
-}
 
-/* The textarea will grow to fill the remaining space */
-body.typing-page textarea {
-    flex-grow: 1; /* This is the key: the textarea fills the rest of the space */
-    min-height: 80px; /* Ensure it doesn't become too small */
-}
+
+
 
 body.mobile-warning-active .dashboard-header {
     margin-top: 50px; /* Adjust this value to match your banner's height */

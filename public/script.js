@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const accuracyElement = document.getElementById('accuracy');
     const passageDisplayElement = document.getElementById('passage-display');
     const userInputElement = document.getElementById('user-input');
+    const mobileTimerElement = document.getElementById('mobile-timer');
 
     // --- State Management ---
     let timeRemaining = 300;
@@ -92,14 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 timeRemaining--;
                 const minutes = Math.floor(timeRemaining / 60);
                 const seconds = timeRemaining % 60;
-                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Update both timers once
+                timerElement.textContent = formattedTime;
+                mobileTimerElement.textContent = formattedTime;
+
                 if (timeRemaining <= 0) {
                     endTest();
                 }
             }, 1000);
         }
     }
-
     async function endTest() {
         window.removeEventListener('beforeunload', handleBeforeUnload);
         clearInterval(timerInterval);

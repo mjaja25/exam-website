@@ -9,8 +9,12 @@
     <script src="/test-ui.js" defer></script>
 </head>
 <body class="test-page typing-page">
+    <header class="mobile-header">
+        <span id="mobile-stage-title">Stage 1: Typing</span>
+        <strong id="mobile-timer">5:00</strong>
+    </header>
     <main class="test-container">
-        <header class="test-header">
+        <header class="test-header desktop-only">
             <hgroup>
                 <h2 id="stage-title">Stage 1 of 3: Typing Test</h2>
                 <p>Your test is in progress. Do not close this window.</p>
@@ -20,7 +24,7 @@
             </div>
         </header>
 
-        <div class="stats-bar">
+        <div class="stats-bar desktop-only">
             <div class="stat-item">
                 <span>WPM</span>
                 <p id="wpm">0</p>
