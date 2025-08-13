@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         grid: { color: 'var(--border-color)' },
                         pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
                         ticks: {
-                            color: 'var(--text-muted)',
+                            // color: 'var(--text-muted)',
                             // backdropColor: 'var(--card-background)',
                             stepSize: 20,
                             callback: function(value) {

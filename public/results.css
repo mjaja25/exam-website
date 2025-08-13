@@ -7,7 +7,12 @@ body {
 .container { max-width: 1100px; margin: 30px auto; padding: 20px; }
 .header { text-align: center; margin-bottom: 25px; }
 .header h1 { margin: 0; }
-.score-section { display: flex; gap: 20px; flex-wrap: wrap; }
+.score-section {
+    display: grid; /* Changed from flex */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Creates responsive columns */
+    gap: 20px;
+    align-items: stretch; /* Ensures cards in the same row have equal height */
+}
 span.score {
     display: flex;
     justify-content: end;
@@ -24,7 +29,10 @@ span.score {
             margin-top: 1.5rem;
             gap: 1rem;
             }
-
+.chart-container {
+    flex: 1;
+    max-width: 400px; /* Increased from 300px */
+}
 .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border-color, #eee); }
 .detail-row:last-child { border-bottom: none; }
 .detail-row .label { font-weight: 500; }
