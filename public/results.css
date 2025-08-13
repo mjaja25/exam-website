@@ -6,7 +6,7 @@ body {
 }
 .container { max-width: 1100px; margin: 30px auto; padding: 20px; }
 .header { text-align: center; margin-bottom: 25px; }
-.header h1 { color: var(--primary-yellow, #f59e0b); margin: 0; }
+.header h1 { margin: 0; }
 .score-section { display: flex; gap: 20px; flex-wrap: wrap; }
 .card { background: var(--card-background, #fff); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; flex: 1; min-width: 300px; border: 1px solid var(--border-color, #eee); }
 .score-summary-card { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
