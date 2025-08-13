@@ -7,16 +7,20 @@ body {
 .container { max-width: 1100px; margin: 30px auto; padding: 20px; }
 .header { text-align: center; margin-bottom: 25px; }
 .header h1 { margin: 0; }
-/* .score-section {
+
+/*
+    .score-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
     gap: 20px;
-    align-items: stretch; 
-} */
+    align-items: stretch;
+}
+*/
+
 .score-section {
     display: flex;
     gap: 1rem; /* space between cards */
-    align-items: flex-start; /* align the tops of cards */
+    align-items: stretch; /* align the tops of cards */
 }
 
 .card {
@@ -25,7 +29,7 @@ body {
     flex-direction: column;
     background: var(--card-background, #fff); 
     border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-    padding: 20px; flex: 1; 
+    padding: 20px; 
     min-width: 300px; 
     border: 1px solid var(--border-color, #eee); 
 }
@@ -35,6 +39,13 @@ body {
     display: flex;
     align-items: center; /* vertically center heading text */
     justify-content: center;
+}
+
+.card .card-body {
+    flex: 1; /* fill remaining space evenly */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* optional: center content vertically */
 }
 
 .score-summary-card { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
@@ -52,8 +63,8 @@ body {
 }
 .chart-legend {
     display: flex;
-    flex-direction: column;
     gap: 0.75rem;
+    flex-direction: row;
     padding-left: 1rem;
 }
 .legend-item {
@@ -67,6 +78,11 @@ body {
     width: 16px;
     height: 16px;
     border-radius: 4px;
+}
+span.score  {
+    display: flex;
+    align-items: flex-end;
+    color: var(--primary-yellow);
 }
 .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border-color, #eee); }
 .detail-row:last-child { border-bottom: none; }

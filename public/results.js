@@ -138,21 +138,21 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             scales: {
                 r: {
-                        // angleLines: { color: 'var(--border-color)' },
-                        // grid: { color: 'var(--border-color)' },
-                        // pointLabels: { font: { size: 12 } },
-                        // ticks: {
-                        //     stepSize: 20,
-                        //     callback: function(value) {
-                        //         return value + '%';
-                        //     }
-                        // },
-                        // suggestedMin: 0,
-                        // suggestedMax: 100
+                        angleLines: { color: 'var(--border-color)' },
+                        grid: { color: 'var(--border-color)' },
+                        pointLabels: { font: { size: 12 } },
+                        ticks: {
+                            stepSize: 20,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
                 }
-            }
             
-        });
+            });
 
         // --- NEW: Create Custom Legend ---
         const legendContainer = document.getElementById('chart-legend');
