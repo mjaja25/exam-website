@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // By not setting 'display: false', the scales will reappear
                         angleLines: { color: 'var(--border-color)' },
                         grid: { color: 'var(--border-color)' },
-                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
+                        pointLabels: { font: { size: 122 } },
                         ticks: {
                             // color: 'var(--text-muted)',
                             // backdropColor: 'var(--card-background)',
