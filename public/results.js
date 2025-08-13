@@ -90,22 +90,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     {
                         label: 'Your Score',
                         data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ],
-                        fill: true,
+                        fill: false,
                         backgroundColor: 'rgba(245, 158, 11, 0.2)', // Yellow fill
                         borderColor: 'rgba(245, 158, 11, 1)',      // Solid Yellow line
-                        // pointBackgroundColor: 'rgba(245, 158, 11, 1)'
+                        pointBackgroundColor: 'rgba(245, 158, 11, 1)'
                     },
                     {
                         label: 'Average Score',
                         data: [avgTyping, avgLetter, avgExcel],
                         borderColor: 'rgba(239, 68, 68, 1)',       // Red line
-                        // pointBackgroundColor: 'rgba(239, 68, 68, 1)'
+                        pointBackgroundColor: 'rgba(239, 68, 68, 1)'
                     },
                     {
                         label: 'Top Score',
                         data: [topTyping, topLetter, topExcel],
                         borderColor: 'rgba(59, 130, 246, 1)',      // Blue line
-                        // pointBackgroundColor: 'rgba(59, 130, 246, 1)'
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)'
                     }
                 ]
             },
