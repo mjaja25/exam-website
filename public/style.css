@@ -401,6 +401,14 @@ body.dashboard-page {
     padding: 2rem;
 }
 
+.past-results-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* This centers the content vertically */
+    align-items: center; /* This centers the content horizontally */
+    text-align: center;
+}
+
 .start-test-card {
     text-align: center;
 }
@@ -1052,15 +1060,14 @@ body.results-page {
     align-items: center; /* This will center the chart and text block */
     gap: 1.5rem; /* Adjusts the vertical space between the chart and text */
 }
+
 .skills-text {
-    flex: 1;
-    display: flex; /* Use flexbox for alignment */
-    justify-content: space-around; /* Evenly space the items */
+    display: flex;
+    justify-content: space-around; /* Evenly spaces the items */
     align-items: center;
-    margin-top: 1rem; /* Add some space above the text */
-}
-.skills-text p {
-    margin: 0; /* Remove default paragraph margin */
+    text-align: center; /* Ensures text inside each item is centered */
+    margin-top: 1.5rem;
+    gap: 1rem;
 }
 
 .skills-chart-container {

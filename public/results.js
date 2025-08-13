@@ -136,11 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Populate Skills Breakdown Text
+        const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
+        // We use divs instead of <p> tags to allow for horizontal alignment
         skillsTextBreakdown.innerHTML = `
-            <p>⌨ <strong>${typingResult.score} / 20</strong></p>
-            <p>✉ <strong>${letterResult.score} / 10</strong></p>
-            <p>📊<strong>${excelResult.score} / 20</strong></p>
-        `;
+            <div>⌨ Typing<br><strong>${typingResult.score} / 20</strong></div>
+            <div>✉ Letter<br><strong>${letterResult.score} / 10</strong></div>
+            <div>📊 Excel<br><strong>${excelResult.score} / 20</strong></div>
+            `;
 
         // Populate Detailed Cards in the single container
         detailsContainer.innerHTML = `
