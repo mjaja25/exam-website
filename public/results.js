@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
         const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
-        
+            
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
         // Update Header Title
@@ -112,19 +112,26 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 plugins: {
                     legend: {
-                        display: true, 
+                        display: true, // This enables the legends
                         labels: {
-                            color: 'var(--text-color)'
-                            // Make legend text readable in dark/light mode
+                            color: 'var(--text-color)' // This styles the legend text
                         }
                     }
                 },
                 scales: {
                     r: {
-                         suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 25 } 
+                        angleLines: { color: 'var(--border-color)' },
+                        grid: { color: 'var(--border-color)' },
+                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
+                        ticks: {
+                            color: 'var(--text-muted)',
+                            backdropColor: 'var(--card-background)',
+                            stepSize: 25
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
                     }
-                },
-                plugins: { legend: { display: false } }
+                }
             }
         });
 
@@ -135,24 +142,22 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>📊<strong>${excelResult.score} / 20</strong></p>
         `;
 
-        // Populate Detailed Cards
+        // Populate Detailed Cards in the single container
         detailsContainer.innerHTML = `
-            <div class="detail-row">
-                <span class="label">⌨ Typing Test</span>
-                <span class="score">${typingResult.score} / 20</span>
+            <div class="test-block">
+                <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
+                <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
             </div>
-            <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
-            <div class="detail-row">
-                <span class="label">✉ Letter Test</span>
-                <span class="score">${letterResult.score} / 10</span>
+            <div class="test-block">
+                <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
+                <div class="feedback">${letterResult.feedback}</div>
             </div>
-            <div class="feedback">${letterResult.feedback}</div>
-            <div class="detail-row">
-                <span class="label">📊 Excel Test</span>
-                <span class="score">${excelResult.score} / 20</span>
+            <div class="test-block">
+                <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
+                <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
-            <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
-        `;
+            `;
+        // --- END OF CORRECTION ---
 
         localStorage.removeItem('currentSessionId');
     }

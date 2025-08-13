@@ -1054,14 +1054,13 @@ body.results-page {
 }
 .skills-text {
     flex: 1;
-    display: flex;
-    /* This is the key change for horizontal layout */
-    justify-content: space-around; /* Evenly spaces the items */
-    gap: 1rem;
+    display: flex; /* Use flexbox for alignment */
+    justify-content: space-around; /* Evenly space the items */
+    align-items: center;
+    margin-top: 1rem; /* Add some space above the text */
 }
 .skills-text p {
-    text-align: center; /* Center the text under each icon */
-    margin: 0;
+    margin: 0; /* Remove default paragraph margin */
 }
 
 .skills-chart-container {
