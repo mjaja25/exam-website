@@ -1241,8 +1241,15 @@ body.results-page {
 
     /* The textarea will grow to fill the remaining space */
     body.typing-page textarea {
-        flex-grow: 1; /* This is the key: the textarea fills the rest of the space */
-        min-height: 80px; /* Ensure it doesn't become too small */
+        /* Set a fixed height for a single line */
+        height: 50px;
+        min-height: 50px; /* Override previous min-height */
+        /* Ensure text is vertically centered */
+        line-height: 1.5; /* Adjust as needed for your font */
+        padding-top: 12px;
+        padding-bottom: 12px;
+        /* Prevent the user from manually resizing it */
+        resize: none;
     }
 }
 
