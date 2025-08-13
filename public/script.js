@@ -87,39 +87,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // This is the new, more robust startTimer function
     function startTimer() {
-        if (!testInProgress) {
-            testInProgress = true;
-            timerInterval = setInterval(() => {
-                timeRemaining--;
-                
-                // --- THIS IS THE NEW ANIMATION LOGIC ---
-                // 1. Calculate how much time has passed
-                const timeElapsed = totalDuration - timeRemaining;
-                
-                // 2. Calculate the base percentage for the current stage
-                // Stage 1 (Typing): 0% to 33%
-                const stageBasePercent = 0; 
-                const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
-                
-                // 3. Update the progress bar width
-                progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
-                // --- END OF ANIMATION LOGIC ---
+        if (testInProgress) return;
+        testInProgress = true;
+        
+        // 1. Record the exact start time in milliseconds
+        const startTime = new Date().getTime();
+        const totalDuration = 300 * 1000; // 5 minutes in milliseconds
 
+        timerInterval = setInterval(() => {
+            // 2. Calculate elapsed time on every tick
+            const timeElapsed = new Date().getTime() - startTime;
+            const remainingMilliseconds = totalDuration - timeElapsed;
 
-                const minutes = Math.floor(timeRemaining / 60);
-                const seconds = timeRemaining % 60;
-                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (remainingMilliseconds <= 0) {
+                endTest();
+                return;
+            }
+            
+            // --- ANIMATION LOGIC ---
+            // Determine current stage for the progress bar animation
+            const path = window.location.pathname;
+            let stageBasePercent = 0;
+            if (path.includes('letter.html')) stageBasePercent = 33.33;
+            if (path.includes('excel.html')) stageBasePercent = 66.66;
+            
+            const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
+            progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
+            // --- END OF ANIMATION LOGIC ---
 
-                // Update both timers once
-                timerElement.textContent = formattedTime;
-                mobileTimerElement.textContent = formattedTime;
+            // 3. Update the display
+            const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
+            const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if(timerElement) timerElement.textContent = formattedTime;
+            if(mobileTimerElement) mobileTimerElement.textContent = formattedTime;
 
-                if (timeRemaining <= 0) {
-                    endTest();
-                }
-            }, 1000);
-        }
+        }, 1000);
     }
     async function endTest() {
         window.removeEventListener('beforeunload', handleBeforeUnload);

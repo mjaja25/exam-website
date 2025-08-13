@@ -59,44 +59,46 @@ async function loadRandomExcelQuestion() {
 }
 
 // Starts the timer
+// This is the new, more robust startTimer function for the Excel test
 function startTimer() {
+    if (testInProgress) return;
+    testInProgress = true;
+    
+    // 1. Record the exact start time in milliseconds
+    const startTime = new Date().getTime();
+    const totalDuration = 300 * 1000; // 5 minutes in milliseconds
 
-    if (!testInProgress) {
-        testInProgress = true;
-        timerInterval = setInterval(() => {
-            timeRemaining--;
+    timerInterval = setInterval(() => {
+        // 2. Calculate elapsed time on every tick
+        const timeElapsed = new Date().getTime() - startTime;
+        const remainingMilliseconds = totalDuration - timeElapsed;
 
-            // --- THIS IS THE NEW ANIMATION LOGIC ---
-            // 1. Calculate how much time has passed
-            const timeElapsed = totalDuration - timeRemaining;
-            
-            // 2. Calculate the base percentage for the current stage
-            // Stage 1 (Typing): 0% to 33%
-            const stageBasePercent = 0; 
-            const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
-            
-            // 3. Update the progress bar width
-            progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
-            // --- END OF ANIMATION LOGIC ---
-            
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-                // Update both timers once
-            timerElement.textContent = formattedTime;
-            mobileTimerElement.textContent = formattedTime;
-            if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
-                if (fileInput.files.length > 0) {
-                    excelForm.requestSubmit();
-                } else {
-                    alert("Time's up! No file was selected, proceeding to results.");
-                    window.location.href = '/results.html';
-                }
+        if (remainingMilliseconds <= 0) {
+            // This logic correctly handles auto-submission when time is up
+            if (fileInput.files.length > 0) {
+                excelForm.requestSubmit();
+            } else {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+                window.location.href = '/results.html';
             }
-        }, 1000);
-    }
+            return;
+        }
+        
+        // --- ANIMATION LOGIC for Stage 3 ---
+        const stageBasePercent = 66.66; // Stage 3 starts at 66.66%
+        const stageDurationPercent = (timeElapsed / totalDuration) * 33.34; // Use 33.34 to ensure it reaches 100%
+        progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
+        // --- END OF ANIMATION LOGIC ---
+
+        // 3. Update the display
+        const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
+        const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
+        const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if(timerElement) timerElement.textContent = formattedTime;
+        if(mobileTimerElement) mobileTimerElement.textContent = formattedTime;
+
+    }, 1000);
 }
 
 // Attach the timer start to the download button click
