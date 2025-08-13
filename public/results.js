@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     {
                         label: 'Your Score',
                         data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ],
-                        fill: false,
+                        fill: true,
                         backgroundColor: 'rgba(245, 158, 11, 0.2)', // Yellow fill
                         borderColor: 'rgba(245, 158, 11, 1)',      // Solid Yellow line
                         pointBackgroundColor: 'rgba(245, 158, 11, 1)'

@@ -1061,15 +1061,6 @@ body.results-page {
     gap: 1.5rem; /* Adjusts the vertical space between the chart and text */
 }
 
-.skills-text {
-    display: flex;
-    justify-content: space-around; /* Evenly spaces the items */
-    align-items: center;
-    text-align: center; /* Ensures text inside each item is centered */
-    margin-top: 1.5rem;
-    gap: 1rem;
-}
-
 .skills-chart-container {
     padding-right: 2rem;
     border-right: 1px solid var(--border-color);
