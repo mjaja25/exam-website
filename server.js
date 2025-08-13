@@ -441,6 +441,34 @@ app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) =
     }
 });
 
+// --- Route to get aggregate test statistics ---
+app.get('/api/stats/all-tests', authMiddleware, async (req, res) => {
+    try {
+        const stats = await TestResult.aggregate([
+            {
+                $group: {
+                    _id: "$testType", // Group by Typing, Letter, Excel
+                    averageScore: { $avg: "$score" },
+                    topScore: { $max: "$score" }
+                }
+            }
+        ]);
+
+        // The aggregation returns an array, let's format it into a simple object
+        const formattedStats = stats.reduce((acc, item) => {
+            acc[item._id] = {
+                average: item.averageScore,
+                top: item.topScore
+            };
+            return acc;
+        }, {});
+
+        res.json(formattedStats);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching stats.' });
+    }
+});
+
 // --- Admin-Only Routes ---
 app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) => {
     try {
