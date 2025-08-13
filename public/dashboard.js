@@ -104,19 +104,30 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSummary.innerHTML = ''; // Clear loading message
 
         for (const sessionId in sessions) {
+            if (!sessionId || sessionId === 'null') continue; // Skip any invalid sessions
+
             const sessionResults = sessions[sessionId];
             const totalScore = sessionResults.reduce((sum, r) => sum + (r.score || 0), 0);
             const sessionDate = new Date(sessionResults[0].submittedAt).toLocaleString();
 
-            const sessionDiv = document.createElement('div');
-            sessionDiv.className = 'session';
-            sessionDiv.innerHTML = `
-                <p><strong>Date:</strong> ${sessionDate}</p>
-                <h4>Total Score: ${totalScore} / 50</h4>
+            const tableRow = document.createElement('tr');
+            tableRow.innerHTML = `
+                <td>${sessionDate}</td>
+                <td><strong>${totalScore} / 50</strong></td>
+                <td><button class="view-results-btn" data-session-id="${sessionId}">View Results</button></td>
             `;
-            resultsSummary.appendChild(sessionDiv);
+            resultsSummary.appendChild(tableRow);
         }
     }
+
+    // Add this new event listener to handle all "View Results" button clicks
+    resultsSummary.addEventListener('click', (event) => {
+        if (event.target.classList.contains('view-results-btn')) {
+            const sessionId = event.target.dataset.sessionId;
+            localStorage.setItem('currentSessionId', sessionId);
+            window.location.href = '/results.html';
+        }
+    });
 
     fetchDashboardData();
 });
