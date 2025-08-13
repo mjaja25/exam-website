@@ -434,6 +434,21 @@ body.dashboard-page {
     border-bottom: none;
     margin-bottom: 0;
 }
+.view-results-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.view-results-btn:hover {
+    background-color: var(--border-color);
+    transform: translateY(-1px);
+}
 
 /* --- INSTRUCTIONS MODAL STYLES --- */
 .modal-overlay {
@@ -1036,6 +1051,17 @@ body.results-page {
     flex-direction: column;
     align-items: center; /* This will center the chart and text block */
     gap: 1.5rem; /* Adjusts the vertical space between the chart and text */
+}
+.skills-text {
+    flex: 1;
+    display: flex;
+    /* This is the key change for horizontal layout */
+    justify-content: space-around; /* Evenly spaces the items */
+    gap: 1rem;
+}
+.skills-text p {
+    text-align: center; /* Center the text under each icon */
+    margin: 0;
 }
 
 .skills-chart-container {

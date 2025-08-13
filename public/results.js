@@ -34,15 +34,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatExcelFeedback(feedback) {
-        const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
-        if (points.length > 1) {
-            let formattedHtml = '<ul>';
-            points.forEach((point, index) => {
-                formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
-            });
-            formattedHtml += '</ul>';
-            return formattedHtml;
+        // This new function looks for lines that start with a number and a period (e.g., "1.", "2.")
+        // and wraps them in list item tags.
+        const formattedHtml = feedback.replace(/(\d\..+)/g, '<li>$1</li>');
+
+        // If the replacement created list items, we wrap the whole thing in a <ul> tag.
+        if (formattedHtml.includes('<li>')) {
+            return `<ul>${formattedHtml}</ul>`;
         }
+
+        // If no numbered list was found, return the feedback as a simple paragraph.
         return `<p>${feedback}</p>`;
     }
 
@@ -111,8 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 plugins: {
                     legend: {
+                        display: true, 
                         labels: {
-                            color: 'var(--text-color)' // Make legend text readable in dark/light mode
+                            color: 'var(--text-color)'
+                            // Make legend text readable in dark/light mode
                         }
                     }
                 },
