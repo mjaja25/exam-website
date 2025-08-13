@@ -112,22 +112,20 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 plugins: {
                     legend: {
-                        display: true, // This enables the legends
+                        display: true,
                         labels: {
-                            color: 'var(--text-color)' // This styles the legend text
+                            color: 'var(--text-color)',
+                            // This makes the legend font smaller
+                            font: {
+                                size: 12 
+                            }
                         }
                     }
                 },
                 scales: {
                     r: {
-                        angleLines: { color: 'var(--border-color)' },
-                        grid: { color: 'var(--border-color)' },
-                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
-                        ticks: {
-                            color: 'var(--text-muted)',
-                            backdropColor: 'var(--card-background)',
-                            stepSize: 25
-                        },
+                        // This is the key change that hides all the scale lines and numbers
+                        display: false, 
                         suggestedMin: 0,
                         suggestedMax: 100
                     }
