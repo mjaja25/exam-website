@@ -113,19 +113,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         display: true,
+                        position: 'bottom', // You can change this to 'top' if you prefer
                         labels: {
                             color: 'var(--text-color)',
-                            // This makes the legend font smaller
                             font: {
-                                size: 12 
-                            }
+                                size: 12
+                            },
+                            boxWidth: 20, // Make the colored boxes smaller
+                            padding: 20 // Add space between legend items
                         }
                     }
                 },
                 scales: {
                     r: {
-                        // This is the key change that hides all the scale lines and numbers
-                        display: false, 
+                        // By not setting 'display: false', the scales will reappear
+                        angleLines: { color: 'var(--border-color)' },
+                        grid: { color: 'var(--border-color)' },
+                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
+                        ticks: {
+                            color: 'var(--text-muted)',
+                            backdropColor: 'var(--card-background)',
+                            stepSize: 25,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
                         suggestedMin: 0,
                         suggestedMax: 100
                     }
