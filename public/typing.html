@@ -8,7 +8,7 @@
     <script src="/auth.js" defer></script>
     <script src="/test-ui.js" defer></script>
 </head>
-<body class="test-page">
+<body class="test-page typing-page">
     <main class="test-container">
         <header class="test-header">
             <hgroup>
@@ -35,11 +35,13 @@
             </div>
         </div>
 
-        <div id="passage-display" class="passage-card">
-            Loading passage...
-        </div>
+        <div class="typing-wrapper">
+            <div id="passage-display" class="passage-card">
+                Loading passage...
+            </div>
 
-        <textarea id="user-input" rows="5" placeholder="Start typing here to begin the test..."></textarea>
+            <textarea id="user-input" rows="3" placeholder="Start typing here..."></textarea>
+        </div>
     </main>
 
     <script src="script.js"></script>

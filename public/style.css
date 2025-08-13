@@ -1180,31 +1180,36 @@ body.results-page {
     }
 }
 
-/* --- TYPING TEST MOBILE OPTIMIZATION --- */
-/* This applies only when the screen is small AND the body has the 'test-page' class */
-@media (max-width: 768px) {
-    body.test-page .test-container {
-        /* Allow the container to be flexible */
-        display: flex;
-        flex-direction: column;
-    }
 
-    body.test-page .passage-card {
-        /* Allow the passage card to shrink but not grow too much */
-        flex-grow: 0;
-        flex-shrink: 1;
-        /* Make the passage scrollable if it's too long */
-        overflow-y: auto;
-        /* Set a smaller max-height for mobile */
-        max-height: 150px;
-    }
+/* --- FINAL TYPING TEST MOBILE FIX --- */
 
-    body.test-page textarea {
-        /* Allow the textarea to grow and shrink */
-        flex-grow: 1;
-        flex-shrink: 1;
-        min-height: 100px; /* Ensure it doesn't get too small */
-    }
+/* This makes the main container fill the dynamic viewport height */
+body.typing-page .test-container {
+    height: calc(100dvh - 4rem); /* dvh = dynamic viewport height */
+    display: flex;
+    flex-direction: column;
+}
+
+/* This new wrapper will handle the flexible content */
+.typing-wrapper {
+    flex-grow: 1; /* Allows this container to fill available space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* A crucial fix for flexbox overflow */
+}
+
+/* The passage card will now have a fixed height and scroll if needed */
+body.typing-page .passage-card {
+    flex-shrink: 0; /* Prevent the passage card from shrinking */
+    height: 40%;
+    max-height: none; /* Override previous max-height */
+    overflow-y: auto;
+}
+
+/* The textarea will grow to fill the remaining space */
+body.typing-page textarea {
+    flex-grow: 1; /* This is the key: the textarea fills the rest of the space */
+    min-height: 80px; /* Ensure it doesn't become too small */
 }
 
 body.mobile-warning-active .dashboard-header {
