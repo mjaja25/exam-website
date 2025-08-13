@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userInputElement.contentEditable = false;
         submitBtn.disabled = true;
 
-        const letterContent = userInputElement.innerText;
+        const letterContent = userInputElement.innerHTML;
         const sessionId = localStorage.getItem('currentSessionId');
 
         try {
