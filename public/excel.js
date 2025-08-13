@@ -8,6 +8,7 @@ const excelForm = document.getElementById('excel-form');
 const fileInput = document.getElementById('excel-file');
 const downloadBtn = document.getElementById('download-btn');
 const questionNameElement = document.getElementById('question-name');
+const mobileTimerElement = document.getElementById('mobile-timer');
 
 // State Management
 let timeRemaining = 300;
@@ -60,7 +61,11 @@ function startTimer() {
             timeRemaining--;
             const minutes = Math.floor(timeRemaining / 60);
             const seconds = timeRemaining % 60;
-            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Update both timers once
+            timerElement.textContent = formattedTime;
+            mobileTimerElement.textContent = formattedTime;
             if (timeRemaining <= 0) {
                 clearInterval(timerInterval);
                 if (fileInput.files.length > 0) {

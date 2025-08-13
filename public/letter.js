@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const underlineBtn = document.getElementById('underline-btn');
     const fontFamilySelect = document.getElementById('font-family-select');
     const fontSizeSelect = document.getElementById('font-size-select');
+    const mobileTimerElement = document.getElementById('mobile-timer');
 
     // --- State Management ---
     const token = localStorage.getItem('token');
@@ -59,7 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 timeRemaining--;
                 const minutes = Math.floor(timeRemaining / 60);
                 const seconds = timeRemaining % 60;
-                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Update both timers once
+                timerElement.textContent = formattedTime;
+                mobileTimerElement.textContent = formattedTime;
+
                 if (timeRemaining <= 0) {
                     endTest();
                 }
