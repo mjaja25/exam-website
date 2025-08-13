@@ -1031,6 +1031,13 @@ body.results-page {
     align-items: center;
 }
 
+.skills-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This will center the chart and text block */
+    gap: 1.5rem; /* Adjusts the vertical space between the chart and text */
+}
+
 .skills-chart-container {
     padding-right: 2rem;
     border-right: 1px solid var(--border-color);
