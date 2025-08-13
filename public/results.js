@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Render Radar Chart
         const chartCanvas = document.getElementById('skills-chart-canvas');
-        new Chart(chartCanvas, {
+        const myChart = new Chart(chartCanvas, {
             type: 'radar',
             data: {
                 labels: ['Typing Speed', 'Letter Writing', 'Excel Skills'],
