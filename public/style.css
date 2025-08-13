@@ -294,27 +294,32 @@ body.mobile-device {
 /* The outer container or "track" of the progress bar */
 .progress-container {
     width: 100%;
-    background-color: var(--background-color);
+    background: linear-gradient(145deg, #f1f1f1, #e0e0e0);
     border: 1px solid var(--border-color);
-    border-radius: 8px; /* Or use var(--pico-border-radius) if you prefer */
+    border-radius: 10px;
     padding: 0.25rem;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {
     height: 1rem;
-    border-radius: 4px;
-    
-    /* The Glassy Glow Effect */
+    border-radius: 8px;
+    width: 0%;
     background: linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.3),
-        rgba(255, 255, 255, 0.1)
-    ), var(--primary-yellow);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.2);
-    
-    /* The width will now be controlled by JavaScript */
-    width: 0%; 
-    transition: width 0.2s linear; /* Smooths the animation slightly */
+        90deg,
+        #ffdd57,
+        #ffc107,
+        #ff9800
+    );
+    background-size: 200% 100%;
+    animation: shine 2s linear infinite;
+    box-shadow: 0 0 6px rgba(255, 193, 7, 0.6), inset 0 -1px 3px rgba(0, 0, 0, 0.2);
+    transition: width 0.3s ease-in-out;
+}
+
+@keyframes shine {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 

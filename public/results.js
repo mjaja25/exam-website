@@ -120,38 +120,53 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 plugins: {
                     legend: {
-                        display: true,
-                        position: 'bottom', // You can change this to 'top' if you prefer
-                        labels: {
-                            color: 'var(--text-color)',
-                            font: {
-                                size: 12
-                            },
-                            boxWidth: 10, // Make the colored boxes smaller
-                            padding: 10 // Add space between legend items
-                        }
+                        display: false // This disables the default legend
                     }
                 },
-                scales: {
-                    r: {
-                        // By not setting 'display: false', the scales will reappear
-                        angleLines: { color: 'var(--border-color)' },
-                        grid: { color: 'var(--border-color)' },
-                        pointLabels: { font: { size: 12 } },
-                        ticks: {
-                            // color: 'var(--text-muted)',
-                            // backdropColor: 'var(--card-background)',
-                            stepSize: 20,
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
+                    // legend: {
+                    //     display: false,
+                    //     position: 'bottom', 
+                    //     labels: {
+                    //         color: 'var(--text-color)',
+                    //         font: {
+                    //             size: 12
+                    //         },
+                    //         boxWidth: 10, 
+                    //         padding: 10 
+                    //     }
+                    // }
+            },
+            scales: {
+                r: {
+                        // angleLines: { color: 'var(--border-color)' },
+                        // grid: { color: 'var(--border-color)' },
+                        // pointLabels: { font: { size: 12 } },
+                        // ticks: {
+                        //     stepSize: 20,
+                        //     callback: function(value) {
+                        //         return value + '%';
+                        //     }
+                        // },
+                        // suggestedMin: 0,
+                        // suggestedMax: 100
                 }
             }
+            
         });
+
+        // --- NEW: Create Custom Legend ---
+        const legendContainer = document.getElementById('chart-legend');
+        legendContainer.innerHTML = ''; // Clear previous legend
+        myChart.data.datasets.forEach((dataset, i) => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <div class="legend-color-box" style="background-color: ${dataset.borderColor}"></div>
+                <span>${dataset.label}</span>
+            `;
+            legendContainer.appendChild(legendItem);
+        });
+        // --- END OF NEW LOGIC ---
 
         // Populate Skills Breakdown Text
         const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
