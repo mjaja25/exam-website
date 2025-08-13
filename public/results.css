@@ -8,6 +8,11 @@ body {
 .header { text-align: center; margin-bottom: 25px; }
 .header h1 { margin: 0; }
 .score-section { display: flex; gap: 20px; flex-wrap: wrap; }
+span.score {
+    display: flex;
+    justify-content: end;
+    color: var(--primary-yellow);
+}
 .card { background: var(--card-background, #fff); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; flex: 1; min-width: 300px; border: 1px solid var(--border-color, #eee); }
 .score-summary-card { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
 .score-circle { width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; margin: 0 auto 1rem; color: var(--primary-yellow, #f59e0b); background: conic-gradient(var(--primary-yellow) 0deg, var(--border-color, #eee) 0deg); position: relative; }

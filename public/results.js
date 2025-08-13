@@ -54,20 +54,19 @@ document.addEventListener('DOMContentLoaded', () => {
             
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
-        // Update Header Title
-        if (totalScore >= 40) { 
+        // --- THIS IS THE CORRECTED SECTION ---
+        // We use 'resultsTitle' for both the text and the color.
+        if (totalScore >= 40) {
             resultsTitle.textContent = 'Excellent Performance!';
-            headerTitle.style.color = '#4ade80';
-        }
-        else if (totalScore >= 25) {
+            resultsTitle.style.color = '#4ade80'; // Green
+        } else if (totalScore >= 25) {
             resultsTitle.textContent = 'Great Effort!';
-            headerTitle.style.color = '#f59e0b';
-        }
-        else {
+            resultsTitle.style.color = '#f59e0b'; // Yellow
+        } else {
             resultsTitle.textContent = 'Keep Practicing!';
-            headerTitle.style.color = '#f87171';
+            resultsTitle.style.color = '#f87171'; // Red
         }
-        
+        // --- END OF CORRECTION ---
         // Update Score Circle
         scoreValueElement.textContent = totalScore;
         const scorePercentage = (totalScore / 50) * 100;
