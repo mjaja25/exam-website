@@ -140,8 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 r: {
                         angleLines: { color: 'var(--border-color)' },
                         grid: { color: 'var(--border-color)' },
-                        pointLabels: { font: { size: 12 } },
+                        pointLabels: { font: { size: 12 } , color: 'var(--text color)'},
                         ticks: {
+                            color: 'var(--text-muted)',
+                            backdropColor: 'var(--card-background)',
                             stepSize: 20,
                             callback: function(value) {
                                 return value + '%';
