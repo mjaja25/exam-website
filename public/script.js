@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
     const timerElement = document.getElementById('timer');
     const mobileTimerElement = document.getElementById('mobile-timer');
+    const progressBar = document.getElementById('progress-bar');
     const wpmElement = document.getElementById('wpm');
     const accuracyElement = document.getElementById('accuracy');
     const passageDisplayElement = document.getElementById('passage-display');
@@ -40,19 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleInput() {
+        if (!testInProgress) startTimer();
+        
         const passageChars = passageDisplayElement.querySelectorAll('span');
         const userChars = userInputElement.value.split('');
 
         // Live WPM Calculation
-        if (testInProgress) {
-            const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
-            const correctWords = userInputElement.value.trim().split(' ').filter((word, index) => {
-                const passageWords = currentPassage.trim().split(' ');
-                return word === passageWords[index];
-            }).length;
-            if (timeElapsedMinutes > 0) {
-                wpmElement.textContent = Math.round(correctWords / timeElapsedMinutes);
-            }
+        const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
+        const correctChars = Array.from(passageChars).slice(0, userChars.length).filter((span, i) => span.innerText === userChars[i]).length;
+        if (timeElapsedMinutes > 0) {
+            wpmElement.textContent = Math.round((correctChars / 5) / timeElapsedMinutes);
         }
 
         passageChars.forEach((charSpan, index) => {
@@ -70,7 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (userChars.length < passageChars.length) {
-            passageChars[userChars.length].classList.add('current');
+            const nextCharSpan = passageChars[userChars.length];
+            nextCharSpan.classList.add('current');
+            nextCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
             endTest();
         }
@@ -84,23 +84,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         timerInterval = setInterval(() => {
             const timeElapsed = new Date().getTime() - sessionStartTime;
-            const remainingMilliseconds = (300 * 1000) - timeElapsed;
+            const remainingMilliseconds = totalDuration - timeElapsed;
 
             if (remainingMilliseconds <= 0) {
                 endTest();
                 return;
             }
             
-            // --- ANIMATION LOGIC ---
-            // Determine current stage for the progress bar animation
-            const path = window.location.pathname;
-            let stageBasePercent = 0;
-            if (path.includes('letter.html')) stageBasePercent = 33.33;
-            if (path.includes('excel.html')) stageBasePercent = 66.66;
-            
             const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
-            progressBar.style.width = `${stageBasePercent + stageDurationPercent}%`;
-            // --- END OF ANIMATION LOGIC --
+            progressBar.style.width = `${stageDurationPercent}%`;
 
             const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
             const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
@@ -112,11 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function endTest() {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
         clearInterval(timerInterval);
         userInputElement.disabled = true;
         
-        // Final WPM and Accuracy Calculation
         const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
         const correctChars = passageDisplayElement.querySelectorAll('.correct').length;
         const totalTypedChars = userInputElement.value.length;
@@ -140,21 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-    userInputElement.addEventListener('input', () => {
-        if (!testInProgress) startTimer();
-        handleInput();
-    });
+    userInputElement.addEventListener('input', handleInput);
 
     userInputElement.addEventListener('keydown', (e) => {
         if (e.key === ' ') {
             e.preventDefault();
             const currentText = userInputElement.value;
-            const passageWords = currentPassage.split(' ');
-            const userWords = currentText.split(' ');
-            const nextWord = passageWords[userWords.length - 1];
+            const nextSpaceIndex = currentPassage.indexOf(' ', currentText.length);
             
-            if (nextWord) {
-                userInputElement.value += nextWord.substring(userWords[userWords.length-1].length) + ' ';
+            if (nextSpaceIndex > -1) {
+                const wordToJump = currentPassage.substring(currentText.length, nextSpaceIndex);
+                userInputElement.value += wordToJump + ' ';
+            } else { // Last word
+                userInputElement.value = currentPassage;
             }
             handleInput();
         }

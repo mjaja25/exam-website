@@ -27,6 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // --- NEW: Handle Tab Key Press ---
+    userInputElement.addEventListener('keydown', (event) => {
+        // Check if the pressed key is the "Tab" key
+        if (event.key === 'Tab') {
+            // Prevent the default action (which is to change focus)
+            event.preventDefault();
+
+            // Insert a tab character (or a few spaces) at the cursor's position
+            document.execCommand('insertText', false, '\t'); // You can replace '\t' with '    ' for four spaces
+        }
+    });
+    
+    
     // --- Main Functions ---
     async function loadRandomQuestion() {
         try {
