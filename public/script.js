@@ -11,10 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
 
     // --- State Management ---
+    const token = localStorage.getItem('token');
     let timeRemaining = 300;
     let timerInterval;
     let testInProgress = false;
     let currentPassage = '';
+    let sessionStartTime;
 
     // --- Refresh-blocking logic ---
     const handleBeforeUnload = (event) => {
@@ -53,6 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleInput() {
         const passageChars = passageDisplayElement.querySelectorAll('span');
         const userChars = userInputElement.value.split('');
+
+        // --- Live WPM Calculation ---
+        const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
+        const correctChars = passageDisplayElement.querySelectorAll('.correct').length;
+        if (timeElapsedMinutes > 0) {
+            const liveWpm = Math.round((correctChars / 5) / timeElapsedMinutes);
+            wpmElement.textContent = liveWpm;
+        }
 
         passageChars.forEach((charSpan, index) => {
             const userChar = userChars[index];
@@ -177,6 +187,26 @@ document.addEventListener('DOMContentLoaded', () => {
     userInputElement.addEventListener('input', () => {
         if (!testInProgress) startTimer();
         handleInput();
+    });
+
+    // --- NEW: Spacebar Word Jump Logic ---
+    userInputElement.addEventListener('keydown', (e) => {
+        if (e.key === ' ') {
+            e.preventDefault(); // Prevent default space behavior
+            
+            const currentText = userInputElement.value;
+            let nextSpaceIndex = currentPassage.indexOf(' ', currentText.length);
+            
+            if (nextSpaceIndex === -1) { // If it's the last word
+                nextSpaceIndex = currentPassage.length;
+            }
+
+            const wordToJumpOver = currentPassage.substring(currentText.length, nextSpaceIndex);
+            const spacesToAdd = " ".repeat(wordToJumpOver.length + 1); // Add spaces to fill the gap
+
+            userInputElement.value += spacesToAdd;
+            handleInput(); // Update the UI
+        }
     });
 
     // --- Initial Load ---

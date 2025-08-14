@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentQuestionId = question._id;
             
             downloadBtn.removeAttribute('disabled');
+            // Start the timer as usual
+            startTimer();
         } catch (error) {
             questionNameElement.textContent = 'Error loading question. Please add questions in the admin panel.';
             downloadBtn.textContent = 'Unavailable';
@@ -85,8 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Temporarily remove the warning so the download can start without a pop-up.
         window.removeEventListener('beforeunload', handleBeforeUnload);
 
-        // Start the timer as usual
-        startTimer();
+        
 
         // Re-add the warning immediately after. This happens so fast the user won't notice,
         // but it re-enables protection for any future accidental refreshes.
