@@ -24,7 +24,7 @@ body {
     border: 1px solid var(--border-color, #eee); 
 }
 .card h2 {
-    text-align: left;
+    text-align: center;
     margin-bottom: 1rem;
     margin-top: 0;
 }
