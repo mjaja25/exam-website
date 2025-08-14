@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    
     // --- Main Functions ---
     async function loadRandomQuestion() {
         try {
@@ -51,6 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
             questionDisplay.textContent = question.questionText;
             currentQuestionId = question._id;
             startTimer(); // Start timer after question loads
+            // **FIX 3: Auto-focus on the input area**
+            userInputElement.focus();
         } catch (error) {
             questionDisplay.textContent = 'Error: Failed to load question. Please add questions in the admin panel.';
             submitBtn.disabled = true;

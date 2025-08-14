@@ -17,6 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPassage = '';
     let sessionStartTime;
 
+    // --- Refresh-blocking logic ---
+    const handleBeforeUnload = (event) => {
+        event.preventDefault();
+        event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     // --- Main Test Functions ---
     async function loadNewPassage() {
         try {
@@ -74,9 +81,18 @@ document.addEventListener('DOMContentLoaded', () => {
             accuracyElement.textContent = `${Math.round((correctChars / userChars.length) * 100)}%`;
         }
         
+        // Add 'current' class to the next character to be typed
         if (userChars.length < passageChars.length) {
-            passageChars[userChars.length].classList.add('current');
-        } else {
+            const nextCharSpan = passageChars[userChars.length];
+            nextCharSpan.classList.add('current');
+            // --- FINAL, CORRECTED AUTO-SCROLL LOGIC ---
+            // This tells the browser to smoothly scroll the element into the visible area if it's not already.
+            nextCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // --- END OF FIX ---
+        }
+
+        // Auto-submit if completed
+        if (userChars.length === passageChars.length) {
             endTest();
         }
     }
@@ -110,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function endTest() {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
         clearInterval(timerInterval);
         userInputElement.disabled = true;
         
