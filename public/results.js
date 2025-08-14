@@ -172,26 +172,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
         // We use divs instead of <p> tags to allow for horizontal alignment
         skillsTextBreakdown.innerHTML = `
-            <div>⌨ Typing<br><strong>${typingResult.score} / 20</strong></div>
-            <div>✉ Letter<br><strong>${letterResult.score} / 10</strong></div>
-            <div>📊 Excel<br><strong>${excelResult.score} / 20</strong></div>
+            <div>⌨ <br><strong>${typingResult.score} / 20</strong></div>
+            <div>✉ <br><strong>${letterResult.score} / 10</strong></div>
+            <div>📊 <br><strong>${excelResult.score} / 20</strong></div>
             `;
 
-        // Populate Detailed Cards in the single container
         detailsContainer.innerHTML = `
-            <div class="test-block">
-                <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
-                <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
+            <div class="detail-row">
+                <span class="label">⌨ Typing Test</span>
+                <span class="score">${typingResult.score} / 20</span>
             </div>
-            <div class="test-block">
-                <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
-                <div class="feedback">${letterResult.feedback}</div>
+            <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
+            
+            <div class="detail-row">
+                <span class="label">✉ Letter Test</span>
+                <span class="score">${letterResult.score} / 10</span>
             </div>
-            <div class="test-block">
-                <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
-                <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
+            <div class="feedback">${letterResult.feedback}</div>
+
+            <div class="detail-row">
+                <span class="label">📊 Excel Test</span>
+                <span class="score">${excelResult.score} / 20</span>
             </div>
-            `;
+            <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
+        `;
         // --- END OF CORRECTION ---
 
         localStorage.removeItem('currentSessionId');
