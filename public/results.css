@@ -1,3 +1,4 @@
+/* In public/results.css */
 body {
     background: var(--background-color, #f4f6f9);
     color: var(--text-color, #333);
@@ -7,14 +8,14 @@ body {
 .header { text-align: center; margin-bottom: 25px; }
 .header h1 { color: var(--primary-yellow, #f59e0b); margin: 0; }
 
-/* This is the key fix for the top two cards */
+/* Key fix for top two cards */
 .score-section {
     display: flex;
     gap: 1rem;
-    align-items: stretch; /* This makes both cards the same height */
+    align-items: stretch; /* Makes both cards the same height */
 }
 .card {
-    flex: 1; /* Make cards share space equally */
+    flex: 1;
     display: flex;
     flex-direction: column;
     background: var(--card-background, #fff); 
@@ -24,8 +25,9 @@ body {
     border: 1px solid var(--border-color, #eee); 
 }
 .card h2 {
-    text-align: center; /* Aligns card titles to the top-left */
+    text-align: left; /* Aligns card titles to the top-left */
     margin-bottom: 1rem;
+    margin-top: 0;
 }
 .card .card-body {
     flex-grow: 1; /* Allows content to fill the card height */
@@ -39,32 +41,29 @@ body {
 .score-circle::before { content: ''; position: absolute; width: 85%; height: 85%; background: var(--card-background, #fff); border-radius: 50%; }
 .score-circle span { position: relative; }
 
-.skills-layout { display: flex; align-items: center; gap: 1rem; width: 100%; }
-.chart-container { flex: 1; max-width: 300px; }
-.chart-legend { display: flex; gap: 0.75rem; }
+.skills-layout { display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%; }
+.chart-container { max-width: 300px; width: 100%; }
+.chart-legend { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
 .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
 .legend-color-box { width: 16px; height: 16px; border-radius: 4px; }
 
-/* This is the key fix for the detailed results alignment */
-.detail-row {
+/* Key fix for detailed results alignment */
+.test-block { width: 100%; }
+.test-block h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 0;
     border-bottom: 1px solid var(--border-color, #eee);
+    margin: 0;
 }
-.detail-row:first-child { padding-top: 0; }
-.detail-row:last-child { border-bottom: none; padding-bottom: 0; }
-.detail-row .label { font-weight: 500; }
-.detail-row .score { font-weight: bold; color: var(--primary-yellow, #f59e0b); }
-
+.test-block .score { font-weight: bold; color: var(--primary-yellow, #f59e0b); }
 .feedback { background: var(--background-color, #f9f9f9); border-left: 5px solid var(--primary-yellow, #f59e0b); padding: 10px; font-size: 14px; line-height: 1.5; border-radius: 6px; margin-top: 10px; }
 
-.footer-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 20px; border-top: 1px solid var(--border-color, #eee); padding-top: 20px; }
-.footer-actions a.action-btn { padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-family: 'Poppins', sans-serif; border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.footer-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 20px; }
+.footer-actions a.action-btn { padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
 .footer-actions a.action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 .footer-actions a.action-btn.primary { background-color: var(--primary-yellow); color: var(--dark-text-on-btn); border-color: var(--primary-yellow); }
 .footer-actions a.action-btn.secondary { background-color: transparent; }
 
-
-@media (max-width: 768px) { .score-section, .skills-layout { flex-direction: column; } }
+@media (max-width: 768px) { .score-section { flex-direction: column; } }

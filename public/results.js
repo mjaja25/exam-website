@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreValueElement = document.getElementById('score-value');
     const percentileRankElement = document.getElementById('percentile-rank');
     const chartCanvas = document.getElementById('skills-chart-canvas');
+    const legendContainer = document.getElementById('chart-legend');
     const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
     const detailsContainer = document.getElementById('test-details-container');
     
@@ -16,7 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
-        if (!sessionId) return;
+        if (!sessionId) {
+            if(detailsContainer) detailsContainer.innerHTML = "<p>Session ID not found. Please start a new test from your dashboard.</p>";
+            return;
+        }
         try {
             const response = await fetch(`${API_BASE_URL}/api/results/${sessionId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -24,26 +28,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const results = await response.json();
             if (!response.ok) throw new Error(results.message);
             
-            displayResults(results);
+            await displayResults(results); // Make this call await
             fetchPercentile(sessionId);
 
         } catch (error) {
             console.error("Error fetching results:", error);
-            detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
+            if(detailsContainer) detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
 
     function formatExcelFeedback(feedback) {
-        // This new function looks for lines that start with a number and a period (e.g., "1.", "2.")
-        // and wraps them in list item tags.
-        const formattedHtml = feedback.replace(/(\d\..+)/g, '<li>$1</li>');
-
-        // If the replacement created list items, we wrap the whole thing in a <ul> tag.
-        if (formattedHtml.includes('<li>')) {
-            return `<ul>${formattedHtml}</ul>`;
+        const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
+        if (points.length > 1) {
+            let formattedHtml = '<ul>';
+            points.forEach((point, index) => {
+                formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
+            });
+            return formattedHtml + '</ul>';
         }
-
-        // If no numbered list was found, return the feedback as a simple paragraph.
         return `<p>${feedback}</p>`;
     }
 
@@ -51,68 +53,62 @@ document.addEventListener('DOMContentLoaded', () => {
         const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
         const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
-            
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
-        // --- THIS IS THE CORRECTED SECTION ---
-        // We use 'resultsTitle' for both the text and the color.
+        // Update Header Title
         if (totalScore >= 40) {
             resultsTitle.textContent = 'Excellent Performance!';
-            resultsTitle.style.color = '#4ade80'; // Green
+            resultsTitle.style.color = '#4ade80';
         } else if (totalScore >= 25) {
             resultsTitle.textContent = 'Great Effort!';
-            resultsTitle.style.color = '#f59e0b'; // Yellow
+            resultsTitle.style.color = '#f59e0b';
         } else {
             resultsTitle.textContent = 'Keep Practicing!';
-            resultsTitle.style.color = '#f87171'; // Red
+            resultsTitle.style.color = '#f87171';
         }
-        // --- END OF CORRECTION ---
+        
         // Update Score Circle
         scoreValueElement.textContent = totalScore;
         const scorePercentage = (totalScore / 50) * 100;
         const scoreDegrees = (scorePercentage / 100) * 360;
         totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
 
-        // --- NEW: Fetch the aggregate stats ---
+        // Fetch aggregate stats for the chart
         const statsResponse = await fetch(`${API_BASE_URL}/api/stats/all-tests`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const stats = await statsResponse.json();
-
         const avgTyping = stats.Typing ? (stats.Typing.average / 20) * 100 : 0;
         const avgLetter = stats.Letter ? (stats.Letter.average / 10) * 100 : 0;
         const avgExcel = stats.Excel ? (stats.Excel.average / 20) * 100 : 0;
-
         const topTyping = stats.Typing ? (stats.Typing.top / 20) * 100 : 0;
         const topLetter = stats.Letter ? (stats.Letter.top / 10) * 100 : 0;
         const topExcel = stats.Excel ? (stats.Excel.top / 20) * 100 : 0;
-        // --- End of new logic ---
-        
+
         // Render Radar Chart
-        const chartCanvas = document.getElementById('skills-chart-canvas');
         const myChart = new Chart(chartCanvas, {
             type: 'radar',
             data: {
-                labels: ['Typing Speed', 'Letter Writing', 'Excel Skills'],
+                labels: ['Typing', 'Letter', 'Excel'],
                 datasets: [
                     {
                         label: 'Your Score',
                         data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ],
                         fill: true,
-                        backgroundColor: 'rgba(245, 158, 11, 0.2)', // Yellow fill
-                        borderColor: 'rgba(245, 158, 11, 1)',      // Solid Yellow line
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderColor: 'rgba(245, 158, 11, 1)',
                         pointBackgroundColor: 'rgba(245, 158, 11, 1)'
                     },
                     {
                         label: 'Average Score',
                         data: [avgTyping, avgLetter, avgExcel],
-                        borderColor: 'rgba(239, 68, 68, 1)',       // Red line
+                        borderColor: 'rgba(239, 68, 68, 1)',
                         pointBackgroundColor: 'rgba(239, 68, 68, 1)'
                     },
                     {
                         label: 'Top Score',
                         data: [topTyping, topLetter, topExcel],
-                        borderColor: 'rgba(59, 130, 246, 1)',      // Blue line
+                        borderColor: 'rgba(59, 130, 246, 1)',
                         pointBackgroundColor: 'rgba(59, 130, 246, 1)'
                     }
                 ]
@@ -120,46 +116,29 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 plugins: {
                     legend: {
-                        display: false // This disables the default legend
+                        display: false // Using custom legend
                     }
                 },
-                    // legend: {
-                    //     display: false,
-                    //     position: 'bottom', 
-                    //     labels: {
-                    //         color: 'var(--text-color)',
-                    //         font: {
-                    //             size: 12
-                    //         },
-                    //         boxWidth: 10, 
-                    //         padding: 10 
-                    //     }
-                    // }
-            },
-            scales: {
-                r: {
+                scales: {
+                    r: {
                         angleLines: { color: 'var(--border-color)' },
                         grid: { color: 'var(--border-color)' },
-                        pointLabels: { font: { size: 12 } , color: 'var(--text color)'},
+                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
                         ticks: {
                             color: 'var(--text-muted)',
-                            backdropColor: 'var(--card-background)',
-                            stepSize: 20,
-                            callback: function(value) {
-                                return value + '%';
-                            }
+                            stepSize: 25,
+                            callback: (value) => value + '%'
                         },
                         suggestedMin: 0,
                         suggestedMax: 100
                     }
                 }
-            
-            });
+            }
+        });
 
-        // --- NEW: Create Custom Legend ---
-        const legendContainer = document.getElementById('chart-legend');
-        legendContainer.innerHTML = ''; // Clear previous legend
-        myChart.data.datasets.forEach((dataset, i) => {
+        // Create Custom Legend
+        legendContainer.innerHTML = '';
+        myChart.data.datasets.forEach((dataset) => {
             const legendItem = document.createElement('div');
             legendItem.className = 'legend-item';
             legendItem.innerHTML = `
@@ -168,22 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             legendContainer.appendChild(legendItem);
         });
-        // --- END OF NEW LOGIC ---
 
         // Populate Skills Breakdown Text
-        const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
-        // We use divs instead of <p> tags to allow for horizontal alignment
         skillsTextBreakdown.innerHTML = `
-            <div>⌨ <br><strong>${typingResult.score} / 20</strong></div>
-            <div>✉ <br><strong>${letterResult.score} / 10</strong></div>
-            <div>📊 <br><strong>${excelResult.score} / 20</strong></div>
-            `;
+            <div>⌨ Typing<br><strong>${typingResult.score} / 20</strong></div>
+            <div>✉ Letter<br><strong>${letterResult.score} / 10</strong></div>
+            <div>📊 Excel<br><strong>${excelResult.score} / 20</strong></div>
+        `;
 
-        // --- THIS IS THE CORRECTED SECTION ---
-        // 1. Grab the single, correct container
-        const detailsContainer = document.getElementById('test-details-container');
-        
-        // 2. Populate the single container with all the detailed results
+        // Populate Detailed Report
         detailsContainer.innerHTML = `
             <div class="test-block">
                 <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
@@ -198,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
         `;
-        // --- END OF CORRECTION ---
 
         localStorage.removeItem('currentSessionId');
     }
