@@ -41,7 +41,7 @@ body {
 
 .skills-layout { display: flex; align-items: center; gap: 1rem; width: 100%; }
 .chart-container { flex: 1; max-width: 300px; }
-.chart-legend { display: flex; flex-direction: column; gap: 0.75rem; }
+.chart-legend { display: flex; gap: 0.75rem; }
 .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
 .legend-color-box { width: 16px; height: 16px; border-radius: 4px; }
 

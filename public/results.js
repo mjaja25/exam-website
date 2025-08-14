@@ -177,24 +177,24 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>📊 <br><strong>${excelResult.score} / 20</strong></div>
             `;
 
+        // --- THIS IS THE CORRECTED SECTION ---
+        // 1. Grab the single, correct container
+        const detailsContainer = document.getElementById('test-details-container');
+        
+        // 2. Populate the single container with all the detailed results
         detailsContainer.innerHTML = `
-            <div class="detail-row">
-                <span class="label">⌨ Typing Test</span>
-                <span class="score">${typingResult.score} / 20</span>
+            <div class="test-block">
+                <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
+                <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
             </div>
-            <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
-            
-            <div class="detail-row">
-                <span class="label">✉ Letter Test</span>
-                <span class="score">${letterResult.score} / 10</span>
+            <div class="test-block">
+                <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
+                <div class="feedback">${letterResult.feedback}</div>
             </div>
-            <div class="feedback">${letterResult.feedback}</div>
-
-            <div class="detail-row">
-                <span class="label">📊 Excel Test</span>
-                <span class="score">${excelResult.score} / 20</span>
+            <div class="test-block">
+                <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
+                <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
-            <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
         `;
         // --- END OF CORRECTION ---
 
