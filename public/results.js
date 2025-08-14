@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             options: {
                 plugins: { legend: { display: false } },
-                scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 25 }, pointLabels: { color: 'var(--text-color)' }, grid: { color: 'var(--border-color)' }, angleLines: { color: 'var(--border-color)' } } }
+                scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 25 }, pointLabels: { color: 'rgba(0, 0, 0, 1)' }, grid: { color: 'var(--border-color)' }, angleLines: { color: 'var(--border-color)' } } }
             }
         });
         
