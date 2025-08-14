@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const percentileRankElement = document.getElementById('percentile-rank');
     const chartCanvas = document.getElementById('skills-chart-canvas');
     const legendContainer = document.getElementById('chart-legend');
-    const skillsTextBreakdown = document.getElementById('skills-text-breakdown');
     const detailsContainer = document.getElementById('test-details-container');
     
     const token = localStorage.getItem('token');
@@ -28,11 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const results = await response.json();
             if (!response.ok) throw new Error(results.message);
             
-            await displayResults(results); // Make this call await
+            await displayResults(results);
             fetchPercentile(sessionId);
 
         } catch (error) {
-            console.error("Error fetching results:", error);
             if(detailsContainer) detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
@@ -55,28 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
         const totalScore = typingResult.score + letterResult.score + excelResult.score;
 
-        // Update Header Title
-        if (totalScore >= 40) {
-            resultsTitle.textContent = 'Excellent Performance!';
-            resultsTitle.style.color = '#4ade80';
-        } else if (totalScore >= 25) {
-            resultsTitle.textContent = 'Great Effort!';
-            resultsTitle.style.color = '#f59e0b';
-        } else {
-            resultsTitle.textContent = 'Keep Practicing!';
-            resultsTitle.style.color = '#f87171';
-        }
+        if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; } 
+        else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; } 
+        else { resultsTitle.textContent = 'Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
         
-        // Update Score Circle
         scoreValueElement.textContent = totalScore;
         const scorePercentage = (totalScore / 50) * 100;
         const scoreDegrees = (scorePercentage / 100) * 360;
         totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
 
-        // Fetch aggregate stats for the chart
-        const statsResponse = await fetch(`${API_BASE_URL}/api/stats/all-tests`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const statsResponse = await fetch(`${API_BASE_URL}/api/stats/all-tests`, { headers: { 'Authorization': `Bearer ${token}` } });
         const stats = await statsResponse.json();
         const avgTyping = stats.Typing ? (stats.Typing.average / 20) * 100 : 0;
         const avgLetter = stats.Letter ? (stats.Letter.average / 10) * 100 : 0;
@@ -85,77 +71,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const topLetter = stats.Letter ? (stats.Letter.top / 10) * 100 : 0;
         const topExcel = stats.Excel ? (stats.Excel.top / 20) * 100 : 0;
 
-        // Render Radar Chart
         const myChart = new Chart(chartCanvas, {
             type: 'radar',
             data: {
                 labels: ['Typing', 'Letter', 'Excel'],
                 datasets: [
-                    {
-                        label: 'Your Score',
-                        data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ],
-                        fill: true,
-                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                        borderColor: 'rgba(245, 158, 11, 1)',
-                        pointBackgroundColor: 'rgba(245, 158, 11, 1)'
-                    },
-                    {
-                        label: 'Average Score',
-                        data: [avgTyping, avgLetter, avgExcel],
-                        borderColor: 'rgba(239, 68, 68, 1)',
-                        pointBackgroundColor: 'rgba(239, 68, 68, 1)'
-                    },
-                    {
-                        label: 'Top Score',
-                        data: [topTyping, topLetter, topExcel],
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        pointBackgroundColor: 'rgba(59, 130, 246, 1)'
-                    }
+                    { label: 'Your Score', data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ], fill: true, backgroundColor: 'rgba(245, 158, 11, 0.2)', borderColor: 'rgba(245, 158, 11, 1)' },
+                    { label: 'Average Score', data: [avgTyping, avgLetter, avgExcel], borderColor: 'rgba(239, 68, 68, 1)' },
+                    { label: 'Top Score', data: [topTyping, topLetter, topExcel], borderColor: 'rgba(59, 130, 246, 1)' }
                 ]
             },
             options: {
-                plugins: {
-                    legend: {
-                        display: false // Using custom legend
-                    }
-                },
-                scales: {
-                    r: {
-                        angleLines: { color: 'var(--border-color)' },
-                        grid: { color: 'var(--border-color)' },
-                        pointLabels: { font: { size: 14 }, color: 'var(--text-color)' },
-                        ticks: {
-                            color: 'var(--text-muted)',
-                            stepSize: 25,
-                            callback: (value) => value + '%'
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                }
+                plugins: { legend: { display: false } },
+                scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 25 }, pointLabels: { color: 'var(--text-color)' }, grid: { color: 'var(--border-color)' }, angleLines: { color: 'var(--border-color)' } } }
             }
         });
-
-        // Create Custom Legend
+        
         legendContainer.innerHTML = '';
         myChart.data.datasets.forEach((dataset) => {
             const legendItem = document.createElement('div');
             legendItem.className = 'legend-item';
-            legendItem.innerHTML = `
-                <div class="legend-color-box" style="background-color: ${dataset.borderColor}"></div>
-                <span>${dataset.label}</span>
-            `;
+            legendItem.innerHTML = `<div class="legend-color-box" style="background-color: ${dataset.borderColor}"></div><span>${dataset.label}</span>`;
             legendContainer.appendChild(legendItem);
         });
 
-        // Populate Skills Breakdown Text
-        skillsTextBreakdown.innerHTML = `
-            <div>⌨ Typing<br><strong>${typingResult.score} / 20</strong></div>
-            <div>✉ Letter<br><strong>${letterResult.score} / 10</strong></div>
-            <div>📊 Excel<br><strong>${excelResult.score} / 20</strong></div>
-        `;
-
-        // Populate Detailed Report
         detailsContainer.innerHTML = `
             <div class="test-block">
                 <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
@@ -170,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
         `;
-
+        
         localStorage.removeItem('currentSessionId');
     }
 
