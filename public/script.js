@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
             passageDisplayElement.querySelector('span').classList.add('current');
             userInputElement.value = null;
             userInputElement.disabled = false;
+            
+            // **FIX 3: Auto-focus on the input area**
+            userInputElement.focus();
         } catch (error) {
             passageDisplayElement.textContent = `Error: ${error.message}`;
             userInputElement.disabled = true;
@@ -45,14 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const passageChars = passageDisplayElement.querySelectorAll('span');
         const userChars = userInputElement.value.split('');
-
-        // Live WPM Calculation
+        
+        // --- Live Accuracy and WPM Calculation ---
         const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
-        const correctChars = Array.from(passageChars).slice(0, userChars.length).filter((span, i) => span.innerText === userChars[i]).length;
-        if (timeElapsedMinutes > 0) {
-            wpmElement.textContent = Math.round((correctChars / 5) / timeElapsedMinutes);
-        }
-
+        let correctChars = 0;
+        
         passageChars.forEach((charSpan, index) => {
             const userChar = userChars[index];
             charSpan.classList.remove('current');
@@ -61,21 +61,27 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (userChar === charSpan.innerText) {
                 charSpan.classList.add('correct');
                 charSpan.classList.remove('incorrect');
+                correctChars++;
             } else {
                 charSpan.classList.add('incorrect');
                 charSpan.classList.remove('correct');
             }
         });
-
+        
+        if (timeElapsedMinutes > 0) {
+            wpmElement.textContent = Math.round((correctChars / 5) / timeElapsedMinutes);
+            // **FIX 2: Live accuracy update**
+            accuracyElement.textContent = `${Math.round((correctChars / userChars.length) * 100)}%`;
+        }
+        
         if (userChars.length < passageChars.length) {
-            const nextCharSpan = passageChars[userChars.length];
-            nextCharSpan.classList.add('current');
-            nextCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            passageChars[userChars.length].classList.add('current');
         } else {
             endTest();
         }
     }
 
+    // **FIX 1: Corrected, robust timer**
     function startTimer() {
         if (testInProgress) return;
         testInProgress = true;
@@ -92,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
-            progressBar.style.width = `${stageDurationPercent}%`;
+            if(progressBar) progressBar.style.width = `${stageDurationPercent}%`;
 
             const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
             const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
@@ -137,11 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const currentText = userInputElement.value;
             const nextSpaceIndex = currentPassage.indexOf(' ', currentText.length);
-            
             if (nextSpaceIndex > -1) {
                 const wordToJump = currentPassage.substring(currentText.length, nextSpaceIndex);
                 userInputElement.value += wordToJump + ' ';
-            } else { // Last word
+            } else {
                 userInputElement.value = currentPassage;
             }
             handleInput();
