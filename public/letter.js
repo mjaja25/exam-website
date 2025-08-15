@@ -117,6 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('An error occurred while submitting. Please try again.');
         }
     }
+
+    // --- Prevent Copy-Paste Functionality ---
+    ['paste', 'copy', 'cut'].forEach(eventType => {
+        userInputElement.addEventListener(eventType, (e) => {
+            e.preventDefault();
+        });
+    });
     
     // --- Editor Toolbar Logic ---
     boldBtn.addEventListener('click', () => document.execCommand('bold'));

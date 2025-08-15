@@ -170,5 +170,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Prevent Copy-Paste Functionality ---
+    ['paste', 'copy', 'cut'].forEach(eventType => {
+        userInputElement.addEventListener(eventType, (e) => {
+            e.preventDefault();
+        });
+    });
+
     loadNewPassage();
 });
