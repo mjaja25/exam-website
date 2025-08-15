@@ -62,7 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const scoreDegrees = (scorePercentage / 100) * 360;
         totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
 
-        const statsResponse = await fetch(`${API_BASE_URL}/api/stats/all-tests`, { headers: { 'Authorization': `Bearer ${token}` } });
+        // --- NEW: Fetch aggregate stats ---
+        const statsResponse = await fetch(`${API_BASE_URL}/api/stats/all-tests`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         const stats = await statsResponse.json();
         const avgTyping = stats.Typing ? (stats.Typing.average / 20) * 100 : 0;
         const avgLetter = stats.Letter ? (stats.Letter.average / 10) * 100 : 0;
@@ -71,29 +74,73 @@ document.addEventListener('DOMContentLoaded', () => {
         const topLetter = stats.Letter ? (stats.Letter.top / 10) * 100 : 0;
         const topExcel = stats.Excel ? (stats.Excel.top / 20) * 100 : 0;
 
-        const myChart = new Chart(chartCanvas, {
-            type: 'radar',
+        // --- NEW BAR CHART LOGIC ---
+        const chartCanvas = document.getElementById('skills-chart-canvas');
+        new Chart(chartCanvas, {
+            type: 'bar', // The chart type is now 'bar'
             data: {
                 labels: ['Typing', 'Letter', 'Excel'],
                 datasets: [
-                    { label: 'Your Score', data: [ (typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100 ], fill: true, backgroundColor: 'rgba(245, 158, 11, 0.2)', borderColor: 'rgba(245, 158, 11, 1)' },
-                    { label: 'Average Score', data: [avgTyping, avgLetter, avgExcel], borderColor: 'rgba(239, 68, 68, 1)' },
-                    { label: 'Top Score', data: [topTyping, topLetter, topExcel], borderColor: 'rgba(59, 130, 246, 1)' }
+                    {
+                        label: 'Your Score',
+                        data: [
+                            (typingResult.score / 20) * 100,
+                            (letterResult.score / 10) * 100,
+                            (excelResult.score / 20) * 100
+                        ],
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)', // Yellow
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Average Score',
+                        data: [avgTyping, avgLetter, avgExcel],
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Top Score',
+                        data: [topTyping, topLetter, topExcel],
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }
                 ]
             },
             options: {
-                plugins: { legend: { display: false } },
-                scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 25 }, pointLabels: { color: 'rgba(0, 0, 0, 1)' }, grid: { color: 'var(--border-color)' }, angleLines: { color: 'var(--border-color)' } } }
+                indexAxis: 'y', // This makes the bar chart horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: 'var(--text-color)' }
+                    }
+                },
+                scales: {
+                    x: { // The horizontal axis is now the score
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            color: 'var(--text-muted)',
+                            callback: (value) => value + '%' // Add percentage sign
+                        }
+                    },
+                    y: { // The vertical axis is now the skill
+                        ticks: { color: 'var(--text-color)' }
+                    }
+                }
             }
         });
         
-        legendContainer.innerHTML = '';
-        myChart.data.datasets.forEach((dataset) => {
-            const legendItem = document.createElement('div');
-            legendItem.className = 'legend-item';
-            legendItem.innerHTML = `<div class="legend-color-box" style="background-color: ${dataset.borderColor}"></div><span>${dataset.label}</span>`;
-            legendContainer.appendChild(legendItem);
-        });
+        // legendContainer.innerHTML = '';
+        // myChart.data.datasets.forEach((dataset) => {
+        //     const legendItem = document.createElement('div');
+        //     legendItem.className = 'legend-item';
+        //     legendItem.innerHTML = `<div class="legend-color-box" style="background-color: ${dataset.borderColor}"></div><span>${dataset.label}</span>`;
+        //     legendContainer.appendChild(legendItem);
+        // });
 
         detailsContainer.innerHTML = `
             <div class="test-block">

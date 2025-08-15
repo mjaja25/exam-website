@@ -43,11 +43,18 @@ body {
 .score-circle::before { content: ''; position: absolute; width: 85%; height: 85%; background: var(--card-background, #fff); border-radius: 50%; }
 .score-circle span { position: relative; }
 
-.skills-layout { flex-direction: column; align-items: center; gap: 1rem; width: 100%; }
-.chart-container { max-width: 300px; width: 100%; }
-.chart-legend { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+.skills-layout {
+    width: 100%;
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    /* Set an aspect ratio for responsiveness */
+    aspect-ratio: 16 / 9;
+}
+/* .chart-legend { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
 .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-.legend-color-box { width: 16px; height: 16px; border-radius: 4px; }
+.legend-color-box { width: 16px; height: 16px; border-radius: 4px; } */
 
 .test-block { width: 100%; }
 .test-block h3 {
