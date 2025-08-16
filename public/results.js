@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    display: true,
                     legend: {
                         position: 'top',
                         labels: { color: 'var(--text-color)' },
