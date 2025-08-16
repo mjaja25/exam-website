@@ -113,16 +113,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    display: true,
                     legend: {
+                        display: true,
                         position: 'top',
-                        labels: { color: 'var(--text-color)' },
-                        font: {
-                        size: 12
-                        },
-                        boxWidth: 12, // Make the colored boxes smaller
-                        padding: 10
-                    }
+                        align: 'start',
+                        labels: {
+                            color: 'var(--text-color)',
+                            boxWidth: 12,
+                            font: { size: 12 } // Make the colored boxes smaller
+                        }   
+                    },
                 },
                 scales: {
                     x: { // The horizontal axis is now the score
