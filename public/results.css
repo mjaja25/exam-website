@@ -44,8 +44,12 @@ body {
 .score-circle span { position: relative; }
 
 .skills-layout {
-    width: 100%;
+    display: flex;
+    flex-direction: column; /* Stack chart and text vertically */
+    align-items: center;   /* Center them horizontally */
+    gap: 1.5rem;
 }
+
 .chart-container {
     position: relative;
     width: 100%;
