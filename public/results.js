@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'left',
+                        position: 'chartArea',
                         align: 'start',
                         labels: {
                             color: 'var(--text-color)',
@@ -123,6 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             font: { size: 12 } // Make the colored boxes smaller
                         }   
                     },
+                },
+                layout: {
+                     padding: { top: 40 }
                 },
                 scales: {
                     x: { // The horizontal axis is now the score
