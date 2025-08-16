@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                 },
                 layout: {
-                     padding: { top: 40 }
+                     padding: { top: 80 }
                 },
                 scales: {
                     x: { // The horizontal axis is now the score
