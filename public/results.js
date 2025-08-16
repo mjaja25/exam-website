@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top',
+                        position: 'left',
                         align: 'start',
                         labels: {
                             color: 'var(--text-color)',
