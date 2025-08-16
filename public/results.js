@@ -115,7 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         position: 'top',
-                        labels: { color: 'var(--text-color)' }
+                        labels: { color: 'var(--text-color)' },
+                        font: {
+                        size: 12
+                        },
+                        boxWidth: 15, // Make the colored boxes smaller
+                        padding: 15
                     }
                 },
                 scales: {
