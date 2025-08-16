@@ -119,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         font: {
                         size: 12
                         },
-                        boxWidth: 15, // Make the colored boxes smaller
-                        padding: 15
+                        boxWidth: 12, // Make the colored boxes smaller
+                        padding: 10
                     }
                 },
                 scales: {
