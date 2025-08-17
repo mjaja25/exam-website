@@ -157,16 +157,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     userInputElement.addEventListener('keydown', (e) => {
         if (e.key === ' ') {
-            e.preventDefault();
+            e.preventDefault(); // Always prevent the default space action
+            
             const currentText = userInputElement.value;
-            const nextSpaceIndex = currentPassage.indexOf(' ', currentText.length);
-            if (nextSpaceIndex > -1) {
-                const wordToJump = currentPassage.substring(currentText.length, nextSpaceIndex);
-                userInputElement.value += wordToJump + ' ';
+
+            // Check if the cursor is already at the beginning of a new word.
+            if (currentText === '' || currentText.endsWith(' ')) {
+                // If so, do nothing. Just exit the function.
+                return; 
             } else {
-                userInputElement.value = currentPassage;
+                // Otherwise, perform the "jump to next word" action.
+                const currentLength = currentText.length;
+                let nextSpaceIndex = currentPassage.indexOf(' ', currentLength);
+                
+                if (nextSpaceIndex === -1) {
+                    nextSpaceIndex = currentPassage.length;
+                }
+
+                const jumpLength = nextSpaceIndex - currentLength;
+                const spacesToAdd = " ".repeat(jumpLength + 1);
+
+                userInputElement.value += spacesToAdd;
             }
-            handleInput();
+            
+            handleInput(); // Update the UI
         }
     });
 
