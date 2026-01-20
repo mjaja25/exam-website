@@ -35,6 +35,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Generate PDF
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(20);
+        doc.text("Test Performance Report", 20, 20);
+        doc.setFontSize(12);
+        doc.text(`User ID: ${localStorage.getItem('userId')}`, 20, 40);
+        doc.text(`Score: ${currentResult.score}/20`, 20, 50);
+        doc.text(`Feedback: ${currentResult.feedback}`, 20, 60, { maxWidth: 170 });
+        
+        doc.save("performance_report.pdf");
+    }
+
+    // excel previewer
+
+
+    async function renderExcelPreview(fileUrl) {
+        try {
+            // 1. Fetch the file from Cloudinary as a 'blob'
+            const response = await fetch(fileUrl);
+            const data = await response.arrayBuffer();
+
+            // 2. Read the workbook using SheetJS (XLSX)
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // 3. Get the first sheet
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // 4. Convert the sheet to HTML
+            const htmlTable = XLSX.utils.sheet_to_html(worksheet, { id: 'preview-table', editable: false });
+
+            // 5. Inject into your preview container
+            const container = document.getElementById('excel-table-output');
+            container.innerHTML = htmlTable;
+
+            // Make the section visible
+            document.getElementById('report-section').style.display = 'block';
+
+        } catch (error) {
+            console.error("Preview failed:", error);
+            document.getElementById('excel-table-output').innerHTML = "<p>Preview unavailable for this file.</p>";
+        }
+    }
+
     function formatExcelFeedback(feedback) {
         const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
         if (points.length > 1) {

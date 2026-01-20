@@ -80,4 +80,72 @@ body {
 .footer-actions a.action-btn.primary { background-color: var(--primary-yellow); color: var(--dark-text-on-btn); border-color: var(--primary-yellow); }
 .footer-actions a.action-btn.secondary { background-color: transparent; }
 
+
+
+
+
+
+
+
+/* Excel Preview Table Styling */
+#excel-table-output {
+    margin-top: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-box-shadow);
+    background-color: var(--card-background-color);
+    border: 1px solid var(--muted-border-color);
+    max-height: 400px; /* Limits height for a scrollable preview */
+    overflow: auto;
+}
+
+#excel-table-output table {
+    width: 100%;
+    margin-bottom: 0; /* Remove default Pico bottom margin */
+    font-size: 0.85rem; /* Slightly smaller text for data density */
+    border-collapse: collapse;
+}
+
+#excel-table-output th {
+    background-color: var(--secondary-hover);
+    color: var(--secondary-inverse);
+    position: sticky;
+    top: 0; /* Sticky headers for scrolling */
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem;
+}
+
+#excel-table-output td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--muted-border-color);
+    white-space: nowrap; /* Prevents text wrapping in cells */
+}
+
+/* Zebra striping using Pico's CSS variables */
+#excel-table-output tr:nth-of-type(even) td {
+    background-color: var(--code-background-color);
+}
+
+/* Hover effect on rows */
+#excel-table-output tr:hover td {
+    background-color: var(--primary-focus);
+    transition: background-color 0.2s ease;
+}
+
+/* Custom Scrollbar for a "Professional" Look */
+#excel-table-output::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+#excel-table-output::-webkit-scrollbar-thumb {
+    background: var(--muted-color);
+    border-radius: 10px;
+}
+#excel-table-output::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+
 @media (max-width: 768px) { .score-section { flex-direction: column; } }

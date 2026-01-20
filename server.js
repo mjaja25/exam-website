@@ -469,6 +469,19 @@ app.get('/api/stats/all-tests', authMiddleware, async (req, res) => {
     }
 });
 
+app.get('/api/leaderboard', authMiddleware, async (req, res) => {
+    try {
+        const topScores = await TestResult.find()
+            .populate('user', 'username') // Only get username
+            .sort({ score: -1 })
+            .limit(10);
+        res.json(topScores);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching leaderboard' });
+    }
+});
+
+
 // --- Admin-Only Routes ---
 app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) => {
     try {
@@ -556,15 +569,19 @@ app.post('/api/feedback', authMiddleware, async (req, res) => {
 
 
 
-// -------------------
-//  GLOBAL ERROR HANDLER & SERVER START
-// -------------------
+// Centralized Error Middleware
 app.use((err, req, res, next) => {
-  console.error("An error occurred:", err.message);
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({ message: `File upload error: ${err.message}` });
-  }
-  res.status(500).json({ message: "An internal server error occurred." });
+    console.error('SERVER ERROR:', err.stack);
+    
+    // Check if the error is from Cloudinary/Multer
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'File too large. Max limit is 5MB.' });
+    }
+
+    res.status(err.status || 500).json({
+        message: err.message || 'An internal server error occurred.',
+        error: process.env.NODE_ENV === 'production' ? {} : err
+    });
 });
 
 app.listen(PORT, () => {
