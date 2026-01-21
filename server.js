@@ -315,7 +315,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         const { content, sessionId, questionId } = req.body;
         const originalQuestion = await LetterQuestion.findById(questionId);
         if (!originalQuestion) return res.status(404).json({ message: 'Original question not found.' });
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
         const gradingPrompt = `
             Act as a strict examiner. Your response must be ONLY a valid JSON object.
             The user was asked: "${originalQuestion.questionText}"
@@ -379,7 +379,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         await userWorkbook.xlsx.load(userFileBuffer);
         const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
         const gradingPrompt = `
             Act as an expert Excel grader. Your response must be ONLY a valid JSON object.
             The user was given a test named "${originalQuestion.questionName}".
@@ -468,7 +468,7 @@ app.get('/api/stats/all-tests', authMiddleware, async (req, res) => {
         res.status(500).json({ message: 'Server error fetching stats.' });
     }
 });
-
+// LEADERBOARD
 app.get('/api/leaderboard', authMiddleware, async (req, res) => {
     try {
         const topScores = await TestResult.find()
