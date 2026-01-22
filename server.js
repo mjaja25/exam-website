@@ -587,3 +587,15 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server is successfully running on http://localhost:${PORT}`);
 });
+
+//  Check if api key is getting recognised
+
+app.get('/api/debug-key', (req, res) => {
+    const key = process.env.GEMINI_API_KEY;
+    res.json({
+        exists: !!key,
+        length: key ? key.length : 0,
+        // Shows the first 4 characters to confirm it's the NEW key
+        prefix: key ? key.substring(0, 4) : "none"
+    });
+});
