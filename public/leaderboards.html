@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Leaderboards | Dream Centre</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .leaderboard-wrapper { max-width: 900px; margin: 2rem auto; padding: 1rem; }
+        .filter-tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; }
+        .tab-btn { padding: 0.6rem 1.2rem; border-radius: 20px; border: 1px solid #e2e8f0; background: white; white-space: nowrap; cursor: pointer; transition: 0.3s; font-weight: 500; }
+        .tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        
+        .rank-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+        .rank-row { background: white; border-radius: 10px; transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .rank-row:hover { transform: scale(1.01); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .rank-row td { padding: 1.2rem; }
+        .rank-row td:first-child { border-radius: 10px 0 0 10px; font-weight: 800; width: 60px; text-align: center; }
+        .rank-row td:last-child { border-radius: 0 10px 10px 0; text-align: right; }
+
+        /* Podium Decorations */
+        .row-1 { border-left: 5px solid #fbbf24; background: #fffdf5; } /* Gold */
+        .row-2 { border-left: 5px solid #94a3b8; background: #f8fafc; } /* Silver */
+        .row-3 { border-left: 5px solid #cd7f32; background: #fffaf5; } /* Bronze */
+        
+        .medal-icon { font-size: 1.2rem; margin-right: 10px; }
+        .highlight-user { color: #3b82f6; font-weight: 600; }
+    </style>
+</head>
+<body class="dashboard-page">
+    <header class="test-header">
+        <div class="logo">Global <span>Rankings</span></div>
+        <a href="/dashboard.html" class="nav-button secondary">Back to Dashboard</a>
+    </header>
+
+    <main class="leaderboard-wrapper">
+        <div class="filter-tabs" id="tabs-container">
+            <button class="tab-btn active" onclick="loadTab('new_overall', this)">New Pattern Overall</button>
+            <button class="tab-btn" onclick="loadTab('std_overall', this)">Standard Overall</button>
+            <button class="tab-btn" onclick="loadTab('top_typing', this)">Typing Speed</button>
+            <button class="tab-btn" onclick="loadTab('top_mcq', this)">Excel MCQ</button>
+            <button class="tab-btn" onclick="loadTab('top_letter', this)">Letter Writing</button>
+        </div>
+
+        <div id="loading-state" style="text-align: center; padding: 3rem; display: none;">
+            <div class="spinner"></div>
+            <p>Fetching the latest standings...</p>
+        </div>
+
+        <table class="rank-table">
+            <tbody id="leaderboard-body">
+                </tbody>
+        </table>
+    </main>
+
+    <script src="leaderboards.js"></script>
+</body>
+</html>

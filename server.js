@@ -19,6 +19,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const axios = require('axios');
+const csv = require('csv-parser');
 
 // --- MODEL IMPORTS ---
 const User = require('./models/User');
@@ -27,7 +28,8 @@ const Passage = require('./models/Passage');
 const LetterQuestion = require('./models/LetterQuestion');
 const ExcelQuestion = require('./models/ExcelQuestion');
 const Feedback = require('./models/Feedback');
-
+const MCQSet = require('./models/MCQSet');
+const MCQQuestion = require('./models/MCQQuestion');
 // -------------------
 //  INITIALIZATIONS & CONFIGURATIONS
 // -------------------
@@ -249,13 +251,33 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
 
 app.get('/api/passages/random', authMiddleware, async (req, res) => {
     try {
-        const count = await Passage.countDocuments();
-        const random = Math.floor(Math.random() * count);
-        const passage = await Passage.findOne().skip(random);
-        if (!passage) return res.status(404).json({ message: 'No passages found.' });
+        const requestedDiff = req.query.difficulty; // Gets 'easy', 'medium', or 'hard' from URL
+        
+        // 1. Build the filter object
+        let filter = {};
+        if (requestedDiff && ['easy', 'medium', 'hard'].includes(requestedDiff)) {
+            filter.difficulty = requestedDiff;
+        } else {
+            // Default for official exams where no difficulty is specified in the URL
+            filter.difficulty = 'medium'; 
+        }
+
+        // 2. Count how many passages match this difficulty
+        const count = await Passage.countDocuments(filter);
+        
+        if (count === 0) {
+            // Robustness: fallback if an admin hasn't uploaded passages for a specific level yet
+            return res.status(404).json({ message: `No passages found for difficulty: ${filter.difficulty}` });
+        }
+
+        // 3. Get one random passage from the filtered list
+        const randomIndex = Math.floor(Math.random() * count);
+        const passage = await Passage.findOne(filter).skip(randomIndex);
+
         res.json(passage);
     } catch (error) {
-        res.status(500).json({ message: 'Server error fetching passage.' });
+        console.error("FETCH PASSAGE ERROR:", error);
+        res.status(500).json({ message: "Server error fetching passage." });
     }
 });
 
@@ -287,26 +309,33 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
 });
 app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     try {
-        const { wpm, accuracy, sessionId } = req.body;
-        let score = 0;
-        const meetsQualification = wpm >= 35 && accuracy >= 95;
-        if (meetsQualification) {
-            score = 10;
-            score += Math.min(Math.floor((wpm - 35) / 5), 5);
-            score += Math.min(Math.floor(accuracy - 95), 5);
+        const { wpm, accuracy, sessionId, testPattern } = req.body;
+        const userId = req.userId;
+
+        // Calculate marks: New Pattern = 30 max, Standard = 20 max
+        let typingMarks = 0;
+        if (testPattern === 'new_pattern') {
+            typingMarks = Math.min(30, (wpm / 35) * 30);
+        } else {
+            typingMarks = Math.min(20, (wpm / 35) * 20);
         }
-        const newResult = new TestResult({
-            testType: 'Typing',
-            user: req.userId,
-            sessionId: sessionId,
-            wpm: wpm,
-            accuracy: accuracy,
-            score: Math.min(score, 20)
-        });
-        await newResult.save();
-        res.status(201).json({ message: 'Result saved successfully!' });
+
+        // Create or Update the TestResult
+        const result = await TestResult.findOneAndUpdate(
+            { sessionId: sessionId, user: userId },
+            { 
+                wpm, 
+                accuracy, 
+                typingMarks: typingMarks.toFixed(2),
+                testPattern,
+                status: 'in-progress' // Still waiting for MCQ or Letter
+            },
+            { upsert: true, new: true }
+        );
+
+        res.json({ success: true, typingMarks });
     } catch (error) {
-        res.status(500).json({ message: 'Failed to save result.' });
+        res.status(500).json({ message: "Error saving typing results." });
     }
 });
 
@@ -469,15 +498,65 @@ app.get('/api/stats/all-tests', authMiddleware, async (req, res) => {
     }
 });
 // LEADERBOARD
-app.get('/api/leaderboard', authMiddleware, async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
     try {
-        const topScores = await TestResult.find()
-            .populate('user', 'username') // Only get username
-            .sort({ score: -1 })
-            .limit(10);
+        const requestedPattern = req.query.pattern || 'standard'; // Default to standard
+
+        const topScores = await TestResult.find({ 
+            testPattern: requestedPattern,
+            attemptMode: 'exam', // Robustness: Ignore practice sessions
+            status: 'completed'   // Only show finished exams
+        })
+        .sort({ totalScore: -1 }) // Sort by highest total marks
+        .limit(10)
+        .populate('user', 'username'); // Get names from the User collection
+
         res.json(topScores);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching leaderboard' });
+        console.error("LEADERBOARD ERROR:", error);
+        res.status(500).json({ message: "Error fetching rankings." });
+    }
+});
+
+let leaderboardCache = null;
+let lastCacheTime = 0;
+
+app.get('/api/leaderboard/all', async (req, res) => {
+    const now = Date.now();
+    // 1. Serve from cache if fresh (within 60 seconds)
+    if (leaderboardCache && (now - lastCacheTime < 60000)) {
+        return res.json(leaderboardCache);
+    }
+
+    try {
+        const results = await TestResult.aggregate([
+            { $match: { attemptMode: 'exam', status: 'completed' } },
+            {
+                $facet: {
+                    // Standard Pattern Categories
+                    "std_overall": [{ $match: { testPattern: 'standard' } }, { $sort: { totalScore: -1 } }, { $limit: 10 }],
+                    "std_typing":  [{ $match: { testPattern: 'standard' } }, { $sort: { wpm: -1 } }, { $limit: 10 }],
+                    "std_letter":  [{ $match: { testPattern: 'standard' } }, { $sort: { letterScore: -1 } }, { $limit: 10 }],
+                    "std_excel":   [{ $match: { testPattern: 'standard' } }, { $sort: { excelScore: -1 } }, { $limit: 10 }],
+                    
+                    // New Pattern Categories
+                    "new_overall": [{ $match: { testPattern: 'new_pattern' } }, { $sort: { totalScore: -1 } }, { $limit: 10 }],
+                    "new_typing":  [{ $match: { testPattern: 'new_pattern' } }, { $sort: { wpm: -1 } }, { $limit: 10 }],
+                    "new_mcq":     [{ $match: { testPattern: 'new_pattern' } }, { $sort: { mcqScore: -1 } }, { $limit: 10 }]
+                }
+            },
+            // Lookup user names for all results
+            { $unwind: "$std_overall" }, { $lookup: { from: "users", localField: "std_overall.user", foreignField: "_id", as: "std_overall.user" } }, // ... repeat for others or populate in frontend
+        ]);
+
+        // Note: For simplicity in aggregate, we populate on the result or use a standard find if aggregate lookup is too complex.
+        // Better way: Fetch IDs, then populate. For now, let's assume standard populate via a helper.
+        
+        leaderboardCache = results[0]; 
+        lastCacheTime = now;
+        res.json(leaderboardCache);
+    } catch (err) {
+        res.status(500).json({ message: "Ranking error" });
     }
 });
 
@@ -547,6 +626,52 @@ app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, upload.f
     }
 });
 
+// --- NEW: Bulk MCQ Upload Route ---
+app.post('/api/admin/bulk-mcqs', authMiddleware, adminMiddleware, csvUpload.single('csvFile'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "No CSV file uploaded." });
+    }
+
+    const results = [];
+    const filePath = req.file.path;
+
+    fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (data) => {
+            // Transform CSV row into our Database Model format
+            results.push({
+                questionText: data.questionText,
+                options: [data.optionA, data.optionB, data.optionC, data.optionD],
+                correctAnswerIndex: parseInt(data.correctAnswerIndex),
+                category: data.category
+            });
+        })
+        .on('end', async () => {
+            try {
+                if (results.length === 0) {
+                    fs.unlinkSync(filePath);
+                    return res.status(400).json({ message: "CSV file is empty or formatted incorrectly." });
+                }
+
+                // Bulk insert into MongoDB
+                const docs = await MCQQuestion.insertMany(results);
+                
+                // Delete the temporary file to keep your server clean
+                fs.unlinkSync(filePath); 
+                
+                res.json({ message: "Upload successful", count: docs.length });
+            } catch (err) {
+                // If DB fails, still delete the temp file
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                res.status(500).json({ message: "Database Error during bulk insert", error: err.message });
+            }
+        })
+        .on('error', (err) => {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            res.status(500).json({ message: "Error parsing CSV file", error: err.message });
+        });
+});
+
 
 // FEEDBACK ROUTE ---
 
@@ -598,4 +723,89 @@ app.get('/api/debug-key', (req, res) => {
         // Shows the first 4 characters to confirm it's the NEW key
         prefix: key ? key.substring(0, 4) : "none"
     });
+});
+
+//  MCQ non repeat api
+
+app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        
+        // Find a set the user hasn't done yet
+        const nextSet = await MCQSet.findOne({ 
+            _id: { $nin: user.completedMCQSets },
+            isActive: true 
+        }).populate('questions');
+
+        if (!nextSet) {
+            return res.status(404).json({ message: "All available mock sets completed!" });
+        }
+
+        res.json({
+            setId: nextSet._id,
+            setName: nextSet.setName,
+            questions: nextSet.questions
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error fetching exam set." });
+    }
+});
+
+// mcq submission route
+
+app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
+    try {
+        const { sessionId, setId, answers } = req.body;
+        const userId = req.userId;
+
+        // 1. Fetch curated set and calculate correct answers
+        const examSet = await MCQSet.findById(setId).populate('questions');
+        if (!examSet) return res.status(404).json({ message: "Set not found." });
+
+        let correctCount = 0;
+        examSet.questions.forEach((q) => {
+            if (answers[q._id] === q.correctAnswerIndex) {
+                correctCount++;
+            }
+        });
+
+        // 2. Score Calculation: 10 questions * 2 marks = 20 Marks
+        const mcqMarks = correctCount * 2;
+
+        // 3. Fetch previous typing marks to get the total (30 + 20 = 50)
+        const typingResult = await TestResult.findOne({ sessionId, user: userId });
+        const finalTotal = (parseFloat(typingResult.typingMarks) || 0) + mcqMarks;
+
+        // 4. Update Result and User Progress
+        const finalResult = await TestResult.findOneAndUpdate(
+            { sessionId, user: userId },
+            { 
+                mcqScore: mcqMarks,
+                totalScore: finalTotal.toFixed(2),
+                status: 'completed'
+            },
+            { new: true }
+        );
+
+        // Mark set as seen so it doesn't repeat
+        await User.findByIdAndUpdate(userId, { $addToSet: { completedMCQSets: setId } });
+
+        res.json({ success: true, score: mcqMarks, total: finalTotal });
+    } catch (error) {
+        res.status(500).json({ message: "Error saving MCQ results." });
+    }
+});
+
+app.get('/api/mcqs/practice/:category', authMiddleware, async (req, res) => {
+    try {
+        const { category } = req.params;
+        // Fetch 10 random questions from that specific category
+        const questions = await MCQQuestion.aggregate([
+            { $match: { category: category } },
+            { $sample: { size: 10 } }
+        ]);
+        res.json(questions);
+    } catch (error) {
+        res.status(500).json({ message: "Error loading practice questions" });
+    }
 });

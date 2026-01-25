@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
+    <title>Dashboard | Dream Centre</title>
     <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
 </head>
 <body class="dashboard-page">
-    <div id="mobile-warning" class="mobile-warning" style="display: none;">
-        For the best experience, it is recommended to take this exam on a desktop or laptop.
-    </div>
     <header class="dashboard-header">
         <div class="logo-area">
             <img src="/logo.png" alt="Logo" class="logo" />
@@ -24,9 +21,30 @@
 
     <main class="dashboard-content">
         <div class="card start-test-card">
-            <h2>Proficiency Test</h2>
-            <p>This is a 3-stage test. Each stage is timed for 5 minutes.</p>
-            <button id="start-test-btn">Start Full Test</button>
+            <h2>Complete Mock Examination</h2>
+            <p>Simulate the official NPSC/NSSB environment with recorded results.</p>
+            <button id="open-exam-modal-btn" class="primary">Start Full Exam</button>
+        </div>
+
+        <div id="leaderboard-carousel" class="carousel-card" onclick="location.href='/leaderboards.html'">
+            <div id="carousel-content">
+                <h4 id="carousel-title">Standard Test: Overall Top 3</h4>
+                <div id="carousel-winners" class="winners-flex"></div>
+            </div>
+        </div>
+
+        <div class="practice-section">
+            <h2 style="grid-column: 1/-1; margin-bottom: 1rem; color: #1e293b;">Practice Zones</h2>
+            <div class="card practice-card">
+                <h3>Typing Practice</h3>
+                <p>Improve your speed with random passages. (Unranked)</p>
+                <button onclick="startPractice('typing')" class="secondary">Practice Typing</button>
+            </div>
+            <div class="card practice-card">
+                <h3>Excel MCQ Practice</h3>
+                <p>Drill formulas and shortcuts by category. (Unranked)</p>
+                <button onclick="startPractice('mcq')" class="secondary">Practice MCQs</button>
+            </div>
         </div>
 
         <div class="card past-results-card">
@@ -35,49 +53,36 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Pattern</th>
                         <th>Total Score</th>
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody id="results-summary">
-                    </tbody>
+                <tbody id="results-summary"></tbody>
             </table>
         </div>
     </main>
 
-    <script src="dashboard.js"></script>
-
-    <div id="instructions-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+    <div id="pattern-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
             <header>
-                <h2>Exam Instructions</h2>
-                <button id="close-modal-btn" class="close-btn">&times;</button>
+                <h2>Select Exam Pattern</h2>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
             </header>
-            <section>
-                <h3>General Rules</h3>
-                <ul>
-                    <li>The exam consists of 3 stages: Typing, Letter, and Excel.</li>
-                    <li>Each stage is timed for 5 minutes.</li>
-                    <li>Once you start, you cannot pause the test.</li>
-                    <li>Refreshing or closing the page is disabled during the test.</li>
-                </ul>
-
-                <hr>
-
-                <h4>1. Typing Test (20 Marks)</h4>
-                <p>You must achieve at least 35 WPM with 95% accuracy to qualify. Your final score is based on your speed and precision.</p>
-
-                <h4>2. Letter Test (10 Marks)</h4>
-                <p>You will be given a prompt to write a formal letter. An AI will grade your response on its format, content, and grammar.</p>
-
-                <h4>3. Excel Test (20 Marks)</h4>
-                <p>You will download an Excel file, complete the tasks inside, and re-upload it. An AI will grade your submission against the correct solution.</p>
-            </section>
-            <footer>
-                <button id="proceed-btn">I Understand, Start the Test</button>
-            </footer>
+            <div class="modal-grid" style="display: grid; gap: 1rem; padding: 1rem 0;">
+                <div class="option-card" onclick="handleExamSelection('new_pattern')" style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
+                    <h4 style="margin:0; color: #3b82f6;">New NSSB Pattern (10+5)</h4>
+                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">10m Typing + 5m Excel MCQ. Aligned with 2025 guidelines.</p>
+                </div>
+                <div class="option-card" onclick="handleExamSelection('standard')" style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
+                    <h4 style="margin:0;">Standard CPT (3-Stage)</h4>
+                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">Typing + Letter + Practical Excel. Comprehensive proficiency test.</p>
+                </div>
+            </div>
+            <p style="font-size: 0.8rem; color: #64748b; text-align: center;">Note: Refreshing is disabled once the exam starts.</p>
         </div>
     </div>
-    
+
+    <script src="dashboard.js"></script>
 </body>
 </html>

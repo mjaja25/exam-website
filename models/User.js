@@ -37,7 +37,8 @@ const userSchema = new mongoose.Schema({
     },
     verificationToken: {
         type: String
-    }
+    },
+    completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }]
 });
 
 module.exports = mongoose.model('User', userSchema);

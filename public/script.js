@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Management ---
     const token = localStorage.getItem('token');
+    const currentPattern = localStorage.getItem('currentExamPattern'); // 'standard' or 'new_pattern'
+    const attemptMode = localStorage.getItem('currentAttemptMode'); // 'exam' or 'practice'
+    
     let timerInterval;
     let testInProgress = false;
     let currentPassage = '';
@@ -22,12 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         event.returnValue = '';
     };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Only block refresh if it's an actual exam
+    if (attemptMode === 'exam') {
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    }
 
     // --- Main Test Functions ---
     async function loadNewPassage() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/passages/random`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const response = await fetch(`${API_BASE_URL}/api/passages/random`, { 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
             if (!response.ok) throw new Error('Could not fetch passage.');
             const passageData = await response.json();
             currentPassage = passageData.content;
@@ -39,10 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 passageDisplayElement.appendChild(charSpan);
             });
             passageDisplayElement.querySelector('span').classList.add('current');
-            userInputElement.value = null;
+            userInputElement.value = '';
             userInputElement.disabled = false;
-            
-            // **FIX 3: Auto-focus on the input area**
             userInputElement.focus();
         } catch (error) {
             passageDisplayElement.textContent = `Error: ${error.message}`;
@@ -56,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const passageChars = passageDisplayElement.querySelectorAll('span');
         const userChars = userInputElement.value.split('');
         
-        // --- Live Accuracy and WPM Calculation ---
         const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
         let correctChars = 0;
         
@@ -77,32 +82,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (timeElapsedMinutes > 0) {
             wpmElement.textContent = Math.round((correctChars / 5) / timeElapsedMinutes);
-            // **FIX 2: Live accuracy update**
             accuracyElement.textContent = `${Math.round((correctChars / userChars.length) * 100)}%`;
         }
         
-        // Add 'current' class to the next character to be typed
         if (userChars.length < passageChars.length) {
             const nextCharSpan = passageChars[userChars.length];
             nextCharSpan.classList.add('current');
-            // --- FINAL, CORRECTED AUTO-SCROLL LOGIC ---
-            // This tells the browser to smoothly scroll the element into the visible area if it's not already.
             nextCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // --- END OF FIX ---
         }
 
-        // Auto-submit if completed
         if (userChars.length === passageChars.length) {
             endTest();
         }
     }
 
-    // **FIX 1: Corrected, robust timer**
     function startTimer() {
         if (testInProgress) return;
         testInProgress = true;
         sessionStartTime = new Date().getTime();
-        const totalDuration = 300 * 1000;
+
+        // DYNAMIC TIMER LOGIC
+        // Standard and New Pattern are 10 mins (600s). Practice can be 5 mins (300s).
+        let durationSeconds = 600; 
+        if (attemptMode === 'practice') durationSeconds = 300; 
+
+        const totalDuration = durationSeconds * 1000;
 
         timerInterval = setInterval(() => {
             const timeElapsed = new Date().getTime() - sessionStartTime;
@@ -113,7 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
+            // Progress bar logic (Adjusted for 3 stages in standard, 2 in new)
+            const progressMultiplier = currentPattern === 'new_pattern' ? 50 : 33.33;
+            const stageDurationPercent = (timeElapsed / totalDuration) * progressMultiplier;
             if(progressBar) progressBar.style.width = `${stageDurationPercent}%`;
 
             const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
@@ -136,17 +142,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const finalWpm = timeElapsedMinutes > 0 ? Math.round((totalTypedChars / 5) / timeElapsedMinutes) : 0;
         const finalAccuracy = totalTypedChars > 0 ? Math.round((correctChars / totalTypedChars) * 100) : 100;
 
-        wpmElement.textContent = finalWpm;
-        accuracyElement.textContent = `${finalAccuracy}%`;
-        
+        if (attemptMode === 'practice') {
+            alert(`Practice Complete! WPM: ${finalWpm}, Accuracy: ${finalAccuracy}%`);
+            window.location.href = '/dashboard.html';
+            return;
+        }
+
+        // --- NEW SCORING LOGIC ---
+        // New Pattern: 30 Marks | Standard Pattern: 20 Marks
+        // Logic: (Current WPM / Target 35 WPM) * Max Marks
+        let typingMarks = 0;
+        if (currentPattern === 'new_pattern') {
+            typingMarks = Math.min(30, (finalWpm / 35) * 30);
+        } else {
+            typingMarks = Math.min(20, (finalWpm / 35) * 20);
+        }
+
         const sessionId = localStorage.getItem('currentSessionId');
         try {
             await fetch(`${API_BASE_URL}/api/submit/typing`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ wpm: finalWpm, accuracy: finalAccuracy, sessionId: sessionId })
+                body: JSON.stringify({ 
+                    wpm: finalWpm, 
+                    accuracy: finalAccuracy, 
+                    typingMarks: typingMarks.toFixed(2), // Send scaled marks
+                    sessionId: sessionId,
+                    testPattern: currentPattern 
+                })
             });
-            window.location.href = '/letter.html';
+
+            if (currentPattern === 'new_pattern') {
+                window.location.href = '/excel-mcq.html'; 
+            } else {
+                window.location.href = '/letter.html';
+            }
         } catch (error) {
             alert("There was an error submitting your result.");
         }
@@ -156,39 +186,29 @@ document.addEventListener('DOMContentLoaded', () => {
     userInputElement.addEventListener('input', handleInput);
 
     userInputElement.addEventListener('keydown', (e) => {
+        // NPSC/NSSB Style: Disable Enter and Escape during Exam
+        if (attemptMode === 'exam' && (e.key === 'Enter' || e.key === 'Escape')) {
+            e.preventDefault();
+            return;
+        }
+
         if (e.key === ' ') {
-            e.preventDefault(); // Always prevent the default space action
-            
+            e.preventDefault();
             const currentText = userInputElement.value;
+            if (currentText === '' || currentText.endsWith(' ')) return; 
 
-            // Check if the cursor is already at the beginning of a new word.
-            if (currentText === '' || currentText.endsWith(' ')) {
-                // If so, do nothing. Just exit the function.
-                return; 
-            } else {
-                // Otherwise, perform the "jump to next word" action.
-                const currentLength = currentText.length;
-                let nextSpaceIndex = currentPassage.indexOf(' ', currentLength);
-                
-                if (nextSpaceIndex === -1) {
-                    nextSpaceIndex = currentPassage.length;
-                }
+            const currentLength = currentText.length;
+            let nextSpaceIndex = currentPassage.indexOf(' ', currentLength);
+            if (nextSpaceIndex === -1) nextSpaceIndex = currentPassage.length;
 
-                const jumpLength = nextSpaceIndex - currentLength;
-                const spacesToAdd = " ".repeat(jumpLength + 1);
-
-                userInputElement.value += spacesToAdd;
-            }
-            
-            handleInput(); // Update the UI
+            const jumpLength = nextSpaceIndex - currentLength;
+            userInputElement.value += " ".repeat(jumpLength + 1);
+            handleInput();
         }
     });
 
-    // --- Prevent Copy-Paste Functionality ---
     ['paste', 'copy', 'cut'].forEach(eventType => {
-        userInputElement.addEventListener(eventType, (e) => {
-            e.preventDefault();
-        });
+        userInputElement.addEventListener(eventType, (e) => e.preventDefault());
     });
 
     loadNewPassage();

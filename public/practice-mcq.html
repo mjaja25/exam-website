@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Practice Zone | Dream Centre</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .practice-container { max-width: 800px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .category-card { padding: 1.5rem; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.3s; }
+        .category-card:hover { border-color: #3b82f6; background: #eff6ff; }
+        
+        .options-grid { display: grid; gap: 1rem; margin-top: 1.5rem; }
+        .option-btn { padding: 1rem; border: 2px solid #e2e8f0; border-radius: 8px; background: none; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 1rem; position: relative; }
+        
+        /* Instant Feedback Styles */
+        .option-btn.correct { border-color: #10b981; background: #ecfdf5; color: #065f46; }
+        .option-btn.incorrect { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+        .option-btn:disabled { cursor: default; }
+
+        .feedback-text { margin-top: 1rem; font-weight: 600; display: none; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="dashboard-page">
+    <header class="test-header">
+        <div class="logo">Practice <span>Excel Zone</span></div>
+        <a href="/dashboard.html" class="nav-button secondary">Back to Dashboard</a>
+    </header>
+
+    <main class="container">
+        <div class="practice-container">
+            <div id="selection-view">
+                <h2>Choose a Topic to Practice</h2>
+                <div class="category-grid">
+                    <div class="category-card" onclick="startPractice('Formulas')">
+                        <h3>Formulas</h3>
+                        <p>VLOOKUP, IF, SUMIF, etc.</p>
+                    </div>
+                    <div class="category-card" onclick="startPractice('Shortcuts')">
+                        <h3>Shortcuts</h3>
+                        <p>Keyboard combinations</p>
+                    </div>
+                    <div class="category-card" onclick="startPractice('Cell Referencing')">
+                        <h3>Referencing</h3>
+                        <p>Absolute ($) vs Relative</p>
+                    </div>
+                    <div class="category-card" onclick="startPractice('Basic Operations')">
+                        <h3>Basics</h3>
+                        <p>Navigation and Formatting</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="question-view" class="hidden">
+                <div class="progress-info" style="display:flex; justify-content: space-between; margin-bottom: 1rem; color: #64748b;">
+                    <span id="progress-text">Question 1/10</span>
+                    <span id="score-text">Score: 0</span>
+                </div>
+                <h3 id="question-text">Question loading...</h3>
+                <div id="options-container" class="options-grid"></div>
+                <p id="feedback-msg" class="feedback-text"></p>
+                <div style="margin-top: 2rem; text-align: right;">
+                    <button id="next-btn" class="primary hidden">Next Question</button>
+                </div>
+            </div>
+
+            <div id="summary-view" class="hidden" style="text-align: center;">
+                <h2>Practice Session Complete!</h2>
+                <p style="font-size: 1.5rem; margin: 1rem 0;">Your Final Score: <span id="final-score">0</span></p>
+                <button onclick="location.reload()" class="primary">Try Another Topic</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="practice-mcq.js"></script>
+</body>
+</html>

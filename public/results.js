@@ -232,5 +232,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function renderComparison(userScore, pattern) {
+        const card = document.getElementById('comparison-card');
+        const content = document.getElementById('comparison-content');
+        const token = localStorage.getItem('token');
+
+        try {
+            const res = await fetch('/api/leaderboard/all', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            // Select the right category to compare against
+            const categoryKey = pattern === 'new_pattern' ? 'new_overall' : 'std_overall';
+            const topPerformers = data[categoryKey];
+            
+            if (!topPerformers || topPerformers.length === 0) return;
+
+            const topScore = topPerformers[0].totalScore;
+            const thirdScore = topPerformers[2]?.totalScore || topScore;
+            const diffToFirst = topScore - userScore;
+            const diffToPodium = thirdScore - userScore;
+
+            let message = "";
+            let subtext = "";
+
+            if (userScore >= topScore) {
+                message = "RANK #1 ACHIEVED!";
+                subtext = "You've matched or beaten the current global leader. Your name is now being decorated in gold on the dashboard!";
+            } else if (userScore >= thirdScore) {
+                message = "YOU'RE ON THE PODIUM!";
+                subtext = `Incredible work! You are currently in the Top 3. You only need ${diffToFirst.toFixed(1)} more marks to take the #1 spot.`;
+            } else if (diffToPodium <= 5) {
+                message = "SO CLOSE TO GLORY!";
+                subtext = `You are less than 5 marks away from the Bronze medal. A little more practice in the MCQ zone will get you there!`;
+            } else {
+                message = "SOLID PROGRESS!";
+                subtext = `You've completed the exam. Check the leaderboards to see how you rank against the ${topPerformers.length} toppers.`;
+            }
+
+            content.innerHTML = `
+                <h4 class="comparison-msg">${message}</h4>
+                <p class="comparison-subtext">${subtext}</p>
+            `;
+            card.classList.remove('hidden');
+
+        } catch (err) {
+            console.error("Comparison Error:", err);
+        }
+    }
+
     fetchSessionResults();
 });

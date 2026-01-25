@@ -11,7 +11,18 @@ const testResultSchema = new mongoose.Schema({
     filePath: { type: String },
     score: { type: Number },
     feedback: { type: String },
-    submittedAt: { type: Date, default: Date.now }
+    submittedAt: { type: Date, default: Date.now },
+    testPattern: { 
+        type: String, 
+        enum: ['standard', 'new_pattern'], 
+        default: 'standard' 
+    },
+    mcqScore: { type: Number, default: 0 },
+    attemptMode: { 
+        type: String, 
+        enum: ['exam', 'practice'], 
+        default: 'exam' 
+    }
 });
 
 module.exports = mongoose.model('TestResult', testResultSchema);
