@@ -393,10 +393,29 @@ body.dashboard-page {
 }
 
 .dashboard-content {
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 2rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "exam results"
+        "practice practice"
+        "leaderboard leaderboard";
     gap: 2rem;
+}
+
+.start-test-card { grid-area: exam; }
+.past-results-card { grid-area: results; }
+.practice-zone-card { grid-area: practice; }
+.carousel-card { grid-area: leaderboard; }
+
+.card {
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.card:hover {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
 .card {
@@ -406,12 +425,60 @@ body.dashboard-page {
     padding: 2rem;
 }
 
+button.primary, button.secondary {
+    border-radius: 10px;
+}
+
+.practice-zone-card h2 {
+    text-align: center;
+}
+
+.practice-zone-card button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.practice-zone-card button:hover {
+    box-shadow: 0 0 15px var(--primary-yellow);
+    transform: translateY(-2px);
+}
 .past-results-card {
     display: flex;
     flex-direction: column;
     justify-content: center; /* This centers the content vertically */
     align-items: center; /* This centers the content horizontally */
     text-align: center;
+    gap: 1rem;
+}
+
+/* This is the key fix */
+.results-table-wrapper {
+    max-height: 260px;       /* adjust as you like */
+    overflow-y: auto;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+/* Optional polish */
+.results-table-wrapper table {
+    margin: 0;
+}
+
+.results-table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background: var(--card-background);
+    z-index: 1;
 }
 
 .start-test-card {
@@ -1257,12 +1324,34 @@ body.mobile-warning-active .dashboard-header {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
-.practice-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+.practice-zone-card {
+    grid-column: 1 / -1; /* spans full width */
 }
+
+.section-title {
+    margin-bottom: 1.25rem;
+    color: #1e293b;
+}
+
+.practice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.practice-item {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.practice-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
 
 @media (max-width: 768px) {
     .practice-section { grid-template-columns: 1fr; }
