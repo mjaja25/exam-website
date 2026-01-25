@@ -7,12 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const welcomeHeader = document.getElementById('welcome-header');
     const logoutBtn = document.getElementById('logout-btn');
     const adminBtn = document.getElementById('admin-btn');
-    const startTestBtn = document.getElementById('start-test-btn'); // Standard button
+    const startTestBtn = document.getElementById('open-exam-modal-btn'); // Standard button
     const resultsSummary = document.getElementById('results-summary');
     const token = localStorage.getItem('token');
     
     // Modals
-    const instructionsModal = document.getElementById('instructions-modal');
+    // const instructionsModal = document.getElementById('instructions-modal');
     const patternModal = document.getElementById('pattern-modal'); // New modal for pattern selection
     const mobileWarning = document.getElementById('mobile-warning');
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateSlide = () => {
             const cat = categories[currentCategoryIndex];
             const winners = data[cat.key].slice(0, 3); // Get Top 3
-            const podium = document.getElementById('winner-podium');
+            const podium = document.getElementById('carousel-winners');
             
             document.getElementById('carousel-title').innerText = cat.label;
 
@@ -167,9 +167,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const tableRow = document.createElement('tr');
             tableRow.innerHTML = `
-                <td>${date} (${patternLabel})</td>
+                <td>${date}</td>
+                <td>${patternLabel}</td>
                 <td><strong>${totalScore} / 50</strong></td>
-                <td><button class="view-results-btn" data-session-id="${sessionId}">View</button></td>
+                <td>
+                    <button class="view-results-btn" data-session-id="${sessionId}">
+                        View
+                    </button>
+                </td>
             `;
             resultsSummary.appendChild(tableRow);
         }
@@ -190,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
             window.closeModal();
         }
     };
+
+    console.assert(startTestBtn, 'Start Test button not found');
+    console.assert(patternModal, 'Pattern modal not found');
+    console.assert(resultsSummary, 'Results table body not found');
 
     fetchDashboardData();
 });
