@@ -627,6 +627,7 @@ app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, upload.f
 });
 
 // --- NEW: Bulk MCQ Upload Route ---
+const csvUpload = multer({ dest: 'temp_csv/' });
 app.post('/api/admin/bulk-mcqs', authMiddleware, adminMiddleware, csvUpload.single('csvFile'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: "No CSV file uploaded." });
