@@ -211,5 +211,32 @@ document.addEventListener('DOMContentLoaded', () => {
         userInputElement.addEventListener(eventType, (e) => e.preventDefault());
     });
 
+    // Helper to decode JWT and check role
+    function parseJwt(token) {
+        try {
+            return JSON.parse(atob(token.split('.')[1]));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    if (token) {
+        const payload = parseJwt(token);
+        // Check if user is admin
+        if (payload && payload.role === 'admin') {
+            const adminDiv = document.getElementById('admin-bypass');
+            const quickSubmitBtn = document.getElementById('quick-submit-btn');
+
+            if (adminDiv) {
+                adminDiv.style.display = 'block'; // Show the button
+                quickSubmitBtn.addEventListener('click', () => {
+                    if (confirm("Admin: End test now and calculate current results?")) {
+                        endTest(); // Trigger your existing endTest function
+                    }
+                });
+            }
+        }
+    }
+    
     loadNewPassage();
 });
