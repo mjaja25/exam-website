@@ -313,11 +313,11 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
         const userId = req.userId;
 
         // Calculate marks: New Pattern = 30 max, Standard = 20 max
-        let typingMarks = 0;
+        let typingScore = 0;
         if (testPattern === 'new_pattern') {
-            typingMarks = Math.min(30, (wpm / 35) * 30);
+            typingScore = Math.min(30, (wpm / 35) * 30);
         } else {
-            typingMarks = Math.min(20, (wpm / 35) * 20);
+            typingScore = Math.min(20, (wpm / 35) * 20);
         }
 
         // Create or Update the TestResult
@@ -326,14 +326,14 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
             { 
                 wpm, 
                 accuracy, 
-                typingMarks: typingMarks.toFixed(2),
+                typingScore: typingScore.toFixed(2),
                 testPattern,
                 status: 'in-progress' // Still waiting for MCQ or Letter
             },
             { upsert: true, new: true }
         );
 
-        res.json({ success: true, typingMarks });
+        res.json({ success: true, typingScore: typingScore });
     } catch (error) {
         res.status(500).json({ message: "Error saving typing results." });
     }
@@ -529,34 +529,70 @@ app.get('/api/leaderboard/all', async (req, res) => {
     }
 
     try {
-        const results = await TestResult.aggregate([
-            { $match: { attemptMode: 'exam', status: 'completed' } },
-            {
-                $facet: {
-                    // Standard Pattern Categories
-                    "std_overall": [{ $match: { testPattern: 'standard' } }, { $sort: { totalScore: -1 } }, { $limit: 10 }],
-                    "std_typing":  [{ $match: { testPattern: 'standard' } }, { $sort: { wpm: -1 } }, { $limit: 10 }],
-                    "std_letter":  [{ $match: { testPattern: 'standard' } }, { $sort: { letterScore: -1 } }, { $limit: 10 }],
-                    "std_excel":   [{ $match: { testPattern: 'standard' } }, { $sort: { excelScore: -1 } }, { $limit: 10 }],
-                    
-                    // New Pattern Categories
-                    "new_overall": [{ $match: { testPattern: 'new_pattern' } }, { $sort: { totalScore: -1 } }, { $limit: 10 }],
-                    "new_typing":  [{ $match: { testPattern: 'new_pattern' } }, { $sort: { wpm: -1 } }, { $limit: 10 }],
-                    "new_mcq":     [{ $match: { testPattern: 'new_pattern' } }, { $sort: { mcqScore: -1 } }, { $limit: 10 }]
-                }
-            },
-            // Lookup user names for all results
-            { $unwind: "$std_overall" }, { $lookup: { from: "users", localField: "std_overall.user", foreignField: "_id", as: "std_overall.user" } }, // ... repeat for others or populate in frontend
-        ]);
+        // 1. Standard Pattern - Overall (Typing + Letter + Practical)
+        const std_overall = await TestResult.find({
+            testPattern: 'standard',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ totalScore: -1 }).limit(10).populate('user', 'username');
 
-        // Note: For simplicity in aggregate, we populate on the result or use a standard find if aggregate lookup is too complex.
-        // Better way: Fetch IDs, then populate. For now, let's assume standard populate via a helper.
-        
-        leaderboardCache = results[0]; 
-        lastCacheTime = now;
-        res.json(leaderboardCache);
-    } catch (err) {
-        res.status(500).json({ message: "Ranking error" });
+        // 2. Standard Pattern - Pure Typing Speed
+        const std_typing = await TestResult.find({
+            testPattern: 'standard',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ wpm: -1 }).limit(10).populate('user', 'username');
+
+        // 3. Standard Pattern - Letter
+        const std_letter = await TestResult.find({
+            testPattern: 'standard',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ score: -1 }).limit(10).populate('user', 'username');
+
+        // 4. Standard Pattern - Excel
+        const std_excel = await TestResult.find({
+            testPattern: 'standard',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ score: -1 }).limit(10).populate('user', 'username');
+
+        // 5. New Pattern - Overall
+        const new_overall = await TestResult.find({
+            testPattern: 'new_pattern',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ totalScore: -1 }).limit(10).populate('user', 'username');
+
+        // 6. New Pattern - Typing (10 mins)
+        const new_typing = await TestResult.find({
+            testPattern: 'new_pattern',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ score: -1, wpm: -1, accuracy: -1}).limit(10).populate('user', 'username');
+
+        // 7. New Pattern - Excel MCQ
+        const new_mcq = await TestResult.find({
+            testPattern: 'new_pattern',
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ mcqScore: -1 }).limit(10).populate('user', 'username');
+
+        const results = {
+            std_overall, 
+            std_typing, 
+            std_letter,
+            std_excel,
+            new_overall, 
+            new_typing,
+            new_mcq};
+        leaderboardCache=results;
+        lastCacheTime=now;
+        res.json(results);
+
+    } catch (error) {
+        console.error("Leaderboard Fetch Error:", error);
+        res.status(500).json({ message: "Failed to load rankings." });
     }
 });
 
@@ -775,7 +811,7 @@ app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
 
         // 3. Fetch previous typing marks to get the total (30 + 20 = 50)
         const typingResult = await TestResult.findOne({ sessionId, user: userId });
-        const finalTotal = (parseFloat(typingResult.typingMarks) || 0) + mcqMarks;
+        const finalTotal = (parseFloat(typingResult.typingScore) || 0) + mcqMarks;
 
         // 4. Update Result and User Progress
         const finalResult = await TestResult.findOneAndUpdate(

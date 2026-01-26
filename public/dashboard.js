@@ -14,11 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modals
     // const instructionsModal = document.getElementById('instructions-modal');
     const patternModal = document.getElementById('pattern-modal'); // New modal for pattern selection
-    const mobileWarning = document.getElementById('mobile-warning');
 
     // --- 1. Mobile Warning Logic ---
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (isMobile && mobileWarning) {
+    const mobileWarning = document.getElementById('mobile-warning');
+
+    const isPhone = window.matchMedia('(max-width: 600px)').matches;
+
+    if (isPhone && mobileWarning) {
         mobileWarning.style.display = 'block';
         document.body.classList.add('mobile-warning-active');
     }
@@ -26,9 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCategoryIndex = 0;
     const categories = [
         { key: 'std_overall', label: 'Standard Test Champions' },
-        { key: 'top_typing', label: 'Typing Speed Kings' },
+        { key: 'std_typing', label: 'Typing Speed Kings - 5 Mins' },
+        { key: 'std_letter', label: 'Top 3 Letters' },
+        { key: 'std_excel', label: 'MS Excel Masters' },
         { key: 'new_overall', label: 'New Pattern (10+5) Leaders' },
-        { key: 'top_mcq', label: 'Excel MCQ Experts' }
+        { key: 'new_typing', label: 'Typing Speed Kings - 10 Mins' },
+        { key: 'new_mcq', label: 'Excel MCQ Experts' }
     ];
 
     async function startLeaderboardCarousel() {
@@ -39,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const updateSlide = () => {
             const cat = categories[currentCategoryIndex];
-            const winners = data[cat.key].slice(0, 3); // Get Top 3
+            const winners = data[cat.key] ? data[cat.key].slice(0, 3) : []; // Get Top 3
             const podium = document.getElementById('carousel-winners');
             
             document.getElementById('carousel-title').innerText = cat.label;
