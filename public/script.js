@@ -102,14 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStartTime = new Date().getTime();
 
         // DYNAMIC TIMER LOGIC
-        // Standard and New Pattern are 10 mins (600s). Practice can be 5 mins (300s).
+        // Standard is 5 mins and New Pattern is 10 mins (600s). Practice can be 5 mins (300s).
         let durationSeconds; 
         if (attemptMode === 'practice') {
             durationSeconds = 300; // Practice is always 5 mins
         } else if (currentPattern === 'standard') {
-            durationSeconds = 600; // Standard Exam is 10 mins
+            durationSeconds = 300; // Standard Exam is 10 mins
         } else {
-            durationSeconds = 300; // New Pattern (10+5) Exam is 5 mins
+            durationSeconds = 600; // New Pattern (10+5) Exam is 5 mins
         }
 
         const totalDuration = durationSeconds * 1000;
