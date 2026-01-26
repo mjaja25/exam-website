@@ -49,13 +49,37 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('carousel-title').innerText = cat.label;
 
-            podium.innerHTML = winners.map((w, i) => `
-                <div class="winner-entry rank-${i+1}">
-                    <span class="medal">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
-                    <span class="username">${w.user.username}</span>
-                    <span class="score-val">${w.totalScore || w.wpm} ${w.wpm ? 'WPM' : 'Pts'}</span>
-                </div>
-            `).join('');
+            podium.innerHTML = winners.map((w, i) => {
+                let displayVal = 0;
+                let unit = "Pts";
+
+                if (cat.key.includes('typing')) {
+                    displayVal = w.wpm;
+                    unit = "WPM";
+                } else if (cat.key.includes('mcq')) {
+                    displayVal = w.mcqScore;
+                    unit = "Pts";
+                } else if (cat.key.includes('letter')) {
+                    displayVal = w.letterScore || 0; // Ensure this matches your DB field
+                    unit = "Pts";
+                } else if (cat.key.includes('excel')) {
+                    displayVal = w.excelScore || 0; // Ensure this matches your DB field
+                    unit = "Pts";
+                } else {
+                    // For overall slides
+                    displayVal = w.totalScore;
+                    unit = "Pts";
+                }
+
+                return `
+                    <div class="winner-entry rank-${i+1}">
+                        <span class="medal">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                        <span class="username">${w.user?.username || 'Anonymous'}</span>
+                        <span class="score-val">${displayVal} <small>${unit}</small></span>
+                    </div>
+                `;
+            }).join('');
+            
 
             currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
         };
