@@ -427,7 +427,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         await userWorkbook.xlsx.load(userFileBuffer);
         const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const gradingPrompt = `
             Act as an expert Excel grader. Your response must be ONLY a valid JSON object.
             The user was given a test named "${originalQuestion.questionName}".
