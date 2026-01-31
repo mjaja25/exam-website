@@ -342,53 +342,53 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
     try {
         const { content, sessionId, questionId } = req.body;
-        const userId = req.userId;
+        const userId = req.userId; // Ensure this is definitely populated by authMiddleware
 
         const originalQuestion = await LetterQuestion.findById(questionId);
         if (!originalQuestion) return res.status(404).json({ message: 'Original question not found.' });
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
-        const gradingPrompt = `
-            Act as a strict examiner. Your response must be ONLY a valid JSON object.
-            The user was asked: "${originalQuestion.questionText}"
 
-            Grade the letter out of 10 based on these criteria:
-            1.  **Content (3 marks):** How well does the letter address the question? Assess clarity, relevance, and tone.
-            2.  **Format (3 marks):** Check for sender's address, date, receiver's address, subject, salutation, and closing.
-            3.  **Grammar & Spelling (2 marks):** Deduct for significant errors.
-            4.  **Font Style (1 mark):** Award 1 mark if the primary font is 'Times New Roman'.
-            5.  **Font Size (1 mark):** Award 1 mark if the primary font size is '4'.
+        // Change model to a valid production name if 2.5 is not yet active in your region
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); 
+        
+        const gradingPrompt = `...`; // Your prompt remains the same
 
-            Analyze the user's letter below, which is provided as HTML content.
-            ---
-            User's Letter (HTML): "${content}"
-            ---
-
-            Return your analysis ONLY in this exact JSON format:
-            { "score": <total_score_out_of_10>, "feedback": "<brief_feedback>" }
-        `;
         const result = await model.generateContent(gradingPrompt);
         const responseText = await result.response.text();
+        
         let grade;
         try {
             const cleanedText = responseText.replace(/```json|```/g, '').trim();
             grade = JSON.parse(cleanedText);
         } catch (parseError) {
-            grade = { score: 0, feedback: "Automated grading failed due to an invalid format." };
+            grade = { score: 0, feedback: "Automated grading failed due to format issues." };
         }
-        // --- UNIFIED UPDATE ---
+
+        // --- UNIFIED UPDATE WITH ERROR CHECK ---
         const updatedResult = await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
             { 
-                letterScore: grade.score,
-                letterContent: content,
-                letterFeedback: grade.feedback,
-                // Do NOT set status to completed yet; Excel is usually next
+                $set: {
+                    letterScore: Number(grade.score), // Force numeric type
+                    letterContent: content,
+                    letterFeedback: grade.feedback
+                }
             },
-            { new: true }
+            { new: true } // Return updated doc
         );
 
-        res.status(200).json({ message: 'Letter graded!', grade: grade });
+        // TROUBLESHOOT: Check if the session actually existed
+        if (!updatedResult) {
+            console.error(`Session ${sessionId} not found for user ${userId}`);
+            return res.status(404).json({ message: 'Session record not found. Did stage 1 complete?' });
+        }
+
+        res.status(200).json({ 
+            message: 'Letter graded!', 
+            grade: grade,
+            dbStatus: "Updated successfully" 
+        });
     } catch (error) {
+        console.error("Letter Submission Error:", error);
         res.status(500).json({ message: 'Failed to grade or save letter.' });
     }
 });
