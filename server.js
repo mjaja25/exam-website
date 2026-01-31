@@ -340,56 +340,64 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
+    console.log("--- Letter Submission Started ---");
+    console.log("SessionID:", req.body.sessionId);
+    console.log("UserID from Auth:", req.userId);
+
     try {
         const { content, sessionId, questionId } = req.body;
-        const userId = req.userId; // Ensure this is definitely populated by authMiddleware
+        const userId = req.userId;
+
+        if (!sessionId || !userId) {
+            return res.status(400).json({ message: "Missing SessionID or UserID" });
+        }
 
         const originalQuestion = await LetterQuestion.findById(questionId);
-        if (!originalQuestion) return res.status(404).json({ message: 'Original question not found.' });
+        if (!originalQuestion) return res.status(404).json({ message: 'Question not found.' });
 
-        // Change model to a valid production name if 2.5 is not yet active in your region
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); 
+        // AI GRADING SECTION
+        console.log("Contacting Gemini AI...");
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Use 1.5-flash for reliability
         
-        const gradingPrompt = `...`; // Your prompt remains the same
-
-        const result = await model.generateContent(gradingPrompt);
-        const responseText = await result.response.text();
+        const gradingPrompt = `Act as a strict examiner... (your prompt) ... HTML Content: "${content}"`;
+        const aiResult = await model.generateContent(gradingPrompt);
+        const responseText = await aiResult.response.text();
         
         let grade;
         try {
             const cleanedText = responseText.replace(/```json|```/g, '').trim();
             grade = JSON.parse(cleanedText);
-        } catch (parseError) {
-            grade = { score: 0, feedback: "Automated grading failed due to format issues." };
+        } catch (e) {
+            console.error("AI JSON Parse Error:", responseText);
+            grade = { score: 0, feedback: "Grading format error." };
         }
 
-        // --- UNIFIED UPDATE WITH ERROR CHECK ---
+        // DATABASE UPDATE SECTION
+        console.log("Updating Database...");
         const updatedResult = await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
             { 
                 $set: {
-                    letterScore: Number(grade.score), // Force numeric type
+                    letterScore: Number(grade.score) || 0,
                     letterContent: content,
-                    letterFeedback: grade.feedback
+                    letterFeedback: grade.feedback,
+                    status: 'in-progress'
                 }
             },
-            { new: true } // Return updated doc
+            { new: true }
         );
 
-        // TROUBLESHOOT: Check if the session actually existed
         if (!updatedResult) {
-            console.error(`Session ${sessionId} not found for user ${userId}`);
-            return res.status(404).json({ message: 'Session record not found. Did stage 1 complete?' });
+            console.error("FAILED: No session found with ID:", sessionId);
+            return res.status(404).json({ message: "Session not found in DB." });
         }
 
-        res.status(200).json({ 
-            message: 'Letter graded!', 
-            grade: grade,
-            dbStatus: "Updated successfully" 
-        });
+        console.log("✅ Success! Score saved:", grade.score);
+        res.status(200).json({ message: 'Letter graded!', grade });
+
     } catch (error) {
-        console.error("Letter Submission Error:", error);
-        res.status(500).json({ message: 'Failed to grade or save letter.' });
+        console.error("CRITICAL SERVER ERROR:", error); // This will show up in Render logs
+        res.status(500).json({ message: error.message });
     }
 });
 
