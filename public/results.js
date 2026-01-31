@@ -212,7 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
         `;
+
+        // Trigger the "Hall of Fame" comparison logic
+        const pattern = results[0]?.testPattern || 'standard'; 
+        renderComparison(totalScore, pattern);
         
+        // Remove the session ID only after everything is rendered
         localStorage.removeItem('currentSessionId');
     }
 

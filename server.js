@@ -342,6 +342,8 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
     try {
         const { content, sessionId, questionId } = req.body;
+        const userId = req.userId;
+
         const originalQuestion = await LetterQuestion.findById(questionId);
         if (!originalQuestion) return res.status(404).json({ message: 'Original question not found.' });
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
@@ -373,11 +375,19 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         } catch (parseError) {
             grade = { score: 0, feedback: "Automated grading failed due to an invalid format." };
         }
-        const newResult = new TestResult({
-            testType: 'Letter', user: req.userId, sessionId: sessionId, content: content, score: grade.score, feedback: grade.feedback
-        });
-        await newResult.save();
-        res.status(201).json({ message: 'Letter graded and saved successfully!', grade: grade });
+        // --- UNIFIED UPDATE ---
+        const updatedResult = await TestResult.findOneAndUpdate(
+            { sessionId: sessionId, user: userId },
+            { 
+                letterScore: grade.score,
+                letterContent: content,
+                letterFeedback: grade.feedback,
+                // Do NOT set status to completed yet; Excel is usually next
+            },
+            { new: true }
+        );
+
+        res.status(200).json({ message: 'Letter graded!', grade: grade });
     } catch (error) {
         res.status(500).json({ message: 'Failed to grade or save letter.' });
     }
@@ -387,6 +397,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
     try {
         if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
         const { sessionId, questionId } = req.body;
+        const userId = req.userId;
         const originalQuestion = await ExcelQuestion.findById(questionId);
         if (!originalQuestion) return res.status(404).json({ message: 'Excel question not found.' });
 
@@ -431,11 +442,26 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         } catch (parseError) {
             grade = { score: 0, feedback: "Automated grading failed due to an unexpected format from the AI." };
         }
-        const newResult = new TestResult({
-            testType: 'Excel', user: req.userId, sessionId: sessionId, filePath: req.file.path, score: grade.score, feedback: grade.feedback
-        });
-        await newResult.save();
-        res.status(201).json({ message: 'Excel file graded and submitted successfully!', grade: grade });
+        // --- UNIFIED UPDATE & COMPLETION ---
+        const existingRecord = await TestResult.findOne({ sessionId, user: userId });
+        
+        const typingMarks = parseFloat(existingRecord.typingScore) || 0;
+        const letterMarks = parseFloat(existingRecord.letterScore) || 0;
+        const excelMarks = grade.score;
+        
+        const finalTotal = typingMarks + letterMarks + excelMarks;
+
+        await TestResult.findOneAndUpdate(
+            { sessionId: sessionId, user: userId },
+            { 
+                excelScore: excelMarks,
+                excelFeedback: grade.feedback,
+                totalScore: finalTotal.toFixed(2),
+                status: 'completed' // Mark as finished
+            }
+        );
+
+        res.status(200).json({ message: 'Test Completed!', total: finalTotal });
     } catch (error) {
         next(error);
     }
@@ -444,28 +470,78 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
 app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
         const { sessionId } = req.params;
-        const results = await TestResult.find({ user: req.userId, sessionId: sessionId });
-        if (!results) return res.status(404).json({ message: 'Results not found for this session.' });
-        res.json(results);
+        const userId = req.userId;
+
+        // Find the single document for this session
+        const sessionResult = await TestResult.findOne({ 
+            sessionId: sessionId, 
+            user: userId 
+        });
+
+        if (!sessionResult) {
+            return res.status(404).json({ message: 'No results found for this session.' });
+        }
+
+        /**
+         * TRANSFORM FOR FRONTEND COMPATIBILITY
+         * Your results.js expects an array with 'testType' identifiers.
+         * We map our unified document fields back into that format.
+         */
+        const legacyFormat = [
+            {
+                testType: 'Typing',
+                score: Number(sessionResult.typingScore) || 0,
+                wpm: sessionResult.wpm || 0,
+                accuracy: sessionResult.accuracy || 0
+            },
+            {
+                testType: 'Letter',
+                score: Number(sessionResult.letterScore) || 0,
+                feedback: sessionResult.letterFeedback || 'N/A'
+            },
+            {
+                testType: 'Excel',
+                score: Number(sessionResult.excelScore || sessionResult.mcqScore) || 0,
+                feedback: sessionResult.excelFeedback || 'N/A'
+            }
+        ];
+
+        res.json(legacyFormat);
     } catch (error) {
-        res.status(500).json({ message: 'Server error fetching results.' });
+        console.error("Fetch Results Error:", error);
+        res.status(500).json({ message: 'Server error fetching unified results.' });
     }
 });
 
 app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) => {
     try {
         const { sessionId } = req.params;
-        const userResults = await TestResult.find({ sessionId });
-        const totalScore = userResults.reduce((sum, result) => sum + (result.score || 0), 0);
-        const lowerScoringSessions = await TestResult.aggregate([
-            { $group: { _id: "$sessionId", totalScore: { $sum: "$score" } } },
-            { $match: { totalScore: { $lt: totalScore } } },
-            { $count: "count" }
-        ]);
-        const totalSessions = await TestResult.distinct("sessionId").then(sessions => sessions.length);
-        const percentile = totalSessions > 0 ? (lowerScoringSessions[0]?.count || 0) / totalSessions * 100 : 100;
+
+        // 1. Get the current user's total score for this session
+        const currentSession = await TestResult.findOne({ sessionId });
+        if (!currentSession || !currentSession.totalScore) {
+            return res.json({ percentile: 0 });
+        }
+
+        const userScore = parseFloat(currentSession.totalScore);
+
+        // 2. Count how many OTHER completed sessions have a lower totalScore
+        const lowerScoringCount = await TestResult.countDocuments({
+            status: 'completed',
+            totalScore: { $lt: userScore }
+        });
+
+        // 3. Count total number of completed exam sessions
+        const totalSessions = await TestResult.countDocuments({ status: 'completed' });
+
+        // 4. Calculate percentile: (Number of people below you / Total people) * 100
+        const percentile = totalSessions > 1 
+            ? (lowerScoringCount / (totalSessions - 1)) * 100 
+            : 100; // If you're the only one, you're the 100th percentile
+
         res.json({ percentile: Math.round(percentile) });
     } catch (error) {
+        console.error("Percentile Calculation Error:", error);
         res.status(500).json({ message: 'Error calculating percentile.' });
     }
 });
