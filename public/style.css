@@ -17,11 +17,42 @@
 /* 2. Dark Mode Theme (Stays the same) */
 @media (prefers-color-scheme: dark) {
     :root {
-        --background-color: #121212;
-        --card-background: rgba(30, 30, 30, 0.75);
-        --text-color: #e0e0e0;
-        --text-muted: #888888;
-        --border-color: #2e2e2e;
+        /* Deep Charcoal for the main background */
+        --background-color: #0f172a; 
+        
+        /* Slightly lighter Slate for cards to create "elevation" */
+        --card-background: #1e293b; 
+        
+        /* Soft white for primary text to prevent eye strain */
+        --text-color: #f8fafc; 
+        
+        /* Muted blue-gray for secondary text */
+        --text-muted: #94a3b8; 
+        
+        /* Darker border to define card edges without being harsh */
+        --border-color: #334155; 
+        
+        /* Adjust Primary Yellow slightly for better visibility on dark backgrounds */
+        --primary-yellow: #fbbf24; 
+    }
+    .feedback {
+        /* Use the darker background color to create an 'inset' effect against the card */
+        background: var(--background-color); 
+        
+        /* Ensure the border matches the dark theme palette */
+        border-color: var(--border-color);
+        
+        /* Force the text color to your soft white variable */
+        color: var(--text-color);
+    }
+
+    /* Target specifically the numbered list inside the feedback for high visibility */
+    .excel-feedback-item div {
+        color: var(--text-color);
+    }
+    
+    .feedback-remarks-title {
+        color: var(--primary-yellow);
     }
 }
 main.container, .container {
@@ -1020,11 +1051,13 @@ body.test-page {
 }
 
 .test-block .feedback {
-    background: #fff7ed;
-    border-left: 4px solid #f59e0b;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    font-size: 0.95rem;
+    background: #ffffff; /* Change from f9f9f9 to white for better contrast */
+    border: 1px solid var(--border-color); /* Add a subtle full border */
+    border-left: 5px solid var(--primary-yellow); 
+    padding: 15px; 
+    font-size: 14px; 
+    border-radius: 8px; 
+    margin-top: 10px;
 }
 
 

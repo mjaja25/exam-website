@@ -83,40 +83,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatExcelFeedback(feedback) {
-        if (!feedback || feedback === 'N/A') return '<p>No detailed feedback available for this session.</p>';
+        if (!feedback || feedback === 'N/A') return '<p>No detailed feedback available.</p>';
 
-        // Split into individual lines to analyze structure
-        const lines = feedback.split('\n').filter(line => line.trim() !== '');
+        // Split by newlines and remove the initial "Here's a breakdown" intro line if it exists
+        const lines = feedback.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0 && !line.toLowerCase().includes("here's a breakdown"));
 
-        let html = '<div class="excel-feedback-container">';
-        let listCount = 1;
-        let hasRemarksStarted = false;
+        let html = '<div class="excel-feedback-list">';
+        let displayIndex = 1;
 
         lines.forEach(line => {
-            const trimmed = line.trim();
+            // Clean up the AI's internal numbering (e.g., "1. ", "1. **Title**") 
+            // to prevent double numbering like "1. 1. Total Revenue"
+            const cleanContent = line.replace(/^\d+\.\s*/, '') // Removes "1. "
+                                    .replace(/^\d+\.\s*/, '') // Removes a second layer if "1. 1. " exists
+                                    .trim();
 
-            // 1. Detect and style Score lines (e.g., "Instruction 1: 4/4")
-            if (trimmed.includes(':') && /\d+\/\d+/.test(trimmed)) {
-                html += `<div class="feedback-score" style="margin-bottom: 5px;"><strong>${trimmed}</strong></div>`;
-            } 
-            // 2. Handle the "Remarks" header or general comments
-            else if (trimmed.toLowerCase().startsWith('remarks') || trimmed.toLowerCase().startsWith('general feedback')) {
-                html += `<hr style="margin: 10px 0;"><div class="feedback-remarks-title" style="font-weight: bold; margin-bottom: 8px;">Detailed Observations:</div>`;
-                hasRemarksStarted = true;
-            }
-            // 3. Format everything else as a numbered list
-            else {
-                // Clean up existing markers (1., -, Instruction 1:) to prevent "1. 1. text"
-                const content = trimmed.replace(/^\d+[\.\)]\s*|Instruction\s*\d+[:\.]\s*|^\-\s*/i, '').trim();
-                
-                if (content) {
-                    html += `
-                        <div class="feedback-item" style="display: flex; gap: 10px; margin-bottom: 6px;">
-                            <span style="font-weight: bold; color: var(--primary-yellow); min-width: 20px;">${listCount}.</span>
-                            <span style="flex: 1;">${content}</span>
-                        </div>`;
-                    listCount++;
-                }
+            if (cleanContent) {
+                html += `
+                    <div class="excel-feedback-item" style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <div style="background: var(--primary-yellow); color: #fff; min-width: 24px; height: 24px; 
+                            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                            font-size: 12px; font-weight: bold; margin-top: 2px;">
+                            ${displayIndex}
+                        </div>
+                        <div style="flex: 1; line-height: 1.6;">
+                            ${cleanContent}
+                        </div>
+                    </div>`;
+                displayIndex++;
             }
         });
 
