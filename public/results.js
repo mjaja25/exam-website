@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Score lines
                 html += `<div class="feedback-score"><strong>${line}</strong></div>`;
             } else if (line.toLowerCase().startsWith('remarks')) {
-                html += `<hr><div class="feedback-remarks-title"><strong>Remarks</strong></div>`;
+                html += `<hr><div class="feedback-remarks-title">Remarks</div>`;
             } else {
                 html += `<p class="feedback-remarks">${line}</p>`;
             }
