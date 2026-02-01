@@ -983,21 +983,34 @@ app.post('/api/admin/mcq-questions', authMiddleware, adminMiddleware, async (req
     }
 });
 
-// --- POST: Create a 10-Question Mock Set ---
+// --- POST: Create a 10-Question Mock Set (Admin Only) ---
 app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const { setName, questions } = req.body; // 'questions' is an array of IDs
-        
+        // IMPORTANT: admin.js sends 'questions', not 'questionIds'
+        const { setName, questions } = req.body; 
+
+        // 1. Validation: Ensure we have exactly 10 questions
+        if (!setName || !questions || questions.length !== 10) {
+            return res.status(400).json({ 
+                message: 'Invalid request. You must select exactly 10 questions.' 
+            });
+        }
+
+        // 2. Create the set
         const newSet = new MCQSet({
-            setName,
-            questions: questions, // References MCQQuestion IDs
+            setName: setName,
+            questions: questions, // This must be an array of ObjectIDs
             isActive: true
         });
 
+        // 3. Save to MongoDB
         await newSet.save();
+        
         res.status(201).json({ message: 'Official Mock Set Created!' });
     } catch (error) {
-        res.status(500).json({ message: 'Error creating mock set.' });
+        console.error("SET CREATION ERROR:", error);
+        // This is what was causing your 500 error
+        res.status(500).json({ message: 'Server failed to save the set.', error: error.message });
     }
 });
 
