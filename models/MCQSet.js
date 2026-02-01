@@ -1,13 +1,24 @@
 const mongoose = require('mongoose');
 
 const mcqSetSchema = new mongoose.Schema({
-    setName: { type: String, required: true, unique: true },
-    questions: [{ 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'MCQQuestion',
-        // Change this from 20 to 10
-        validate: [val => val.length === 10, 'A set must contain exactly 10 questions']
-    }],
+    setName: { 
+        type: String, 
+        required: true, 
+        unique: true 
+    },
+    // We move the validation OUTSIDE the array brackets []
+    questions: {
+        type: [{ 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'MCQQuestion' 
+        }],
+        validate: {
+            validator: function(val) {
+                return val.length === 10; // This now correctly checks the array length
+            },
+            message: 'A set must contain exactly 10 questions'
+        }
+    },
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
