@@ -956,19 +956,48 @@ app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
     }
 });
 
-// route to group questions into an active MCQSet
+// --- GET: Fetch all MCQ Questions for the bank ---
+app.get('/api/admin/mcq-questions', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const questions = await MCQQuestion.find({}).sort({ createdAt: -1 });
+        res.json(questions);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching question bank.' });
+    }
+});
+
+// --- POST: Create a single MCQ Question manually ---
+app.post('/api/admin/mcq-questions', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { questionText, options, correctAnswerIndex, category } = req.body;
+        const newQuestion = new MCQQuestion({
+            questionText,
+            options,
+            correctAnswerIndex,
+            category: category || 'General'
+        });
+        await newQuestion.save();
+        res.status(201).json({ message: 'Question saved to bank!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving question.' });
+    }
+});
+
+// --- POST: Create a 10-Question Mock Set ---
 app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const { setName, questionIds } = req.body;
+        const { setName, questions } = req.body; // 'questions' is an array of IDs
+        
         const newSet = new MCQSet({
             setName,
-            questions: questionIds, // Array of IDs from MCQQuestion
+            questions: questions, // References MCQQuestion IDs
             isActive: true
         });
+
         await newSet.save();
-        res.status(201).json({ message: 'MCQ Set created and activated!', set: newSet });
+        res.status(201).json({ message: 'Official Mock Set Created!' });
     } catch (error) {
-        res.status(500).json({ message: 'Error creating MCQ Set.' });
+        res.status(500).json({ message: 'Error creating mock set.' });
     }
 });
 
