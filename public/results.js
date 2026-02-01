@@ -98,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // to prevent double numbering like "1. 1. Total Revenue"
             const cleanContent = line.replace(/^\d+\.\s*/, '') // Removes "1. "
                                     .replace(/^\d+\.\s*/, '') // Removes a second layer if "1. 1. " exists
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                     .trim();
 
             if (cleanContent) {
