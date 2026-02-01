@@ -994,20 +994,19 @@ body.test-page {
     transform: translateY(-2px);
 }
 
-/* Prevent sideways expansion in the editor */
+/* Editor behavior */
 .text-editor {
-    white-space: pre-wrap;       /* Preserve line breaks */
-    word-wrap: break-word;       /* Break long words */
-    overflow-x: hidden;          /* Kill horizontal scrolling */
+    white-space: pre-wrap;   /* Preserve spaces and line breaks */
+    word-break: normal;      /* Do NOT break mid-word */
+    overflow-x: hidden;
 }
 
-/* Make tab indentation visually indent WITHOUT increasing width */
+/* Indentation marker */
 .editor-indent {
-    display: inline-block;
-    width: 2em;
-    max-width: 2em;
-    overflow: hidden;
+    white-space: pre;        /* Preserve the spaces inside */
+    display: inline;         /* Stay in text flow */
 }
+
 
 
 .letter-feedback {

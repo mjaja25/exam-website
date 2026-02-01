@@ -372,6 +372,15 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         if (subjectUnderlined) subjectScore += 1;
         if (subjectBold) subjectScore += 1;
 
+        /* ---------- NORMALIZE EDITOR INDENTATION FOR AI ---------- */
+
+        // Convert editor-indent spans into plain spaces for AI clarity
+        const normalizedContent = content.replace(
+            /<span\s+class=["']editor-indent["'][^>]*>\s*<\/span>/gi,
+            '    ' // 4 spaces
+        );
+
+
         /* ---------- AI PROMPT ---------- */
 
         const gradingPrompt = `
@@ -392,7 +401,7 @@ Do NOT re-evaluate font, font size, underline, or bolding.
 Do NOT penalize editor-generated indentation.
 
 Input HTML:
-"${content}"
+"${normalizedContent}"
 
 Return ONLY JSON:
 {

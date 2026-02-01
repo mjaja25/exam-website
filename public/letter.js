@@ -77,8 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // tab and backspace
-    const editor = userInputElement; // contenteditable element
+    // Tab and Backspace handling for contenteditable editor
+    const editor = userInputElement;
 
     editor.addEventListener('keydown', (event) => {
         const selection = window.getSelection();
@@ -90,16 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.key === 'Tab') {
             event.preventDefault();
 
+            // Create a semantic, non-editable indent marker
             const indentSpan = document.createElement('span');
             indentSpan.className = 'editor-indent';
-            indentSpan.innerHTML = '&nbsp;';
+            indentSpan.contentEditable = 'false';
 
-            // Insert a zero-width text node BEFORE the indent
-            const spacer = document.createTextNode('\u200B');
-            range.insertNode(spacer);
+            // REAL text indentation (caret-safe)
+            indentSpan.textContent = '    '; // 4 spaces
+
             range.insertNode(indentSpan);
 
-            // Move caret after indent reliably
+            // Move caret cleanly after indent
             range.setStartAfter(indentSpan);
             range.setEndAfter(indentSpan);
 
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const node = range.startContainer;
             const offset = range.startOffset;
 
-            // If caret is right after an indent span, remove it
+            // If caret is right after an indent span, delete it in one go
             if (
                 node.nodeType === Node.TEXT_NODE &&
                 offset === 0 &&
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
 
 
     async function endTest() {
