@@ -173,32 +173,26 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function displaySimpleResults(results) {
         if (!results || results.length === 0) {
-            resultsSummary.innerHTML = '<tr><td colspan="3">You have no past results.</td></tr>';
+            resultsSummary.innerHTML = '<tr><td colspan="4">You have no past results.</td></tr>';
             return;
         }
 
-        // Group results by sessionId
-        const sessions = results.reduce((acc, result) => {
-            if (!result.sessionId) return acc;
-            acc[result.sessionId] = acc[result.sessionId] || [];
-            acc[result.sessionId].push(result);
-            return acc;
-        }, {});
-
         resultsSummary.innerHTML = ''; 
 
-        for (const sessionId in sessions) {
-            const sessionResults = sessions[sessionId];
-            const totalScore = sessionResults.reduce((sum, r) => sum + (r.score || 0), 0);
-            const date = new Date(sessionResults[0].submittedAt).toLocaleDateString();
-            // Detect pattern from the data if available
-            const patternLabel = sessionResults[0].testPattern === 'new_pattern' ? '10+5' : 'Std';
+        results.forEach(session => {
+            // Use the totalScore field directly from your database
+            // We use Math.round to keep it an integer as you requested
+            const total = Math.round(session.totalScore || 0);
+            
+            const date = new Date(session.submittedAt).toLocaleDateString();
+            const patternLabel = session.testPattern === 'new_pattern' ? '10+5' : 'Std';
+            const sessionId = session.sessionId;
 
             const tableRow = document.createElement('tr');
             tableRow.innerHTML = `
                 <td>${date}</td>
                 <td>${patternLabel}</td>
-                <td><strong>${totalScore} / 50</strong></td>
+                <td><strong>${total} / 50</strong></td>
                 <td>
                     <button class="view-results-btn" data-session-id="${sessionId}">
                         View
@@ -206,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
             resultsSummary.appendChild(tableRow);
-        }
+        });
     }
 
     // Handle "View Results" clicks
