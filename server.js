@@ -315,9 +315,9 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
         // Calculate marks: New Pattern = 30 max, Standard = 20 max
         let typingScore = 0;
         if (testPattern === 'new_pattern') {
-            typingScore = Math.min(30, (wpm / 35) * 30);
+            typingScore = Math.round(30, (wpm / 35) * 30);
         } else {
-            typingScore = Math.min(20, (wpm / 35) * 20);
+            typingScore = Math.round(20, (wpm / 35) * 20);
         }
 
         // Create or Update the TestResult
@@ -326,7 +326,7 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
             { 
                 wpm, 
                 accuracy, 
-                typingScore: typingScore.toFixed(2),
+                typingScore,
                 testPattern,
                 status: 'in-progress' // Still waiting for MCQ or Letter
             },
@@ -543,7 +543,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
             { 
                 excelScore: excelMarks,
                 excelFeedback: grade.feedback,
-                totalScore: finalTotal.toFixed(2),
+                totalScore: finalTotal,
                 status: 'completed' // Mark as finished
             }
         );
@@ -981,7 +981,7 @@ app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
             { sessionId, user: userId },
             { 
                 mcqScore: mcqMarks,
-                totalScore: finalTotal.toFixed(2),
+                totalScore: finalTotal,
                 status: 'completed'
             },
             { new: true }
