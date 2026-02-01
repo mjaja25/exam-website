@@ -5,7 +5,7 @@ const mcqSetSchema = new mongoose.Schema({
     questions: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'MCQQuestion',
-        validate: [val => val.length === 20, 'A set must contain exactly 20 questions']
+        validate: [val => val.length === 10, 'A set must contain exactly 10 questions']
     }],
     isActive: { type: Boolean, default: true } // Toggle sets on/off
 }, { timestamps: true });
