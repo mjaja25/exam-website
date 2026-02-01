@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
         
         // Calculate total
-        const totalScore = Number(typingResult.score + letterResult.score + excelResult.score).toFixed(2);
+        const totalScore = Number(typingResult.score + letterResult.score + excelResult.score);
 
         // Update Title & Circle (Same as your logic)
         scoreValueElement.textContent = totalScore;
