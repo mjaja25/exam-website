@@ -381,6 +381,11 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         const gradingPrompt = `
         You are a formal letter examiner. 
 
+        Below is the letter content you must grade:
+        ---
+        ${normalizedContent}
+        ---
+        
         Formatting facts (already verified by system):
         - Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
         - Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
