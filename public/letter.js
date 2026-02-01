@@ -26,18 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         event.returnValue = '';
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // --- NEW: Handle Tab Key Press ---
-    userInputElement.addEventListener('keydown', (event) => {
-        // Check if the pressed key is the "Tab" key
-        if (event.key === 'Tab') {
-            // Prevent the default action (which is to change focus)
-            event.preventDefault();
-
-            // Insert a tab character (or a few spaces) at the cursor's position
-            document.execCommand('insertText', false, '\t'); // You can replace '\t' with '    ' for four spaces
-        }
-    });
     
     // --- Main Functions ---
     async function loadRandomQuestion() {
@@ -89,32 +77,90 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
+    // tab and backspace
+    const editor = userInputElement; // contenteditable element
+
+    editor.addEventListener('keydown', (event) => {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+
+        /* ---------- TAB KEY ---------- */
+        if (event.key === 'Tab') {
+            event.preventDefault();
+
+            const indentSpan = document.createElement('span');
+            indentSpan.className = 'editor-indent';
+            indentSpan.innerHTML = '&nbsp;'; // keeps span visible
+
+            range.insertNode(indentSpan);
+
+            // Move caret AFTER the indent
+            range.setStartAfter(indentSpan);
+            range.setEndAfter(indentSpan);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
+        /* ---------- BACKSPACE KEY ---------- */
+        if (event.key === 'Backspace') {
+            const node = range.startContainer;
+            const offset = range.startOffset;
+
+            // If caret is right after an indent span, remove it
+            if (
+                node.nodeType === Node.TEXT_NODE &&
+                offset === 0 &&
+                node.previousSibling?.classList?.contains('editor-indent')
+            ) {
+                event.preventDefault();
+                node.previousSibling.remove();
+            }
+        }
+    });
+
+
     async function endTest() {
+        // 1. Existing State Cleanup
         window.removeEventListener('beforeunload', handleBeforeUnload);
-        clearInterval(timerInterval);
+        if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
         userInputElement.contentEditable = false;
         submitBtn.disabled = true;
 
+        // 2. Data Preparation
+        // innerHTML is crucial here to capture the <span> indent from Step 1
         const letterContent = userInputElement.innerHTML;
         const sessionId = localStorage.getItem('currentSessionId');
 
         try {
-            await fetch(`${API_BASE_URL}/api/submit/letter`, {
+            const response = await fetch(`${API_BASE_URL}/api/submit/letter`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}` // Using your existing token variable
                 },
                 body: JSON.stringify({ 
                     content: letterContent,
                     sessionId: sessionId,
-                    questionId: currentQuestionId
+                    // Ensure currentQuestionId is defined in your outer scope
+                    questionId: currentQuestionId 
                 })
             });
+
+            if (!response.ok) throw new Error('Submission failed');
+
+            // 3. Navigation
+            // Move to Excel stage while keeping the session record unified
             window.location.href = '/excel.html';
+
         } catch (error) {
+            // Fallback: Re-enable protection if submission fails
             window.addEventListener('beforeunload', handleBeforeUnload);
+            submitBtn.disabled = false;
+            userInputElement.contentEditable = true;
             alert('An error occurred while submitting. Please try again.');
+            console.error("Submission error:", error);
         }
     }
 

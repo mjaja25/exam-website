@@ -994,6 +994,12 @@ body.test-page {
     transform: translateY(-2px);
 }
 
+.editor-indent {
+    display: inline-block;
+    width: 2em;
+    white-space: nowrap;
+    user-select: none; /* Prevents the user from highlighting half of an indent */
+}
 
 
 

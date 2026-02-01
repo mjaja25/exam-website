@@ -340,64 +340,53 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/submit/letter', authMiddleware, async (req, res) => {
-    console.log("--- Letter Submission Started ---");
-    console.log("SessionID:", req.body.sessionId);
-    console.log("UserID from Auth:", req.userId);
-
     try {
         const { content, sessionId, questionId } = req.body;
         const userId = req.userId;
 
-        if (!sessionId || !userId) {
-            return res.status(400).json({ message: "Missing SessionID or UserID" });
-        }
-
         const originalQuestion = await LetterQuestion.findById(questionId);
-        if (!originalQuestion) return res.status(404).json({ message: 'Question not found.' });
-
-        // AI GRADING SECTION
-        console.log("Contacting Gemini AI...");
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Use 1.5-flash for reliability
         
-        const gradingPrompt = `Act as a strict examiner... (your prompt) ... HTML Content: "${content}"`;
+        // Use Gemini 2.5 Flash or 2.0 Flash for reliable JSON output
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const gradingPrompt = `
+            You are a strict technical document auditor. Analyze the following HTML source code of a letter.
+            Grading Rubric (Total 10 Marks):
+            1. Content (4 marks): Addresses the prompt: "${originalQuestion.questionText}".
+            2. Traditional Formatting (2 marks): Award 2 marks if paragraphs use 'text-indent', 'margin-left', or blockquotes for indents.
+            3. Typography (2 marks): Award 1 mark for 'Times New Roman' font-family and 1 mark for font-size '12pt' or '4'.
+            4. Emphasis (2 marks): Award 1 mark if 'Subject:' is underlined (<u>) and 1 mark if headers are bold (<b>).
+
+            Input HTML: "${content}"
+
+            Return ONLY a JSON object:
+            { "score": <number_out_of_10>, "feedback": "<string>" }
+        `;
+
         const aiResult = await model.generateContent(gradingPrompt);
         const responseText = await aiResult.response.text();
-        
-        let grade;
-        try {
-            const cleanedText = responseText.replace(/```json|```/g, '').trim();
-            grade = JSON.parse(cleanedText);
-        } catch (e) {
-            console.error("AI JSON Parse Error:", responseText);
-            grade = { score: 0, feedback: "Grading format error." };
-        }
+        const cleanJson = responseText.replace(/```json|```/g, '').trim();
+        const grade = JSON.parse(cleanJson);
 
-        // DATABASE UPDATE SECTION
-        console.log("Updating Database...");
-        const updatedResult = await TestResult.findOneAndUpdate(
+        // --- UNIFIED DATABASE UPDATE ---
+        const updatedDoc = await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
             { 
                 $set: {
-                    letterScore: Number(grade.score) || 0,
+                    letterScore: Number(grade.score),
                     letterContent: content,
-                    letterFeedback: grade.feedback,
-                    status: 'in-progress'
+                    letterFeedback: grade.feedback
                 }
             },
             { new: true }
         );
 
-        if (!updatedResult) {
-            console.error("FAILED: No session found with ID:", sessionId);
-            return res.status(404).json({ message: "Session not found in DB." });
-        }
+        if (!updatedDoc) return res.status(404).json({ message: "Session not found" });
 
-        console.log("✅ Success! Score saved:", grade.score);
-        res.status(200).json({ message: 'Letter graded!', grade });
-
+        res.json({ success: true, grade });
     } catch (error) {
-        console.error("CRITICAL SERVER ERROR:", error); // This will show up in Render logs
-        res.status(500).json({ message: error.message });
+        console.error("Letter Error:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 });
 

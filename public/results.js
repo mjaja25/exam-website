@@ -95,130 +95,84 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function displayResults(results) {
+        // 1. Identify the Pattern (Unified doc will have this field)
+        const pattern = results[0]?.testPattern || 'standard';
+        
+        // 2. Map Results (Assuming backend sends the legacy array format)
         const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
         const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
         const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
-        const totalScore = typingResult.score + letterResult.score + excelResult.score;
+        
+        // Calculate total
+        const totalScore = Number(typingResult.score + letterResult.score + excelResult.score).toFixed(2);
 
+        // Update Title & Circle (Same as your logic)
+        scoreValueElement.textContent = totalScore;
         if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; } 
         else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; } 
         else { resultsTitle.textContent = 'Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
         
-        scoreValueElement.textContent = totalScore;
-        const scorePercentage = (totalScore / 50) * 100;
-        const scoreDegrees = (scorePercentage / 100) * 360;
+        const scoreDegrees = (totalScore / 50) * 360;
         totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
 
-        // --- NEW: Fetch aggregate stats ---
-        const statsResponse = await fetch(`${API_BASE_URL}/api/stats/all-tests`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const stats = await statsResponse.json();
-        const avgTyping = stats.Typing ? (stats.Typing.average / 20) * 100 : 0;
-        const avgLetter = stats.Letter ? (stats.Letter.average / 10) * 100 : 0;
-        const avgExcel = stats.Excel ? (stats.Excel.average / 20) * 100 : 0;
-        const topTyping = stats.Typing ? (stats.Typing.top / 20) * 100 : 0;
-        const topLetter = stats.Letter ? (stats.Letter.top / 10) * 100 : 0;
-        const topExcel = stats.Excel ? (stats.Excel.top / 20) * 100 : 0;
+        // --- UPDATED CHART SCALING ---
+        let typingMax = pattern === 'new_pattern' ? 30 : 20;
+        let letterMax = pattern === 'new_pattern' ? 0 : 10;
+        let excelMax = 20;
 
-        // --- NEW BAR CHART LOGIC ---
         const chartCanvas = document.getElementById('skills-chart-canvas');
         new Chart(chartCanvas, {
-            type: 'bar', // The chart type is now 'bar'
+            type: 'bar',
             data: {
-                labels: ['Typing', 'Letter', 'Excel'],
+                labels: pattern === 'new_pattern' ? ['Typing', 'Excel MCQ'] : ['Typing', 'Letter', 'Excel'],
                 datasets: [
                     {
                         label: 'Your Score',
-                        data: [
-                            (typingResult.score / 20) * 100,
-                            (letterResult.score / 10) * 100,
-                            (excelResult.score / 20) * 100
-                        ],
-                        backgroundColor: 'rgba(245, 158, 11, 0.7)', // Yellow
+                        data: pattern === 'new_pattern' 
+                            ? [(typingResult.score / 30) * 100, (excelResult.score / 20) * 100]
+                            : [(typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100],
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
                         borderColor: 'rgba(245, 158, 11, 1)',
                         borderWidth: 1
-                    },
-                    {
-                        label: 'Average Score',
-                        data: [avgTyping, avgLetter, avgExcel],
-                        backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red
-                        borderColor: 'rgba(239, 68, 68, 1)',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Top Score',
-                        data: [topTyping, topLetter, topExcel],
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1
                     }
+                    // Add your average/top score datasets here using the same pattern logic
                 ]
             },
-            options: {
-                indexAxis: 'y', // This makes the bar chart horizontal
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'chartArea',
-                        align: 'start',
-                        labels: {
-                            color: 'var(--text-color)',
-                            boxWidth: 12,
-                            font: { size: 12 } // Make the colored boxes smaller
-                        }   
-                    },
-                },
-                layout: {
-                     padding: { top: 80 }
-                },
-                scales: {
-                    x: { // The horizontal axis is now the score
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            color: 'var(--text-muted)',
-                            callback: (value) => value + '%' // Add percentage sign
-                        }
-                    },
-                    y: { // The vertical axis is now the skill
-                        ticks: { color: 'var(--text-color)' }
-                    }
-                }
+            options: { 
+                indexAxis: 'y', 
+                responsive: true, 
+                scales: { x: { max: 100, ticks: { callback: v => v + '%' } } } 
             }
         });
-        
-        // legendContainer.innerHTML = '';
-        // myChart.data.datasets.forEach((dataset) => {
-        //     const legendItem = document.createElement('div');
-        //     legendItem.className = 'legend-item';
-        //     legendItem.innerHTML = `<div class="legend-color-box" style="background-color: ${dataset.borderColor}"></div><span>${dataset.label}</span>`;
-        //     legendContainer.appendChild(legendItem);
-        // });
 
-        detailsContainer.innerHTML = `
+        // --- UPDATED DETAILED REPORT ---
+        let detailsHtml = `
             <div class="test-block">
-                <h3>⌨ Typing Test <span class="score">${typingResult.score} / 20</span></h3>
+                <h3>⌨ Typing Test <span class="score">${typingResult.score} / ${typingMax}</span></h3>
                 <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
             </div>
+        `;
+
+        if (pattern === 'standard') {
+            detailsHtml += `
+                <div class="test-block">
+                    <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
+                    <div class="feedback">${letterResult.feedback}</div>
+                </div>
+            `;
+        }
+
+        detailsHtml += `
             <div class="test-block">
-                <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
-                <div class="feedback">${letterResult.feedback}</div>
-            </div>
-            <div class="test-block">
-                <h3>📊 Excel Test <span class="score">${excelResult.score} / 20</span></h3>
+                <h3>${pattern === 'new_pattern' ? '📊 Excel MCQ' : '📊 Excel Practical'} <span class="score">${excelResult.score} / 20</span></h3>
                 <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
             </div>
         `;
 
-        // Trigger the "Hall of Fame" comparison logic
-        const pattern = results[0]?.testPattern || 'standard'; 
+        detailsContainer.innerHTML = detailsHtml;
+
+        // Trigger Ranking comparison
         renderComparison(totalScore, pattern);
-        
-        // Remove the session ID only after everything is rendered
-        localStorage.removeItem('currentSessionId');
     }
 
     async function fetchPercentile(sessionId) {
