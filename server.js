@@ -515,7 +515,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
             Return ONLY a JSON object in this exact format:
             { 
             "score": <number_out_of_20>, 
-            "feedback": "1. [First remark]\\n2. [Second remark]\\n3. [Third remark]" 
+            "feedback": "<string_point-by-point_feedback>" 
             }
 
             Note: You MUST provide the feedback as a single string where each observation starts with a number (1., 2., etc.) and is separated by a newline (\\n).
