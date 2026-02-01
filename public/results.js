@@ -83,15 +83,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatExcelFeedback(feedback) {
-        const points = feedback.split(/Instruction \d:/).filter(p => p.trim() !== '');
-        if (points.length > 1) {
-            let formattedHtml = '<ul>';
-            points.forEach((point, index) => {
-                formattedHtml += `<li><strong>Instruction ${index + 1}:</strong>${point.trim()}</li>`;
-            });
-            return formattedHtml + '</ul>';
-        }
-        return `<p>${feedback}</p>`;
+        if (!feedback || feedback === 'N/A') return '<p>No detailed feedback available for this session.</p>';
+
+        // Split into individual lines to analyze structure
+        const lines = feedback.split('\n').filter(line => line.trim() !== '');
+
+        let html = '<div class="excel-feedback-container">';
+        let listCount = 1;
+        let hasRemarksStarted = false;
+
+        lines.forEach(line => {
+            const trimmed = line.trim();
+
+            // 1. Detect and style Score lines (e.g., "Instruction 1: 4/4")
+            if (trimmed.includes(':') && /\d+\/\d+/.test(trimmed)) {
+                html += `<div class="feedback-score" style="margin-bottom: 5px;"><strong>${trimmed}</strong></div>`;
+            } 
+            // 2. Handle the "Remarks" header or general comments
+            else if (trimmed.toLowerCase().startsWith('remarks') || trimmed.toLowerCase().startsWith('general feedback')) {
+                html += `<hr style="margin: 10px 0;"><div class="feedback-remarks-title" style="font-weight: bold; margin-bottom: 8px;">Detailed Observations:</div>`;
+                hasRemarksStarted = true;
+            }
+            // 3. Format everything else as a numbered list
+            else {
+                // Clean up existing markers (1., -, Instruction 1:) to prevent "1. 1. text"
+                const content = trimmed.replace(/^\d+[\.\)]\s*|Instruction\s*\d+[:\.]\s*|^\-\s*/i, '').trim();
+                
+                if (content) {
+                    html += `
+                        <div class="feedback-item" style="display: flex; gap: 10px; margin-bottom: 6px;">
+                            <span style="font-weight: bold; color: var(--primary-yellow); min-width: 20px;">${listCount}.</span>
+                            <span style="flex: 1;">${content}</span>
+                        </div>`;
+                    listCount++;
+                }
+            }
+        });
+
+        html += '</div>';
+        return html;
     }
 
     async function displayResults(results) {
@@ -179,16 +209,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!feedback) return '<p>No feedback available.</p>';
 
         const lines = feedback.split('\n').filter(Boolean);
-
         let html = '<div class="letter-feedback">';
 
         lines.forEach(line => {
-            if (line.includes(':') && /\d+\/\d+/.test(line)) {
-                // Score lines
-                html += `<div class="feedback-score"><strong>${line}</strong></div>`;
-            } else if (line.toLowerCase().startsWith('remarks')) {
-                html += `<hr><div class="feedback-remarks-title">Remarks</div>`;
-            } else {
+            // Match: "Presentation: 0/2 – explanation..."
+            const scoreMatch = line.match(/^(.+?:\s*\d+\/\d+)(.*)$/);
+
+            if (scoreMatch) {
+                const scorePart = scoreMatch[1].trim();
+                const explanationPart = scoreMatch[2]?.trim();
+
+                html += `<div class="feedback-score">
+                            <strong>${scorePart}</strong>
+                            ${explanationPart ? ` ${explanationPart}` : ''}
+                        </div>`;
+            }
+            else if (line.toLowerCase().startsWith('remarks')) {
+                html += `<hr><div class="feedback-remarks-title"><strong>Remarks</strong></div>`;
+            }
+            else {
                 html += `<p class="feedback-remarks">${line}</p>`;
             }
         });
@@ -196,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += '</div>';
         return html;
     }
+
 
 
 

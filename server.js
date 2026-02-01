@@ -511,6 +511,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
             Act as an expert Excel grader. Your response must be ONLY a valid JSON object.
             The user was given a test named "${originalQuestion.questionName}".
             Grade the submission out of 20 based on the 5 instructions provided. Each instruction is worth 4 marks.
+
             ---
             GRADING RUBRIC (Instructions): ${solutionSheet2Instructions}
             ---
@@ -518,7 +519,14 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
             ---
             USER SUBMISSION DATA: ${userSheet1Data}
             ---
-            Return ONLY a JSON object: { "score": <number_out_of_20>, "feedback": "<string_point-by-point_feedback>" }
+
+            Return ONLY a JSON object in this exact format:
+            { 
+            "score": <number_out_of_20>, 
+            "feedback": "1. [First remark]\\n2. [Second remark]\\n3. [Third remark]" 
+            }
+
+            Note: You MUST provide the feedback as a single string where each observation starts with a number (1., 2., etc.) and is separated by a newline (\\n).
         `;
         const result = await model.generateContent(gradingPrompt);
         const responseText = await result.response.text();
