@@ -351,81 +351,99 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+        /* ---------- DETERMINISTIC FORMAT CHECKS ---------- */
+
+        const hasTimesNewRoman =
+            /face=["']?Times New Roman["']?/i.test(content) ||
+            /font-family\s*:\s*['"]?Times New Roman/i.test(content);
+
+        const hasCorrectFontSize =
+            /size=["']?4["']?/.test(content) ||
+            /font-size\s*:\s*12pt/i.test(content);
+
+        const subjectUnderlined = /<u>[\s\S]*Subject:/i.test(content);
+        const subjectBold = /<b>[\s\S]*Subject:/i.test(content);
+
+        let typographyScore = 0;
+        if (hasTimesNewRoman) typographyScore += 1;
+        if (hasCorrectFontSize) typographyScore += 1;
+
+        let subjectScore = 0;
+        if (subjectUnderlined) subjectScore += 1;
+        if (subjectBold) subjectScore += 1;
+
+        /* ---------- AI PROMPT ---------- */
+
         const gradingPrompt = `
-You are an examiner evaluating a traditional formal letter.
+You are a formal letter examiner.
 
-Evaluate STRICTLY using the rubric below. Deduct marks for non-compliance.
-Do NOT reward partial adherence.
+Formatting facts (already verified by system):
+- Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
+- Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
+- Subject Underlined: ${subjectUnderlined}
+- Subject Bold: ${subjectBold}
 
-RUBRIC (TOTAL 10 MARKS):
-1. Format (2 marks)
-- Date, Subject, Salutation, Closing present and correctly placed
+Grade ONLY:
+1. Content relevance and completeness (4 marks)
+2. Traditional formatting and layout (2 marks)
+3. Overall presentation clarity (2 marks)
 
-2. Content (4 marks)
-- Addresses the prompt clearly: "${originalQuestion.questionText}"
-- Explains multiple specific issues (not vague statements)
+Do NOT re-evaluate font, font size, underline, or bolding.
+Do NOT penalize editor-generated indentation.
 
-3. Language (2 marks)
-- Formal tone
-- Grammatically correct
+Input HTML:
+"${content}"
 
-4. Presentation (2 marks)
-- Proper paragraph indentation using CSS (text-indent, margin-left, blockquote)
-- NOT manual spacing or repeated spaces
-
-INPUT LETTER (HTML SOURCE):
-${content}
-
-Respond ONLY with valid JSON.
-Do NOT include markdown, explanations, or HTML.
-
-Expected format:
+Return ONLY JSON:
 {
-  "scores": {
-    "format": <0-2>,
-    "content": <0-4>,
-    "language": <0-2>,
-    "presentation": <0-2>
-  },
-  "total": <0-10>,
-  "remarks": {
-    "format": "<short sentence>",
-    "content": "<short sentence>",
-    "language": "<short sentence>",
-    "presentation": "<short sentence>"
-  }
+  "contentScore": number,
+  "formatScore": number,
+  "presentationScore": number,
+  "feedback": string
 }
         `;
 
         const aiResult = await model.generateContent(gradingPrompt);
         const responseText = aiResult.response.text();
 
-        let parsed;
+        let grade;
         try {
             const cleanJson = responseText.replace(/```json|```/g, '').trim();
-            parsed = JSON.parse(cleanJson);
+            grade = JSON.parse(cleanJson);
         } catch (err) {
             console.error("AI JSON Parse Error:", responseText);
-            parsed = {
-                scores: { format: 0, content: 0, language: 0, presentation: 0 },
-                total: 0,
-                remarks: { format: "Evaluation failed", content: "", language: "", presentation: "" }
-            };
+            return res.status(500).json({ message: "AI evaluation failed" });
         }
 
-        // Build frontend-safe feedback string (NO HTML)
+        /* ---------- FINAL SCORE ---------- */
+
+        const totalScore =
+            grade.contentScore +
+            grade.formatScore +
+            grade.presentationScore +
+            typographyScore +
+            subjectScore;
+
+        /* ---------- FEEDBACK (PLAIN TEXT) ---------- */
+
         const feedback = `
-Format: ${parsed.scores.format}/2 – ${parsed.remarks.format}
-Content: ${parsed.scores.content}/4 – ${parsed.remarks.content}
-Language: ${parsed.scores.language}/2 – ${parsed.remarks.language}
-Presentation: ${parsed.scores.presentation}/2 – ${parsed.remarks.presentation}
+Content: ${grade.contentScore}/4
+Format: ${grade.formatScore}/2
+Presentation: ${grade.presentationScore}/2
+Typography (Font & Size): ${typographyScore}/2
+Subject Emphasis (Bold/Underline): ${subjectScore}/2
+
+Remarks:
+${grade.feedback}
         `.trim();
 
+        /* ---------- DB UPDATE ---------- */
+
         const updatedDoc = await TestResult.findOneAndUpdate(
-            { sessionId: sessionId, user: userId },
+            { sessionId, user: userId },
             {
                 $set: {
-                    letterScore: Number(parsed.total),
+                    letterScore: Math.min(10, totalScore),
                     letterContent: content,
                     letterFeedback: feedback
                 }
@@ -440,8 +458,8 @@ Presentation: ${parsed.scores.presentation}/2 – ${parsed.remarks.presentation}
         res.json({
             success: true,
             grade: {
-                score: parsed.total,
-                feedback: feedback
+                score: Math.min(10, totalScore),
+                feedback
             }
         });
 
@@ -450,6 +468,7 @@ Presentation: ${parsed.scores.presentation}/2 – ${parsed.remarks.presentation}
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
+
 
 
 app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFile'), async (req, res, next) => {

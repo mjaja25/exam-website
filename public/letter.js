@@ -92,13 +92,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const indentSpan = document.createElement('span');
             indentSpan.className = 'editor-indent';
-            indentSpan.innerHTML = '&nbsp;'; // keeps span visible
+            indentSpan.innerHTML = '&nbsp;';
 
+            // Insert a zero-width text node BEFORE the indent
+            const spacer = document.createTextNode('\u200B');
+            range.insertNode(spacer);
             range.insertNode(indentSpan);
 
-            // Move caret AFTER the indent
+            // Move caret after indent reliably
             range.setStartAfter(indentSpan);
             range.setEndAfter(indentSpan);
+
             selection.removeAllRanges();
             selection.addRange(range);
         }

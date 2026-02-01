@@ -174,30 +174,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Trigger Ranking comparison
         renderComparison(totalScore, pattern);
     }
-    
+
     function formatLetterFeedback(feedback) {
         if (!feedback) return '<p>No feedback available.</p>';
 
-        // Strip HTML tags completely
-        const cleanText = feedback
-            .replace(/<[^>]*>/g, '')
-            .replace(/\*\*/g, '')
-            .replace(/__/g, '')
-            .trim();
+        const lines = feedback.split('\n').filter(Boolean);
 
-        // Convert rubric-style points into bullets
-        const sections = cleanText.split(/\d+\.\s+/).filter(Boolean);
+        let html = '<div class="letter-feedback">';
 
-        if (sections.length > 1) {
-            return `
-                <ul class="letter-feedback">
-                    ${sections.map(point => `<li>${point.trim()}</li>`).join('')}
-                </ul>
-            `;
-        }
+        lines.forEach(line => {
+            if (line.includes(':') && /\d+\/\d+/.test(line)) {
+                // Score lines
+                html += `<div class="feedback-score"><strong>${line}</strong></div>`;
+            } else if (line.toLowerCase().startsWith('remarks')) {
+                html += `<hr><div class="feedback-remarks-title"><strong>Remarks</strong></div>`;
+            } else {
+                html += `<p class="feedback-remarks">${line}</p>`;
+            }
+        });
 
-        return `<p>${cleanText}</p>`;
+        html += '</div>';
+        return html;
     }
+
 
 
     async function fetchPercentile(sessionId) {
