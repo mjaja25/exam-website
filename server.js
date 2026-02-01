@@ -385,7 +385,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         ---
         ${normalizedContent}
         ---
-        
+
         Formatting facts (already verified by system):
         - Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
         - Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
@@ -953,6 +953,22 @@ app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Server error fetching exam set." });
+    }
+});
+
+// route to group questions into an active MCQSet
+app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { setName, questionIds } = req.body;
+        const newSet = new MCQSet({
+            setName,
+            questions: questionIds, // Array of IDs from MCQQuestion
+            isActive: true
+        });
+        await newSet.save();
+        res.status(201).json({ message: 'MCQ Set created and activated!', set: newSet });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating MCQ Set.' });
     }
 });
 
