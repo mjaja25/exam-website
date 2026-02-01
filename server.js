@@ -349,7 +349,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: "Letter question not found" });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         /* ---------- DETERMINISTIC FORMAT CHECKS ---------- */
         const hasTimesNewRoman =

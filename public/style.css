@@ -1441,6 +1441,11 @@ body.test-page {
     align-items: flex-start;
 }
 
+/* Container for the feedback items */
+.letter-feedback-list {
+    margin-top: 15px;
+}
+
 /* The gold bubble for numbers */
 .feedback-number-bubble {
     background: var(--primary-yellow);
