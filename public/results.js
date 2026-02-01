@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             detailsHtml += `
                 <div class="test-block">
                     <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
-                    <div class="feedback">${letterResult.feedback}</div>
+                    <div class="feedback">${formatLetterFeedback(letterResult.feedback)}</div>
                 </div>
             `;
         }
@@ -174,6 +174,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // Trigger Ranking comparison
         renderComparison(totalScore, pattern);
     }
+    
+    function formatLetterFeedback(feedback) {
+        if (!feedback) return '<p>No feedback available.</p>';
+
+        // Strip HTML tags completely
+        const cleanText = feedback
+            .replace(/<[^>]*>/g, '')
+            .replace(/\*\*/g, '')
+            .replace(/__/g, '')
+            .trim();
+
+        // Convert rubric-style points into bullets
+        const sections = cleanText.split(/\d+\.\s+/).filter(Boolean);
+
+        if (sections.length > 1) {
+            return `
+                <ul class="letter-feedback">
+                    ${sections.map(point => `<li>${point.trim()}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        return `<p>${cleanText}</p>`;
+    }
+
 
     async function fetchPercentile(sessionId) {
         try {

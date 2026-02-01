@@ -345,50 +345,112 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         const userId = req.userId;
 
         const originalQuestion = await LetterQuestion.findById(questionId);
-        
-        // Use Gemini 2.5 Flash or 2.0 Flash for reliable JSON output
+        if (!originalQuestion) {
+            return res.status(404).json({ message: "Letter question not found" });
+        }
+
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const gradingPrompt = `
-            You are a strict technical document auditor. Analyze the following HTML source code of a letter.
-            Grading Rubric (Total 10 Marks):
-            1. Content (4 marks): Addresses the prompt: "${originalQuestion.questionText}".
-            2. Traditional Formatting (2 marks): Award 2 marks if paragraphs use 'text-indent', 'margin-left', or blockquotes for indents.
-            3. Typography (2 marks): Award 1 mark for 'Times New Roman' font-family and 1 mark for font-size '12pt' or '4'.
-            4. Emphasis (2 marks): Award 1 mark if 'Subject:' is underlined (<u>) and 1 mark if headers are bold (<b>).
+You are an examiner evaluating a traditional formal letter.
 
-            Input HTML: "${content}"
+Evaluate STRICTLY using the rubric below. Deduct marks for non-compliance.
+Do NOT reward partial adherence.
 
-            Return ONLY a JSON object:
-            { "score": <number_out_of_10>, "feedback": "<string>" }
+RUBRIC (TOTAL 10 MARKS):
+1. Format (2 marks)
+- Date, Subject, Salutation, Closing present and correctly placed
+
+2. Content (4 marks)
+- Addresses the prompt clearly: "${originalQuestion.questionText}"
+- Explains multiple specific issues (not vague statements)
+
+3. Language (2 marks)
+- Formal tone
+- Grammatically correct
+
+4. Presentation (2 marks)
+- Proper paragraph indentation using CSS (text-indent, margin-left, blockquote)
+- NOT manual spacing or repeated spaces
+
+INPUT LETTER (HTML SOURCE):
+${content}
+
+Respond ONLY with valid JSON.
+Do NOT include markdown, explanations, or HTML.
+
+Expected format:
+{
+  "scores": {
+    "format": <0-2>,
+    "content": <0-4>,
+    "language": <0-2>,
+    "presentation": <0-2>
+  },
+  "total": <0-10>,
+  "remarks": {
+    "format": "<short sentence>",
+    "content": "<short sentence>",
+    "language": "<short sentence>",
+    "presentation": "<short sentence>"
+  }
+}
         `;
 
         const aiResult = await model.generateContent(gradingPrompt);
-        const responseText = await aiResult.response.text();
-        const cleanJson = responseText.replace(/```json|```/g, '').trim();
-        const grade = JSON.parse(cleanJson);
+        const responseText = aiResult.response.text();
 
-        // --- UNIFIED DATABASE UPDATE ---
+        let parsed;
+        try {
+            const cleanJson = responseText.replace(/```json|```/g, '').trim();
+            parsed = JSON.parse(cleanJson);
+        } catch (err) {
+            console.error("AI JSON Parse Error:", responseText);
+            parsed = {
+                scores: { format: 0, content: 0, language: 0, presentation: 0 },
+                total: 0,
+                remarks: { format: "Evaluation failed", content: "", language: "", presentation: "" }
+            };
+        }
+
+        // Build frontend-safe feedback string (NO HTML)
+        const feedback = `
+Format: ${parsed.scores.format}/2 – ${parsed.remarks.format}
+Content: ${parsed.scores.content}/4 – ${parsed.remarks.content}
+Language: ${parsed.scores.language}/2 – ${parsed.remarks.language}
+Presentation: ${parsed.scores.presentation}/2 – ${parsed.remarks.presentation}
+        `.trim();
+
         const updatedDoc = await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
-            { 
+            {
                 $set: {
-                    letterScore: Number(grade.score),
+                    letterScore: Number(parsed.total),
                     letterContent: content,
-                    letterFeedback: grade.feedback
+                    letterFeedback: feedback
                 }
             },
             { new: true }
         );
 
-        if (!updatedDoc) return res.status(404).json({ message: "Session not found" });
+        if (!updatedDoc) {
+            return res.status(404).json({ message: "Session not found" });
+        }
 
-        res.json({ success: true, grade });
+        res.json({
+            success: true,
+            grade: {
+                score: parsed.total,
+                feedback: feedback
+            }
+        });
+
     } catch (error) {
         console.error("Letter Error:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
+
 
 app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFile'), async (req, res, next) => {
     try {
