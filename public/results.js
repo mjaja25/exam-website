@@ -195,8 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatLetterFeedback(feedback) {
-        if (!feedback) return '<p>No feedback available.</p>';
+        if (!feedback || feedback === 'N/A') return '<p>No feedback available.</p>';
 
+        // Split the feedback string by newlines
         const lines = feedback.split('\n')
             .map(line => line.trim())
             .filter(Boolean);
@@ -205,16 +206,25 @@ document.addEventListener('DOMContentLoaded', () => {
         let displayIndex = 1;
 
         lines.forEach(line => {
-            // Check if the line is a score line (e.g., Content: 4/4) or a general remark
-            const isScoreLine = line.includes(':') && /\d+\/\d+/.test(line);
-            
-            // Remove existing "1." or "-" if they exist to prevent double numbering
-            const cleanContent = line.replace(/^\d+\.\s*/, '').replace(/^\-\s*/, '').trim();
+            // 1. Convert **text** to <strong>text</strong> and strip the ** symbols
+            let cleanContent = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // 2. Remove any leading numbers or dashes the AI might have added (e.g., "1. ", "- ")
+            // to prevent double numbering with your golden bubbles.
+            cleanContent = cleanContent.replace(/^[\d\.\s\-\>]+/, '').trim();
+
+            // 3. Highlight the specific criteria (e.g., "Content: 3/3") by bolding the start
+            if (cleanContent.includes(':')) {
+                const parts = cleanContent.split(':');
+                const criteria = parts[0];
+                const rest = parts.slice(1).join(':');
+                cleanContent = `<strong>${criteria}:</strong>${rest}`;
+            }
 
             html += `
                 <div class="feedback-item-styled">
                     <div class="feedback-number-bubble">${displayIndex}</div>
-                    <div class="feedback-text-content ${isScoreLine ? 'bold-score' : ''}">
+                    <div class="feedback-text-content">
                         ${cleanContent}
                     </div>
                 </div>`;

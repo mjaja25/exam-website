@@ -349,10 +349,9 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: "Letter question not found" });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         /* ---------- DETERMINISTIC FORMAT CHECKS ---------- */
-
         const hasTimesNewRoman =
             /face=["']?Times New Roman["']?/i.test(content) ||
             /font-family\s*:\s*['"]?Times New Roman/i.test(content);
@@ -373,81 +372,78 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         if (subjectBold) subjectScore += 1;
 
         /* ---------- NORMALIZE EDITOR INDENTATION FOR AI ---------- */
-
-        // Convert editor-indent spans into plain spaces for AI clarity
         const normalizedContent = content.replace(
             /<span\s+class=["']editor-indent["'][^>]*>\s*<\/span>/gi,
-            '    ' // 4 spaces
+            '    ' 
         );
 
-
-        /* ---------- AI PROMPT ---------- */
-
+        /* ---------- AI PROMPT (6-Mark Rubric) ---------- */
         const gradingPrompt = `
-You are a formal letter examiner.
+        You are a formal letter examiner. 
 
-Formatting facts (already verified by system):
-- Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
-- Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
-- Subject Underlined: ${subjectUnderlined}
-- Subject Bold: ${subjectBold}
+        Formatting facts (already verified by system):
+        - Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
+        - Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
+        - Subject Underlined: ${subjectUnderlined}
+        - Subject Bold: ${subjectBold}
 
-Grade ONLY:
-1. Content relevance and completeness (4 marks)
-2. Traditional formatting and layout (2 marks)
-3. Overall presentation clarity (2 marks)
+        Grade ONLY these categories (Total 6 Marks):
+        1. Content relevance (3 marks): Does it address "${originalQuestion.questionText}"?
+        2. Traditional layout (2 marks): Check paragraphing and spacing.
+        3. Presentation (1 mark): General formal appearance.
 
-Do NOT re-evaluate font, font size, underline, or bolding.
-Do NOT penalize editor-generated indentation.
+        Return ONLY JSON:
+        {
+          "content": { "score": integer, "explanation": "string" },
+          "format": { "score": integer, "explanation": "string" },
+          "presentation": { "score": integer, "explanation": "string" }
+        }
 
-Input HTML:
-"${normalizedContent}"
-
-Return ONLY JSON:
-{
-  "contentScore": number,
-  "formatScore": number,
-  "presentationScore": number,
-  "feedback": string
-}
+        Note: Explanations must be brief (1 sentence). Use whole numbers for scores.
         `;
 
         const aiResult = await model.generateContent(gradingPrompt);
         const responseText = aiResult.response.text();
 
-        let grade;
+        let aiGrade;
         try {
             const cleanJson = responseText.replace(/```json|```/g, '').trim();
-            grade = JSON.parse(cleanJson);
+            aiGrade = JSON.parse(cleanJson);
         } catch (err) {
             console.error("AI JSON Parse Error:", responseText);
             return res.status(500).json({ message: "AI evaluation failed" });
         }
 
-        /* ---------- FINAL SCORE ---------- */
+        /* ---------- FINAL INTEGER CALCULATIONS (Total 10) ---------- */
+        const scores = {
+            content: Math.round(aiGrade.content.score || 0),
+            format: Math.round(aiGrade.format.score || 0),
+            presentation: Math.round(aiGrade.presentation.score || 0),
+            typography: Math.round(typographyScore || 0),
+            subject: Math.round(subjectScore || 0)
+        };
 
-        const totalScore =
-            grade.contentScore +
-            grade.formatScore +
-            grade.presentationScore +
-            typographyScore +
-            subjectScore;
+        const totalScore = scores.content + scores.format + scores.presentation + scores.typography + scores.subject;
 
-        /* ---------- FEEDBACK (PLAIN TEXT) ---------- */
+        // Generate explanations for system checks
+        const typographyExplanation = typographyScore === 2 
+            ? "Correct font (Times New Roman) and size (12pt/4) used." 
+            : "Issues detected with font family or size settings.";
 
-        const feedback = `
-Content: ${grade.contentScore}/4
-Format: ${grade.formatScore}/2
-Presentation: ${grade.presentationScore}/2
-Typography (Font & Size): ${typographyScore}/2
-Subject Emphasis (Bold/Underline): ${subjectScore}/2
+        const subjectExplanation = subjectScore === 2 
+            ? "Subject line is correctly bolded and underlined." 
+            : "Subject line missing required bold or underline formatting.";
 
-Remarks:
-${grade.feedback}
-        `.trim();
+        /* ---------- CONSTRUCT STRUCTURED FEEDBACK ---------- */
+        const feedback = [
+            `Content: ${scores.content}/3 - ${aiGrade.content.explanation}`,
+            `Layout: ${scores.format}/2 - ${aiGrade.format.explanation}`,
+            `Presentation: ${scores.presentation}/1 - ${aiGrade.presentation.explanation}`,
+            `Typography: ${scores.typography}/2 - ${typographyExplanation}`,
+            `Subject Emphasis: ${scores.subject}/2 - ${subjectExplanation}`
+        ].join('\n');
 
         /* ---------- DB UPDATE ---------- */
-
         const updatedDoc = await TestResult.findOneAndUpdate(
             { sessionId, user: userId },
             {
@@ -460,9 +456,7 @@ ${grade.feedback}
             { new: true }
         );
 
-        if (!updatedDoc) {
-            return res.status(404).json({ message: "Session not found" });
-        }
+        if (!updatedDoc) return res.status(404).json({ message: "Session not found" });
 
         res.json({
             success: true,
@@ -477,8 +471,6 @@ ${grade.feedback}
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
-
-
 
 app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFile'), async (req, res, next) => {
     try {
