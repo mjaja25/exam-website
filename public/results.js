@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function formatExcelFeedback(feedback) {
         if (!feedback || feedback === 'N/A') return '<p>No detailed feedback available.</p>';
 
-        // Split by newlines and remove the initial "Here's a breakdown" intro line if it exists
+        // Split and clean the lines
         const lines = feedback.split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0 && !line.toLowerCase().includes("here's a breakdown"));
@@ -94,31 +94,23 @@ document.addEventListener('DOMContentLoaded', () => {
         let displayIndex = 1;
 
         lines.forEach(line => {
-            // Clean up the AI's internal numbering (e.g., "1. ", "1. **Title**") 
-            // to prevent double numbering like "1. 1. Total Revenue"
-            const cleanContent = line.replace(/^\d+\.\s*/, '') // Removes "1. "
-                                    .replace(/^\d+\.\s*/, '') // Removes a second layer if "1. 1. " exists
-                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                    .trim();
+            // 1. Convert **text** to <strong>text</strong> and remove the ** symbols
+            let cleanContent = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // 2. Remove AI-generated leading numbers (e.g., "1. ", "1. 1.")
+            cleanContent = cleanContent.replace(/^\d+\.\s*/, '').replace(/^\d+\.\s*/, '').trim();
 
             if (cleanContent) {
                 html += `
-                    <div class="excel-feedback-item" style="display: flex; gap: 12px; margin-bottom: 12px;">
-                        <div style="background: var(--primary-yellow); color: #fff; min-width: 24px; height: 24px; 
-                            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-                            font-size: 12px; font-weight: bold; margin-top: 2px;">
-                            ${displayIndex}
-                        </div>
-                        <div style="flex: 1; line-height: 1.6;">
-                            ${cleanContent}
-                        </div>
+                    <div class="feedback-item-styled">
+                        <div class="feedback-number-bubble">${displayIndex}</div>
+                        <div class="feedback-text-content">${cleanContent}</div>
                     </div>`;
                 displayIndex++;
             }
         });
 
-        html += '</div>';
-        return html;
+        return html + '</div>';
     }
 
     async function displayResults(results) {
@@ -205,32 +197,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function formatLetterFeedback(feedback) {
         if (!feedback) return '<p>No feedback available.</p>';
 
-        const lines = feedback.split('\n').filter(Boolean);
-        let html = '<div class="letter-feedback">';
+        const lines = feedback.split('\n')
+            .map(line => line.trim())
+            .filter(Boolean);
+
+        let html = '<div class="letter-feedback-list">';
+        let displayIndex = 1;
 
         lines.forEach(line => {
-            // Match: "Presentation: 0/2 – explanation..."
-            const scoreMatch = line.match(/^(.+?:\s*\d+\/\d+)(.*)$/);
+            // Check if the line is a score line (e.g., Content: 4/4) or a general remark
+            const isScoreLine = line.includes(':') && /\d+\/\d+/.test(line);
+            
+            // Remove existing "1." or "-" if they exist to prevent double numbering
+            const cleanContent = line.replace(/^\d+\.\s*/, '').replace(/^\-\s*/, '').trim();
 
-            if (scoreMatch) {
-                const scorePart = scoreMatch[1].trim();
-                const explanationPart = scoreMatch[2]?.trim();
-
-                html += `<div class="feedback-score">
-                            <strong>${scorePart}</strong>
-                            ${explanationPart ? ` ${explanationPart}` : ''}
-                        </div>`;
-            }
-            else if (line.toLowerCase().startsWith('remarks')) {
-                html += `<hr><div class="feedback-remarks-title"><strong>Remarks</strong></div>`;
-            }
-            else {
-                html += `<p class="feedback-remarks">${line}</p>`;
-            }
+            html += `
+                <div class="feedback-item-styled">
+                    <div class="feedback-number-bubble">${displayIndex}</div>
+                    <div class="feedback-text-content ${isScoreLine ? 'bold-score' : ''}">
+                        ${cleanContent}
+                    </div>
+                </div>`;
+            displayIndex++;
         });
 
-        html += '</div>';
-        return html;
+        return html + '</div>';
     }
 
 
