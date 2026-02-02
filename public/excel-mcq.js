@@ -34,8 +34,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Render Question
     function renderQuestion() {
         const q = questions[currentIdx];
-        // Update display to show 10
-        document.getElementById('progress-text').innerText = `Question ${currentIdx + 1} of 10`;
+        
+        // Safety check: if questions didn't load properly
+        if (!q) {
+            questionArea.innerHTML = `<div class="error">Error: Question data is missing.</div>`;
+            return;
+        }
+
+        // Check if progress-text exists before setting text
+        const progressEl = document.getElementById('progress-text');
+        if (progressEl) {
+            progressEl.innerText = `Question ${currentIdx + 1} of 10`;
+        }
+
         questionArea.innerHTML = `
             <div class="question-box active">
                 <p class="step-label">Question ${currentIdx + 1} of ${questions.length}</p>
@@ -50,9 +61,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
 
-        prevBtn.disabled = currentIdx === 0;
-        // Finish button appears at the 10th question
-        nextBtn.innerText = currentIdx === 9 ? 'Finish Exam' : 'Next Question';
+        // Only update buttons if they were found in the HTML
+        if (prevBtn) prevBtn.disabled = currentIdx === 0;
+        if (nextBtn) {
+            nextBtn.innerText = currentIdx === 9 ? 'Finish Exam' : 'Next Question';
+        }
     }
 
     // 3. Global selection handler (attached to window for onclick)
