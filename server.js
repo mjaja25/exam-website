@@ -559,49 +559,30 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
     }
 });
 
-app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
+aapp.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
-        const { sessionId } = req.params;
-        const userId = req.userId;
+        const result = await TestResult.findOne({ sessionId: req.params.sessionId, user: req.userId });
+        if (!result) return res.status(404).json({ message: "Result not found" });
 
-        // Find the single document for this session
-        const sessionResult = await TestResult.findOne({ 
-            sessionId: sessionId, 
-            user: userId 
-        });
+        if (result.testPattern === 'new_pattern') {
+            // Find the set used or any set that contains these questions
+            const qIds = result.mcqDetails.map(d => d.questionId);
+            const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
-        if (!sessionResult) {
-            return res.status(404).json({ message: 'No results found for this session.' });
+            const mcqReviewData = result.mcqDetails.map(attempt => {
+                const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
+                return {
+                    questionText: qInfo?.questionText || "Question deleted",
+                    options: qInfo?.options || [],
+                    correctAnswer: qInfo?.correctAnswerIndex,
+                    userAnswer: attempt.userAnswer
+                };
+            });
+            return res.json({ ...result._doc, mcqReviewData });
         }
-
-        /**
-         * TRANSFORM FOR FRONTEND COMPATIBILITY
-         * Your results.js expects an array with 'testType' identifiers.
-         * We map our unified document fields back into that format.
-         */
-        const legacyFormat = [
-            {
-                testType: 'Typing',
-                score: Number(sessionResult.typingScore) || 0,
-                wpm: sessionResult.wpm || 0,
-                accuracy: sessionResult.accuracy || 0
-            },
-            {
-                testType: 'Letter',
-                score: Number(sessionResult.letterScore) || 0,
-                feedback: sessionResult.letterFeedback || 'N/A'
-            },
-            {
-                testType: 'Excel',
-                score: Number(sessionResult.excelScore || sessionResult.mcqScore) || 0,
-                feedback: sessionResult.excelFeedback || 'N/A'
-            }
-        ];
-
-        res.json(legacyFormat);
+        res.json(result);
     } catch (error) {
-        console.error("Fetch Results Error:", error);
-        res.status(500).json({ message: 'Server error fetching unified results.' });
+        res.status(500).json({ message: "Error fetching results" });
     }
 });
 
@@ -1002,6 +983,11 @@ app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res
     }
 });
 
+app.get('/api/debug/reset-mcq', authMiddleware, async (req, res) => {
+    await User.findByIdAndUpdate(req.userId, { $set: { completedMCQSets: [] } });
+    res.send("MCQ Progress Reset! You can now take the test again.");
+});
+
 // mcq submission route
 
 app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
@@ -1033,15 +1019,20 @@ app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
             { 
                 mcqScore: mcqMarks,
                 totalScore: finalTotal,
-                status: 'completed'
+                status: 'completed',
+                // Save raw details so the review page can show Green/Red highlights
+                mcqDetails: Object.keys(answers).map(qId => ({
+                    questionId: qId,
+                    userAnswer: answers[qId]
+                }))
             },
             { new: true }
         );
 
-        // Mark set as seen so it doesn't repeat
-        await User.findByIdAndUpdate(userId, { $addToSet: { completedMCQSets: setId } });
-
-        res.json({ success: true, score: mcqMarks, total: finalTotal });
+        res.json({ 
+            success: true, 
+            redirectUrl: `/results-new.html?sessionId=${sessionId}` 
+        });
     } catch (error) {
         res.status(500).json({ message: "Error saving MCQ results." });
     }
