@@ -605,39 +605,36 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
+app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) => {
     try {
-        const result = await TestResult.findOne({ 
-            sessionId: req.params.sessionId, 
-            user: req.userId 
-        });
+        const { sessionId } = req.params;
 
-        if (!result) return res.status(404).json({ message: "Result not found" });
-
-        // If it's a new pattern, fetch the MCQ set details for the review section
-        let mcqReviewData = [];
-        if (result.testPattern === 'new_pattern' && result.mcqDetails) {
-            // result.mcqDetails should be stored as an array of { questionId, userAnswer }
-            // We fetch the actual questions to show text/options on the frontend
-            const set = await MCQSet.findOne({ questions: { $in: result.mcqDetails.map(d => d.questionId) } })
-                                    .populate('questions');
-            
-            if (set) {
-                mcqReviewData = set.questions.map(q => {
-                    const userAttempt = result.mcqDetails.find(d => d.questionId.toString() === q._id.toString());
-                    return {
-                        questionText: q.questionText,
-                        options: q.options,
-                        correctAnswer: q.correctAnswerIndex,
-                        userAnswer: userAttempt ? userAttempt.userAnswer : null
-                    };
-                });
-            }
+        // 1. Get the current user's total score for this session
+        const currentSession = await TestResult.findOne({ sessionId });
+        if (!currentSession || !currentSession.totalScore) {
+            return res.json({ percentile: 0 });
         }
 
-        res.json({ ...result._doc, mcqReviewData });
+        const userScore = parseFloat(currentSession.totalScore);
+
+        // 2. Count how many OTHER completed sessions have a lower totalScore
+        const lowerScoringCount = await TestResult.countDocuments({
+            status: 'completed',
+            totalScore: { $lt: userScore }
+        });
+
+        // 3. Count total number of completed exam sessions
+        const totalSessions = await TestResult.countDocuments({ status: 'completed' });
+
+        // 4. Calculate percentile: (Number of people below you / Total people) * 100
+        const percentile = totalSessions > 1 
+            ? (lowerScoringCount / (totalSessions - 1)) * 100 
+            : 100; // If you're the only one, you're the 100th percentile
+
+        res.json({ percentile: Math.round(percentile) });
     } catch (error) {
-        res.status(500).json({ message: "Error fetching result details" });
+        console.error("Percentile Calculation Error:", error);
+        res.status(500).json({ message: 'Error calculating percentile.' });
     }
 });
 
