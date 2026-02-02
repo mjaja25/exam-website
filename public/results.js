@@ -113,86 +113,135 @@ document.addEventListener('DOMContentLoaded', () => {
         return html + '</div>';
     }
 
-    async function displayResults(results) {
-        // 1. Identify the Pattern (Unified doc will have this field)
-        const pattern = results[0]?.testPattern || 'standard';
+    let mcqReviewData = []; // Global to store MCQ details
+    let currentMcqIdx = 0;
+
+    function displayResults(data) {
+        // 1. Identify the Pattern
+        const isNewPattern = data.testPattern === 'new_pattern';
         
-        // 2. Map Results (Assuming backend sends the legacy array format)
-        const typingResult = results.find(r => r.testType === 'Typing') || { score: 0, wpm: 0, accuracy: 0 };
-        const letterResult = results.find(r => r.testType === 'Letter') || { score: 0, feedback: 'N/A' };
-        const excelResult = results.find(r => r.testType === 'Excel') || { score: 0, feedback: 'N/A' };
-        
-        // Calculate total
-        const totalScore = Number(typingResult.score + letterResult.score + excelResult.score);
+        // 2. Tally Results (Using stored totalScore)
+        const finalTotal = Math.round(data.totalScore || 0);
+        document.getElementById('total-score-display').innerText = `${finalTotal} / 50`;
 
-        // Update Title & Circle (Same as your logic)
-        scoreValueElement.textContent = totalScore;
-        if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; } 
-        else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; } 
-        else { resultsTitle.textContent = 'Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
-        
-        const scoreDegrees = (totalScore / 50) * 360;
-        totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
-
-        // --- UPDATED CHART SCALING ---
-        let typingMax = pattern === 'new_pattern' ? 30 : 20;
-        let letterMax = pattern === 'new_pattern' ? 0 : 10;
-        let excelMax = 20;
-
-        const chartCanvas = document.getElementById('skills-chart-canvas');
-        new Chart(chartCanvas, {
-            type: 'bar',
-            data: {
-                labels: pattern === 'new_pattern' ? ['Typing', 'Excel MCQ'] : ['Typing', 'Letter', 'Excel'],
-                datasets: [
-                    {
-                        label: 'Your Score',
-                        data: pattern === 'new_pattern' 
-                            ? [(typingResult.score / 30) * 100, (excelResult.score / 20) * 100]
-                            : [(typingResult.score / 20) * 100, (letterResult.score / 10) * 100, (excelResult.score / 20) * 100],
-                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
-                        borderColor: 'rgba(245, 158, 11, 1)',
-                        borderWidth: 1
-                    }
-                    // Add your average/top score datasets here using the same pattern logic
-                ]
-            },
-            options: { 
-                indexAxis: 'y', 
-                responsive: true, 
-                scales: { x: { max: 100, ticks: { callback: v => v + '%' } } } 
-            }
-        });
-
-        // --- UPDATED DETAILED REPORT ---
-        let detailsHtml = `
-            <div class="test-block">
-                <h3>⌨ Typing Test <span class="score">${typingResult.score} / ${typingMax}</span></h3>
-                <div class="feedback">WPM: <strong>${typingResult.wpm}</strong>, Accuracy: <strong>${typingResult.accuracy}%</strong></div>
-            </div>
-        `;
-
-        if (pattern === 'standard') {
-            detailsHtml += `
-                <div class="test-block">
-                    <h3>✉ Letter Test <span class="score">${letterResult.score} / 10</span></h3>
-                    <div class="feedback">${formatLetterFeedback(letterResult.feedback)}</div>
-                </div>
+        // 3. Conditional Overall Score Card
+        const scoreBreakdown = document.getElementById('score-breakdown');
+        if (isNewPattern) {
+            scoreBreakdown.innerHTML = `
+                <div class="score-card delectable-typing"><h3>Typing</h3><p>${Math.round(data.typingScore)}/30</p></div>
+                <div class="score-card delectable-mcq"><h3>Excel MCQ</h3><p>${Math.round(data.mcqScore)}/20</p></div>
+            `;
+        } else {
+            scoreBreakdown.innerHTML = `
+                <div class="score-card delectable-typing"><h3>Typing</h3><p>${Math.round(data.typingScore)}/30</p></div>
+                <div class="score-card delectable-letter"><h3>Letter</h3><p>${Math.round(data.letterScore)}/10</p></div>
+                <div class="score-card delectable-excel"><h3>Excel Practical</h3><p>${Math.round(data.excelScore)}/10</p></div>
             `;
         }
 
-        detailsHtml += `
-            <div class="test-block">
-                <h3>${pattern === 'new_pattern' ? '📊 Excel MCQ' : '📊 Excel Practical'} <span class="score">${excelResult.score} / 20</span></h3>
-                <div class="feedback">${formatExcelFeedback(excelResult.feedback)}</div>
+        // 4. Chart Optimization
+        renderChart(data, isNewPattern);
+
+        // 5. Detailed Report Sections
+        const container = document.getElementById('detailed-report-content');
+        container.innerHTML = ''; // Clear
+
+        // Always show Typing
+        addReportSection(container, 'Typing Analysis', formatTypingFeedback(data.typingFeedback));
+
+        if (isNewPattern) {
+            // Show MCQ Navigator
+            mcqReviewData = data.mcqReviewData || [];
+            renderMcqReviewSection(container);
+        } else {
+            // Show Letter & Excel Practical
+            addReportSection(container, 'Letter Evaluation', formatLetterFeedback(data.letterFeedback));
+            addReportSection(container, 'Excel Practical Evaluation', formatExcelFeedback(data.excelFeedback));
+        }
+    }
+
+    function renderChart(data, isNewPattern) {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        const labels = isNewPattern ? ['Typing', 'Excel MCQ'] : ['Typing', 'Letter', 'Excel'];
+        const scores = isNewPattern ? [data.typingScore, data.mcqScore] : [data.typingScore, data.letterScore, data.excelScore];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: scores,
+                    backgroundColor: ['#fbbf24', '#3b82f6', '#10b981'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 30 } }
+            }
+        });
+    }
+
+    // --- MCQ REVIEW NAVIGATOR ---
+
+    function renderMcqReviewSection(container) {
+        const section = document.createElement('div');
+        section.className = 'report-card mcq-review-wrapper';
+        section.innerHTML = `
+            <div class="section-header">
+                <h2>Excel MCQ Detailed Review</h2>
+            </div>
+            <div id="mcq-viewer-area"></div>
+            <div class="mcq-nav-controls">
+                <button class="nav-btn prev" onclick="moveMcq(-1)">Previous</button>
+                <span id="mcq-counter">Question 1 of 10</span>
+                <button class="nav-btn next" onclick="moveMcq(1)">Next</button>
+            </div>
+        `;
+        container.appendChild(section);
+        updateMcqDisplay();
+    }
+
+    function updateMcqDisplay() {
+        const viewer = document.getElementById('mcq-viewer-area');
+        const counter = document.getElementById('mcq-counter');
+        if (!mcqReviewData.length) {
+            viewer.innerHTML = "<p>No MCQ review data available.</p>";
+            return;
+        }
+
+        const q = mcqReviewData[currentMcqIdx];
+        const isCorrect = q.userAnswer === q.correctAnswer;
+
+        viewer.innerHTML = `
+            <div class="mcq-item-review animate-fade">
+                <div class="status-badge ${isCorrect ? 'correct' : 'wrong'}">
+                    ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                </div>
+                <p class="review-q-text">${q.questionText}</p>
+                <div class="review-options-grid">
+                    ${q.options.map((opt, i) => {
+                        let className = 'review-opt';
+                        if (i === q.correctAnswer) className += ' correct-answer';
+                        if (i === q.userAnswer && !isCorrect) className += ' wrong-selection';
+                        return `<div class="${className}"><span>${String.fromCharCode(65 + i)}</span> ${opt}</div>`;
+                    }).join('')}
+                </div>
+                ${q.explanation ? `<div class="explanation-box"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
             </div>
         `;
 
-        detailsContainer.innerHTML = detailsHtml;
-
-        // Trigger Ranking comparison
-        renderComparison(totalScore, pattern);
+        counter.innerText = `Question ${currentMcqIdx + 1} of ${mcqReviewData.length}`;
+        
+        // Disable buttons at boundaries
+        document.querySelector('.nav-btn.prev').disabled = currentIdx === 0;
+        document.querySelector('.nav-btn.next').disabled = currentIdx === mcqReviewData.length - 1;
     }
+
+    window.moveMcq = (direction) => {
+        currentMcqIdx += direction;
+        updateMcqDisplay();
+    };
 
     function formatLetterFeedback(feedback) {
         if (!feedback || feedback === 'N/A') return '<p>No feedback available.</p>';

@@ -605,36 +605,39 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) => {
+app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
-        const { sessionId } = req.params;
-
-        // 1. Get the current user's total score for this session
-        const currentSession = await TestResult.findOne({ sessionId });
-        if (!currentSession || !currentSession.totalScore) {
-            return res.json({ percentile: 0 });
-        }
-
-        const userScore = parseFloat(currentSession.totalScore);
-
-        // 2. Count how many OTHER completed sessions have a lower totalScore
-        const lowerScoringCount = await TestResult.countDocuments({
-            status: 'completed',
-            totalScore: { $lt: userScore }
+        const result = await TestResult.findOne({ 
+            sessionId: req.params.sessionId, 
+            user: req.userId 
         });
 
-        // 3. Count total number of completed exam sessions
-        const totalSessions = await TestResult.countDocuments({ status: 'completed' });
+        if (!result) return res.status(404).json({ message: "Result not found" });
 
-        // 4. Calculate percentile: (Number of people below you / Total people) * 100
-        const percentile = totalSessions > 1 
-            ? (lowerScoringCount / (totalSessions - 1)) * 100 
-            : 100; // If you're the only one, you're the 100th percentile
+        // If it's a new pattern, fetch the MCQ set details for the review section
+        let mcqReviewData = [];
+        if (result.testPattern === 'new_pattern' && result.mcqDetails) {
+            // result.mcqDetails should be stored as an array of { questionId, userAnswer }
+            // We fetch the actual questions to show text/options on the frontend
+            const set = await MCQSet.findOne({ questions: { $in: result.mcqDetails.map(d => d.questionId) } })
+                                    .populate('questions');
+            
+            if (set) {
+                mcqReviewData = set.questions.map(q => {
+                    const userAttempt = result.mcqDetails.find(d => d.questionId.toString() === q._id.toString());
+                    return {
+                        questionText: q.questionText,
+                        options: q.options,
+                        correctAnswer: q.correctAnswerIndex,
+                        userAnswer: userAttempt ? userAttempt.userAnswer : null
+                    };
+                });
+            }
+        }
 
-        res.json({ percentile: Math.round(percentile) });
+        res.json({ ...result._doc, mcqReviewData });
     } catch (error) {
-        console.error("Percentile Calculation Error:", error);
-        res.status(500).json({ message: 'Error calculating percentile.' });
+        res.status(500).json({ message: "Error fetching result details" });
     }
 });
 
