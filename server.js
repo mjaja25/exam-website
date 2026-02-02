@@ -983,11 +983,26 @@ app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res
     }
 });
 
-app.get('/api/debug/reset-mcq', authMiddleware, async (req, res) => {
-    await User.findByIdAndUpdate(req.userId, { $set: { completedMCQSets: [] } });
-    res.send("MCQ Progress Reset! You can now take the test again.");
-});
+// --- Updated Debug Route (No Middleware Required) ---
+app.get('/api/debug/reset-mcq/:email', async (req, res) => {
+    try {
+        const userEmail = req.params.email;
+        const user = await User.findOneAndUpdate(
+            { email: userEmail },
+            { $set: { completedMCQSets: [] } },
+            { new: true }
+        );
 
+        if (!user) {
+            return res.status(404).send("User not found. Check the email in the URL.");
+        }
+
+        res.send(`MCQ Progress Reset for ${userEmail}! You can now take the test again.`);
+    } catch (error) {
+        console.error("Reset Error:", error);
+        res.status(500).send("Error resetting progress.");
+    }
+});
 // mcq submission route
 
 app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
