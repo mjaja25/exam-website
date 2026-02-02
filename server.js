@@ -559,7 +559,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
     }
 });
 
-aapp.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
+app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
         const result = await TestResult.findOne({ sessionId: req.params.sessionId, user: req.userId });
         if (!result) return res.status(404).json({ message: "Result not found" });
