@@ -917,15 +917,33 @@ app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.userId);
         
-        // Find a set the user hasn't done yet
-        const nextSet = await MCQSet.findOne({ 
+        // 1. Find all active sets that the user has NOT completed yet
+        let availableSets = await MCQSet.find({ 
             _id: { $nin: user.completedMCQSets },
             isActive: true 
-        }).populate('questions');
+        }).select('_id'); // We only fetch IDs first to keep it fast
 
-        if (!nextSet) {
-            return res.status(404).json({ message: "All available mock sets completed!" });
+        // 2. AUTO-RESET: If the user has completed everything, clear their history
+        if (availableSets.length === 0) {
+            console.log(`User ${user.email} has seen all sets. Resetting cycle...`);
+            user.completedMCQSets = [];
+            await user.save();
+            
+            // Re-fetch all currently active sets
+            availableSets = await MCQSet.find({ isActive: true }).select('_id');
         }
+
+        // 3. Check if there are actually any sets in the system at all
+        if (availableSets.length === 0) {
+            return res.status(404).json({ message: "No active mock sets are available in the system." });
+        }
+
+        // 4. RANDOMIZER: Pick a random ID from the list of available sets
+        const randomIndex = Math.floor(Math.random() * availableSets.length);
+        const randomSetId = availableSets[randomIndex]._id;
+
+        // 5. Fetch the full set data including questions
+        const nextSet = await MCQSet.findById(randomSetId).populate('questions');
 
         res.json({
             setId: nextSet._id,
@@ -933,6 +951,7 @@ app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
             questions: nextSet.questions
         });
     } catch (error) {
+        console.error("Random Set Fetch Error:", error);
         res.status(500).json({ message: "Server error fetching exam set." });
     }
 });
@@ -983,26 +1002,26 @@ app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res
     }
 });
 
-// --- Updated Debug Route (No Middleware Required) ---
-app.get('/api/debug/reset-mcq/:email', async (req, res) => {
-    try {
-        const userEmail = req.params.email;
-        const user = await User.findOneAndUpdate(
-            { email: userEmail },
-            { $set: { completedMCQSets: [] } },
-            { new: true }
-        );
+// // --- Updated Debug Route (No Middleware Required) ---
+// app.get('/api/debug/reset-mcq/:email', async (req, res) => {
+//     try {
+//         const userEmail = req.params.email;
+//         const user = await User.findOneAndUpdate(
+//             { email: userEmail },
+//             { $set: { completedMCQSets: [] } },
+//             { new: true }
+//         );
 
-        if (!user) {
-            return res.status(404).send("User not found. Check the email in the URL.");
-        }
+//         if (!user) {
+//             return res.status(404).send("User not found. Check the email in the URL.");
+//         }
 
-        res.send(`MCQ Progress Reset for ${userEmail}! You can now take the test again.`);
-    } catch (error) {
-        console.error("Reset Error:", error);
-        res.status(500).send("Error resetting progress.");
-    }
-});
+//         res.send(`MCQ Progress Reset for ${userEmail}! You can now take the test again.`);
+//     } catch (error) {
+//         console.error("Reset Error:", error);
+//         res.status(500).send("Error resetting progress.");
+//     }
+// });
 // mcq submission route
 
 app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
