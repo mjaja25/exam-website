@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Results | Proficiency Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="results.css">
+    <link rel="stylesheet" href="results-new.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container results-container">
+        <header class="results-header">
+            <h1>Performance Summary</h1>
+            <p>New Pattern: Typing + Excel MCQ</p>
+        </header>
+
+        <div class="overall-card">
+            <div class="total-circle">
+                <h2 id="total-score-display">0</h2>
+                <span>Total / 50</span>
+            </div>
+            <div class="score-grid" id="score-breakdown">
+                </div>
+        </div>
+
+        <div class="report-grid">
+            <div class="card chart-card">
+                <h3>Score Visualization</h3>
+                <canvas id="scoreChart"></canvas>
+            </div>
+
+            <div class="card mcq-review-card">
+                <h3>Excel MCQ Review</h3>
+                <div id="mcq-viewer-content"></div>
+                <div class="mcq-controls">
+                    <button id="prev-mcq" class="nav-btn">Previous</button>
+                    <span id="mcq-counter">Question 1 of 10</span>
+                    <button id="next-mcq" class="nav-btn">Next</button>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="window.location.href='/dashboard.html'" class="primary return-btn">Back to Dashboard</button>
+    </div>
+    <script src="results-new.js"></script>
+</body>
+</html>
