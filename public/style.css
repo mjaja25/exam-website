@@ -14,6 +14,26 @@
     --dark-text-on-btn: #ffffff;
 }
 
+:root{
+  --page-width: 1200px; /* or 960px, choose one */
+}
+
+/* all centered page sections */
+.container,
+main.container,
+.dashboard-content,
+.dashboard-header-inner{
+  max-width: var(--page-width);
+  margin: 0 auto;
+}
+
+/* keep padding consistent */
+.dashboard-header-inner,
+.dashboard-content{
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
 /* 2. Dark Mode Theme (Stays the same) */
 @media (prefers-color-scheme: dark) {
     :root {
@@ -55,9 +75,7 @@
         color: var(--primary-yellow);
     }
 }
-main.container, .container {
-  max-width: 960px;
-}
+
 article, table, input, button, select {
   border-radius: var(--pico-border-radius);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -369,9 +387,6 @@ body.dashboard-page {
 
 /* Constrain the header contents */
 .dashboard-header-inner{
-  max-width: 960px;      /* must match your container max width */
-  margin: 0 auto;
-  padding: 1rem 2rem;    /* your original header padding goes here */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -418,9 +433,6 @@ body.dashboard-page {
 }
 
 .dashboard-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
