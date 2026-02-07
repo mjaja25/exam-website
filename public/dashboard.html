@@ -9,14 +9,16 @@
 </head>
 <body class="dashboard-page">
     <header class="dashboard-header">
-        <div class="logo-area">
-            <img src="/logo.png" alt="Logo" class="logo" />
-            <h1 id="welcome-header">Welcome!</h1>
+        <div class="container dashboard-header-inner">
+            <div class="logo-area">
+                <img src="/logo.png" alt="Logo" class="logo" />
+                <h1 id="welcome-header">Welcome!</h1>
+            </div>
+            <nav class="dashboard-nav">
+                <a href="/admin.html" id="admin-btn" class="nav-button" style="display: none;">Admin Panel</a>
+                <button id="logout-btn" class="nav-button secondary">Logout</button>
+            </nav>
         </div>
-        <nav class="dashboard-nav">
-            <a href="/admin.html" id="admin-btn" class="nav-button" style="display: none;">Admin Panel</a>
-            <button id="logout-btn" class="nav-button secondary">Logout</button>
-        </nav>
     </header>
 
     <div id="mobile-warning" class="mobile-warning">
@@ -26,7 +28,7 @@
     <main class="dashboard-content">
         <div class="card start-test-card">
             <h2>Complete Mock Examination</h2>
-            <p>Simulate the official NPSC/NSSB environment with recorded results.</p>
+            <p>Simulate the official NSSB CPT environment with recorded results.</p>
             <button id="open-exam-modal-btn" class="primary">Start Full Exam</button>
         </div>
 
@@ -50,7 +52,7 @@
 
 
         <div class="card practice-zone-card">
-            <h2 class="section-title">Practice Zones</h2>
+            <h2>Practice Zones</h2>
 
             <div class="practice-grid">
                 <div class="practice-item">

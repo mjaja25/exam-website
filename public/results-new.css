@@ -23,6 +23,10 @@
     background: var(--slate-bg); border: 1px solid #e2e8f0; color: #64748b;
 }
 
+.report-grid {
+    margin-top: 1rem;
+}
+
 .correct-box { background: #dcfce7; border-color: var(--correct-green); color: #065f46; font-weight: 600; }
 .wrong-box { background: #fee2e2; border-color: var(--wrong-red); color: #991b1b; }
 

@@ -9,29 +9,31 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container results-container">
-        <header class="results-header">
-            <h1>Performance Summary</h1>
-            <p>New Pattern: Typing + Excel MCQ</p>
-        </header>
-
-        <div class="overall-card">
-            <div class="total-circle">
-                <h2 id="total-score-display">0</h2>
-                <span>Total / 50</span>
-            </div>
-            <div class="score-grid" id="score-breakdown">
-                </div>
+    <div class="container">
+        <div class="header">
+            <h1 id="results-title">Exam Complete!</h1>
+            <p>Here is your performance summary.</p>
         </div>
 
-        <div class="report-grid">
+        <div class="score-section"> 
+            <div class="card">
+                <h2>Overall Score</h2>
+                <div class="card-body">
+                    <div class="score-circle" id="total-score-circle">
+                        <span><span id="score-value">0</span> / 50</span>
+                    </div>
+                    <p>You performed better than <strong id="percentile-rank">0%</strong> of test-takers.</p>
+                </div>
+            </div>
+        
             <div class="card chart-card">
-                <h3>Score Visualization</h3>
+                <h2>Score Visualization</h2>
                 <canvas id="scoreChart"></canvas>
             </div>
-
+        </div>
+        <div class="report-grid">
             <div class="card mcq-review-card">
-                <h3>Excel MCQ Review</h3>
+                <h2>Excel MCQ Review</h2>
                 <div id="mcq-viewer-content"></div>
                 <div class="mcq-controls">
                     <button id="prev-mcq" class="nav-btn">Previous</button>
@@ -41,7 +43,10 @@
             </div>
         </div>
         
-        <button onclick="window.location.href='/dashboard.html'" class="primary return-btn">Back to Dashboard</button>
+        <div class="footer-actions">
+            <a href="/dashboard.html" class="action-btn secondary">Back to Dashboard</a>
+            <a href="/feedback.html" class="action-btn primary">Give Feedback</a>
+        </div>
     </div>
     <script src="results-new.js"></script>
 </body>

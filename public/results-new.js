@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Tally Cards
     document.getElementById('score-breakdown').innerHTML = `
-        <div class="mini-card"><strong>Typing</strong><p>${Math.round(data.typingScore)}/30</p></div>
-        <div class="mini-card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore)}/20</p></div>
+        <div class="card"><strong>Typing</strong><p>${Math.round(data.typingScore)}/30</p></div>
+        <div class="card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore)}/20</p></div>
     `;
 
     // 3. Simple Chart

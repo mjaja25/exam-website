@@ -358,12 +358,23 @@ body.dashboard-page {
 }
 
 .dashboard-header {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
     background-color: var(--card-background);
     border-bottom: 1px solid var(--border-color);
+}
+
+/* Constrain the header contents */
+.dashboard-header-inner{
+  max-width: 960px;      /* must match your container max width */
+  margin: 0 auto;
+  padding: 1rem 2rem;    /* your original header padding goes here */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo-area {
@@ -419,7 +430,10 @@ body.dashboard-page {
     gap: 2rem;
 }
 
-.start-test-card { grid-area: exam; }
+.start-test-card {     
+    display: grid;
+    grid-area: exam;
+    align-content: center; }
 .past-results-card { grid-area: results; }
 .practice-zone-card { grid-area: practice; }
 .carousel-card { grid-area: leaderboard; }
@@ -1411,6 +1425,11 @@ body.test-page {
 .winner-score { font-size: 0.8rem; opacity: 0.8; }
 
 
+
+
+
+
+
 /* Results page */
 
 .comparison-container {
@@ -1418,7 +1437,7 @@ body.test-page {
     border: 2px solid #bae6fd;
     padding: 1.5rem;
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     animation: slideIn 0.5s ease-out;
 }
 

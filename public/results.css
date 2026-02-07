@@ -5,7 +5,7 @@ body {
     font-family: 'Poppins', sans-serif;
 }
 .container { max-width: 1100px; margin: 30px auto; padding: 20px; }
-.header { text-align: center; margin-bottom: 25px; }
+.header { text-align: center; margin-bottom: 30px; }
 .header h1 { color: var(--primary-yellow, #f59e0b); margin: 0; }
 
 .score-section {

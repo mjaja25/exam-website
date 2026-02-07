@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (res.ok) {
-                window.location.href = '/results.html';
+                window.location.href = '/results-new.html';
             } else {
                 alert("Submission failed. Please contact admin.");
             }
