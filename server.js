@@ -595,32 +595,36 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
 
         if (!result) return res.status(404).json({ message: "Result not found" });
 
-        // IMPORTANT: Package MCQ data if it's the new pattern
+        // If it's a new pattern, we need to carefully attach the question text
         if (result.testPattern === 'new_pattern') {
-            // Get all question IDs from the user's attempt
+            // Safety Check: If mcqDetails is missing, send an empty review rather than crashing
+            if (!result.mcqDetails || result.mcqDetails.length === 0) {
+                return res.json({ ...result._doc, mcqReviewData: [] });
+            }
+
             const qIds = result.mcqDetails.map(d => d.questionId);
             const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
-            // Combine the DB question text with the user's saved answer
             const mcqReviewData = result.mcqDetails.map(attempt => {
+                // Use .toString() to ensure the IDs match correctly
                 const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
+                
                 return {
-                    questionText: qInfo?.questionText || "Question no longer exists",
-                    options: qInfo?.options || [],
-                    correctAnswer: qInfo?.correctAnswerIndex,
+                    questionText: qInfo ? qInfo.questionText : "Question data unavailable",
+                    options: qInfo ? qInfo.options : ["N/A", "N/A", "N/A", "N/A"],
+                    correctAnswer: qInfo ? qInfo.correctAnswerIndex : 0,
                     userAnswer: attempt.userAnswer
                 };
             });
 
-            // Send back a single object with the extra review data
             return res.json({ ...result._doc, mcqReviewData });
         }
 
-        // Standard pattern just returns the result document
         res.json(result);
     } catch (error) {
-        console.error("Result Fetch Error:", error);
-        res.status(500).json({ message: "Error fetching result details" });
+        // This will print the EXACT error to your Render logs so you can see why it failed
+        console.error("DETAILED RESULTS ERROR:", error);
+        res.status(500).json({ message: "Internal server error fetching results", error: error.message });
     }
 });
 
