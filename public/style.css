@@ -505,7 +505,6 @@ button.primary, button.secondary {
     flex-direction: column;
     justify-content: center; /* This centers the content vertically */
     align-items: center; /* This centers the content horizontally */
-    text-align: center;
     gap: 1rem;
 }
 
@@ -513,7 +512,6 @@ button.primary, button.secondary {
 .results-table-wrapper {
     max-height: 260px;       /* adjust as you like */
     overflow-y: auto;
-    width: 100%;
     border: 1px solid var(--border-color);
     border-radius: 12px;
 }
