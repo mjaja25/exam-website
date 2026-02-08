@@ -593,38 +593,46 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
             user: req.userId 
         });
 
-        if (!result) return res.status(404).json({ message: "Result not found" });
+        if (!result) return res.status(404).json({ message: "Result session not found." });
 
-        // If it's a new pattern, we need to carefully attach the question text
+        // Logic for New Pattern (10+5)
         if (result.testPattern === 'new_pattern') {
-            // Safety Check: If mcqDetails is missing, send an empty review rather than crashing
-            if (!result.mcqDetails || result.mcqDetails.length === 0) {
-                return res.json({ ...result._doc, mcqReviewData: [] });
-            }
-
-            const qIds = result.mcqDetails.map(d => d.questionId);
+            // Check if mcqDetails exists and is an array
+            const details = Array.isArray(result.mcqDetails) ? result.mcqDetails : [];
+            
+            // Extract IDs, filtering out any null/undefined entries
+            const qIds = details.map(d => d.questionId).filter(id => id);
+            
+            // Fetch all questions at once
             const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
-            const mcqReviewData = result.mcqDetails.map(attempt => {
-                // Use .toString() to ensure the IDs match correctly
+            // Map attempt data to question text
+            const mcqReviewData = details.map(attempt => {
+                if (!attempt.questionId) return null;
+
                 const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
                 
                 return {
-                    questionText: qInfo ? qInfo.questionText : "Question data unavailable",
+                    questionText: qInfo ? qInfo.questionText : "This question was deleted from the bank.",
                     options: qInfo ? qInfo.options : ["N/A", "N/A", "N/A", "N/A"],
                     correctAnswer: qInfo ? qInfo.correctAnswerIndex : 0,
-                    userAnswer: attempt.userAnswer
+                    userAnswer: attempt.userAnswer ?? null
                 };
-            });
+            }).filter(item => item !== null); // Remove any failed mappings
 
             return res.json({ ...result._doc, mcqReviewData });
         }
 
+        // Standard pattern: Just return the doc
         res.json(result);
+
     } catch (error) {
-        // This will print the EXACT error to your Render logs so you can see why it failed
-        console.error("DETAILED RESULTS ERROR:", error);
-        res.status(500).json({ message: "Internal server error fetching results", error: error.message });
+        // This log will appear in your Render "Logs" tab - check it if the error persists!
+        console.error("CRITICAL ERROR IN RESULTS API:", error);
+        res.status(500).json({ 
+            message: "Internal server error: " + error.message,
+            success: false 
+        });
     }
 });
 
