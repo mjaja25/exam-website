@@ -180,13 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSummary.innerHTML = ''; 
 
         results.forEach(session => {
-            // Use the totalScore field directly from your database
-            // We use Math.round to keep it an integer as you requested
             const total = Math.round(session.totalScore || 0);
-            
             const date = new Date(session.submittedAt).toLocaleDateString();
             const patternLabel = session.testPattern === 'new_pattern' ? '10+5' : 'Std';
             const sessionId = session.sessionId;
+            const pattern = session.testPattern; // We need this to tell the function which page to load
 
             const tableRow = document.createElement('tr');
             tableRow.innerHTML = `
@@ -194,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${patternLabel}</td>
                 <td><strong>${total} / 50</strong></td>
                 <td>
-                    <button class="view-results-btn" data-session-id="${sessionId}">
+                    <button class="view-results-btn" onclick="viewResult('${sessionId}', '${pattern}')">
                         View
                     </button>
                 </td>
