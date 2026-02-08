@@ -204,13 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Handle "View Results" clicks
-    resultsSummary.addEventListener('click', (event) => {
-        if (event.target.classList.contains('view-results-btn')) {
-            const sessionId = event.target.dataset.sessionId;
-            localStorage.setItem('currentSessionId', sessionId);
-            window.location.href = '/results.html';
-        }
-    });
+    window.viewResult = (sessionId, pattern) => {
+        // Determine which result page to show
+        const page = (pattern === 'new_pattern') ? 'results-new.html' : 'results.html';
+        
+        // Redirect with the sessionId attached as a query parameter
+        window.location.href = `/${page}?sessionId=${sessionId}`;
+    };
 
     // Close modals if clicking outside
     window.onclick = function(event) {
