@@ -561,33 +561,6 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
 
 app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
-        const result = await TestResult.findOne({ sessionId: req.params.sessionId, user: req.userId });
-        if (!result) return res.status(404).json({ message: "Result not found" });
-
-        if (result.testPattern === 'new_pattern') {
-            // Find the set used or any set that contains these questions
-            const qIds = result.mcqDetails.map(d => d.questionId);
-            const questions = await MCQQuestion.find({ _id: { $in: qIds } });
-
-            const mcqReviewData = result.mcqDetails.map(attempt => {
-                const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
-                return {
-                    questionText: qInfo?.questionText || "Question deleted",
-                    options: qInfo?.options || [],
-                    correctAnswer: qInfo?.correctAnswerIndex,
-                    userAnswer: attempt.userAnswer
-                };
-            });
-            return res.json({ ...result._doc, mcqReviewData });
-        }
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching results" });
-    }
-});
-
-app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
-    try {
         const result = await TestResult.findOne({ 
             sessionId: req.params.sessionId, 
             user: req.userId 
@@ -595,44 +568,76 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
 
         if (!result) return res.status(404).json({ message: "Result session not found." });
 
-        // Logic for New Pattern (10+5)
+        // --- BRANCH A: New Pattern Logic ---
         if (result.testPattern === 'new_pattern') {
-            // Check if mcqDetails exists and is an array
             const details = Array.isArray(result.mcqDetails) ? result.mcqDetails : [];
-            
-            // Extract IDs, filtering out any null/undefined entries
             const qIds = details.map(d => d.questionId).filter(id => id);
-            
-            // Fetch all questions at once
             const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
-            // Map attempt data to question text
             const mcqReviewData = details.map(attempt => {
-                if (!attempt.questionId) return null;
-
                 const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
-                
                 return {
-                    questionText: qInfo ? qInfo.questionText : "This question was deleted from the bank.",
+                    questionText: qInfo ? qInfo.questionText : "Question data deleted",
                     options: qInfo ? qInfo.options : ["N/A", "N/A", "N/A", "N/A"],
                     correctAnswer: qInfo ? qInfo.correctAnswerIndex : 0,
                     userAnswer: attempt.userAnswer ?? null
                 };
-            }).filter(item => item !== null); // Remove any failed mappings
+            });
 
             return res.json({ ...result._doc, mcqReviewData });
         }
 
-        // Standard pattern: Just return the doc
-        res.json(result);
+        // --- BRANCH B: Standard Pattern Logic (FIXED) ---
+        // Just return the document as is. Do not try to process mcqReviewData.
+        return res.json(result);
 
     } catch (error) {
-        // This log will appear in your Render "Logs" tab - check it if the error persists!
-        console.error("CRITICAL ERROR IN RESULTS API:", error);
-        res.status(500).json({ 
-            message: "Internal server error: " + error.message,
-            success: false 
+        console.error("CRITICAL API ERROR:", error);
+        res.status(500).json({ message: "Internal server error: " + error.message });
+    }
+});
+
+app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) => {
+    try {
+        const currentResult = await TestResult.findOne({ 
+            sessionId: req.params.sessionId, 
+            user: req.userId 
         });
+
+        if (!currentResult) {
+            return res.status(404).json({ message: "Result not found" });
+        }
+
+        const pattern = currentResult.testPattern || 'standard';
+        const currentScore = currentResult.totalScore;
+
+        // 1. Count how many people took the SAME pattern
+        const totalParticipants = await TestResult.countDocuments({ 
+            testPattern: pattern,
+            status: 'completed' 
+        });
+
+        // 2. Count how many scored LESS than or EQUAL to the current user
+        const scoredLower = await TestResult.countDocuments({
+            testPattern: pattern,
+            status: 'completed',
+            totalScore: { $lte: currentScore }
+        });
+
+        // 3. Calculate Percentile
+        const percentile = totalParticipants > 0 
+            ? ((scoredLower / totalParticipants) * 100).toFixed(1) 
+            : 100;
+
+        res.json({
+            percentile: parseFloat(percentile),
+            totalParticipants,
+            rank: totalParticipants - scoredLower + 1
+        });
+
+    } catch (error) {
+        console.error("Percentile Error:", error);
+        res.status(500).json({ message: "Error calculating performance metrics" });
     }
 });
 
