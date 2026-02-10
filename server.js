@@ -575,14 +575,18 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
             const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
             const mcqReviewData = details.map(attempt => {
+                // Safety check for empty or missing attempts
+                if (!attempt || !attempt.questionId) return null;
+
                 const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
+                
                 return {
-                    questionText: qInfo ? qInfo.questionText : "Question data deleted",
+                    questionText: qInfo ? qInfo.questionText : "This question was removed from the bank.",
                     options: qInfo ? qInfo.options : ["N/A", "N/A", "N/A", "N/A"],
                     correctAnswer: qInfo ? qInfo.correctAnswerIndex : 0,
                     userAnswer: attempt.userAnswer ?? null
                 };
-            });
+            }).filter(Boolean); // Removes null entries if they occurred
 
             return res.json({ ...result._doc, mcqReviewData });
         }

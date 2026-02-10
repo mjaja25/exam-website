@@ -34,6 +34,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         mcqData = data.mcqReviewData || [];
         renderMcq();
 
+        // ATTACH THESE LISTENERS:
+        const nextBtn = document.getElementById('next-mcq');
+        const prevBtn = document.getElementById('prev-mcq');
+
+        if (nextBtn) {
+            nextBtn.onclick = () => {
+                if (currentIdx < mcqData.length - 1) {
+                    currentIdx++;
+                    renderMcq();
+                }
+            };
+        }
+
+        if (prevBtn) {
+            prevBtn.onclick = () => {
+                if (currentIdx > 0) {
+                    currentIdx--;
+                    renderMcq();
+                }
+            };
+        }
+
     } catch (err) {
         console.error("FRONTEND RENDER ERROR:", err);
         document.body.innerHTML = `<div style="text-align:center; padding:50px;">
