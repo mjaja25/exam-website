@@ -572,21 +572,19 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
         if (result.testPattern === 'new_pattern') {
             const details = Array.isArray(result.mcqDetails) ? result.mcqDetails : [];
             const qIds = details.map(d => d.questionId).filter(id => id);
+            
+            // Fetch questions from the bank
             const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
             const mcqReviewData = details.map(attempt => {
-                // Safety check for empty or missing attempts
-                if (!attempt || !attempt.questionId) return null;
-
                 const qInfo = questions.find(q => q._id.toString() === attempt.questionId.toString());
-                
                 return {
-                    questionText: qInfo ? qInfo.questionText : "This question was removed from the bank.",
+                    questionText: qInfo ? qInfo.questionText : "This question was deleted.",
                     options: qInfo ? qInfo.options : ["N/A", "N/A", "N/A", "N/A"],
                     correctAnswer: qInfo ? qInfo.correctAnswerIndex : 0,
                     userAnswer: attempt.userAnswer ?? null
                 };
-            }).filter(Boolean); // Removes null entries if they occurred
+            });
 
             return res.json({ ...result._doc, mcqReviewData });
         }

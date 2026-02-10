@@ -1523,7 +1523,6 @@ body.test-page {
 }
 
 .test-block .feedback {
-    background: #ffffff; /* Change from f9f9f9 to white for better contrast */
     border: 1px solid var(--border-color); /* Add a subtle full border */
     border-left: 5px solid var(--primary-yellow); 
     padding: 15px; 

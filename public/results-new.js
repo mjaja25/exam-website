@@ -3,7 +3,7 @@ let currentIdx = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('sessionId');
+    const sessionId = urlParams.get('sessionId') || localStorage.getItem('currentSessionId');
     const token = localStorage.getItem('token');
 
     if (!sessionId) {
@@ -34,27 +34,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         mcqData = data.mcqReviewData || [];
         renderMcq();
 
-        // ATTACH THESE LISTENERS:
-        const nextBtn = document.getElementById('next-mcq');
-        const prevBtn = document.getElementById('prev-mcq');
-
-        if (nextBtn) {
-            nextBtn.onclick = () => {
-                if (currentIdx < mcqData.length - 1) {
-                    currentIdx++;
-                    renderMcq();
-                }
-            };
-        }
-
-        if (prevBtn) {
-            prevBtn.onclick = () => {
-                if (currentIdx > 0) {
-                    currentIdx--;
-                    renderMcq();
-                }
-            };
-        }
+        // 4. FIX: Attach Button Listeners (This was likely missing)
+        document.getElementById('next-mcq').onclick = () => {
+            if (currentIdx < mcqData.length - 1) {
+                currentIdx++;
+                renderMcq();
+            }
+        };
+        document.getElementById('prev-mcq').onclick = () => {
+            if (currentIdx > 0) {
+                currentIdx--;
+                renderMcq();
+            }
+        };
 
     } catch (err) {
         console.error("FRONTEND RENDER ERROR:", err);
