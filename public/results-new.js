@@ -3,11 +3,12 @@ let currentIdx = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
+    // 1. Priority: URL Parameter, Fallback: LocalStorage
     const sessionId = urlParams.get('sessionId') || localStorage.getItem('currentSessionId');
     const token = localStorage.getItem('token');
 
     if (!sessionId) {
-        alert("No session found. Returning to dashboard.");
+        alert("Session not found. Redirecting to dashboard.");
         window.location.href = "/dashboard.html";
         return;
     }
@@ -17,20 +18,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.message || "Failed to load results");
-        }
-
         const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Fetch failed");
 
-        // Update UI
+        // 2. Render Scoreboard
         document.getElementById('total-score-display').innerText = Math.round(data.totalScore || 0);
         document.getElementById('score-breakdown').innerHTML = `
             <div class="mini-card"><strong>Typing</strong><p>${Math.round(data.typingScore || 0)}/30</p></div>
             <div class="mini-card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore || 0)}/20</p></div>
         `;
 
+        // 3. Setup MCQ Data
         mcqData = data.mcqReviewData || [];
         renderMcq();
 
@@ -49,12 +47,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
     } catch (err) {
-        console.error("FRONTEND RENDER ERROR:", err);
-        document.body.innerHTML = `<div style="text-align:center; padding:50px;">
-            <h2>Oops! Result Loading Failed</h2>
-            <p>${err.message}</p>
-            <button onclick="window.location.href='/dashboard.html'">Back to Dashboard</button>
-        </div>`;
+        console.error("RENDER ERROR:", err);
+        document.getElementById('mcq-viewer-content').innerHTML = `<p class="error">Failed to load: ${err.message}</p>`;
     }
 });
 
