@@ -26,13 +26,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const degrees = (total / 50) * 360;
         circle.style.background = `conic-gradient(#fbbf24 ${degrees}deg, #eee ${degrees}deg)`;
 
-        // 2. Render Component Cards
-        document.getElementById('score-breakdown').innerHTML = `
-            <div class="mini-card"><strong>Typing</strong><p>${Math.round(data.typingScore || 0)}/30</p></div>
-            <div class="mini-card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore || 0)}/20</p></div>
-        `;
+        // 2. Render Breakdown Cards
+        const breakdown = document.getElementById('score-breakdown');
+        if (breakdown) {
+            breakdown.innerHTML = `
+                <div class="mini-card"><strong>Typing</strong><p>${Math.round(data.typingScore || 0)}/30</p></div>
+                <div class="mini-card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore || 0)}/20</p></div>
+            `;
+        }
 
-        // 3. Score Visualization (Chart.js)
+        // 3. Render Visualization (Bar Chart)
         new Chart(document.getElementById('scoreChart'), {
             type: 'bar',
             data: {
@@ -51,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // 4. Fetch Percentile Rank
+        // 4. Fetch Pattern-Specific Percentile
         const percRes = await fetch(`/api/results/percentile/${sessionId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -78,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (err) {
         console.error("RENDER ERROR:", err);
-        document.getElementById('mcq-viewer-content').innerHTML = `<p class="error">Failed to load results.</p>`;
+        document.getElementById('mcq-viewer-content').innerHTML = `<p class="error">Loading Failed: ${err.message}</p>`;
     }
 });
 
@@ -86,7 +89,7 @@ function renderMcq() {
     const q = mcqData[currentIdx];
     const viewer = document.getElementById('mcq-viewer-content');
     const counter = document.getElementById('mcq-counter');
-    if (!q) return;
+    if (!q || !viewer) return;
 
     const isCorrect = q.userAnswer === q.correctAnswer;
 
@@ -104,5 +107,5 @@ function renderMcq() {
             }).join('')}
         </div>
     `;
-    counter.innerText = `Question ${currentIdx + 1} of ${mcqData.length}`;
+    if (counter) counter.innerText = `Question ${currentIdx + 1} of ${mcqData.length}`;
 }
