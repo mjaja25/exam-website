@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     
+    // block ctrl
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            alert("Shortcuts (Ctrl key) are disabled for this test.");
+        }
+    });
+
     // --- Main Functions ---
     async function loadRandomQuestion() {
         try {
@@ -51,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         testInProgress = true;
         
         const startTime = new Date().getTime();
-        const totalDuration = 300 * 1000; // 5 minutes in milliseconds
+        const totalDuration = 180 * 1000; // 5 minutes in milliseconds
 
         timerInterval = setInterval(() => {
             const timeElapsed = new Date().getTime() - startTime;
@@ -133,6 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof timerInterval !== 'undefined') clearInterval(timerInterval);
         userInputElement.contentEditable = false;
         submitBtn.disabled = true;
+
+        // submission css overlay
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if(loadingOverlay) loadingOverlay.style.display = 'flex';
 
         // 2. Data Preparation
         // innerHTML is crucial here to capture the <span> indent from Step 1

@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let detailsHtml = `
             <div class="test-block">
                 <h3>⌨ Typing Test <span class="score">${typingScore} / ${pattern === 'new_pattern' ? 30 : 20}</span></h3>
-                <div class="feedback">WPM: <strong>${data.typingWpm || 0}</strong>, Accuracy: <strong>${data.typingAccuracy || 0}%</strong></div>
+                <div class="feedback">WPM: <strong>${data.wpm || 0}</strong>, Accuracy: <strong>${data.accuracy || 0}%</strong></div>
             </div>
         `;
 

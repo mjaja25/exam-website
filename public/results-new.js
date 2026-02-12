@@ -61,6 +61,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        // wpm and accuracy
+        document.getElementById('score-breakdown').innerHTML = `
+            <div class="mini-card">
+                <strong>Typing</strong>
+                <p>${Math.round(data.typingScore || 0)}/30</p>
+                <small style="display:block; font-size:0.8em; color:#666;">
+                    ${data.wpm || 0} WPM | ${data.accuracy || 0}% Acc
+                </small>
+            </div>
+            <div class="mini-card">
+                <strong>Excel MCQ</strong>
+                <p>${Math.round(data.mcqScore || 0)}/20</p>
+            </div>
+        `;
+
         // 4. Fetch Pattern-Specific Percentile
         const percRes = await fetch(`/api/results/percentile/${sessionId}`, {
             headers: { 'Authorization': `Bearer ${token}` }

@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         testInProgress = true;
         
         const startTime = new Date().getTime();
-        const totalDuration = 300 * 1000; // 5 minutes in milliseconds
+        const totalDuration = 420 * 1000; // 5 minutes in milliseconds
 
         timerInterval = setInterval(() => {
             const timeElapsed = new Date().getTime() - startTime;
