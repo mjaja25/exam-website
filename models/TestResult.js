@@ -20,6 +20,7 @@ const testResultSchema = new mongoose.Schema({
         enum: ['in-progress', 'completed'], 
         default: 'in-progress' 
     },
+    submittedAt: { type: Date, default: Date.now },
 
     // ⌨ Stage 1: Typing Fields
     wpm: { type: Number },
@@ -32,19 +33,23 @@ const testResultSchema = new mongoose.Schema({
     letterFeedback: String,
 
     // 📊 Stage 3: Excel/MCQ Fields
-    // (MCQ for New Pattern | Excel for Standard)
     mcqScore: { type: Number, default: 0 }, 
+    
+    // >>> THIS WAS MISSING <<<
+    mcqDetails: [
+        {
+            questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'MCQQuestion' },
+            userAnswer: { type: Number } // The index (0-3) of the option selected
+        }
+    ],
+    // >>> END OF FIX <<<
+
     excelScore: { type: Number, default: 0 },
     excelFilePath: String, // Path for Cloudinary uploads
     excelFeedback: String,
-
-    // 🏆 Final Aggregate
-    totalScore: { type: Number, index: true, default: 0 },
     
-    submittedAt: { type: Date, default: Date.now }
+    // 🏆 Final Score
+    totalScore: { type: Number, default: 0, index: true }
 });
-
-// Compound Index: Helps finding a user's specific session quickly
-testResultSchema.index({ user: 1, sessionId: 1 });
 
 module.exports = mongoose.model('TestResult', testResultSchema);
