@@ -40,6 +40,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
 
+        // >>> ADD THIS CELEBRATION LOGIC HERE <<<
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); // Instant Pop
+            
+            // Check Leaderboard for Fireworks
+            fetch('/api/leaderboard/all', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(lb => {
+                const leaders = lb['new_overall'] || [];
+                const total = Math.round(data.totalScore || 0);
+                
+                if (leaders.some(l => Math.round(l.totalScore) === total)) {
+                    // Fireworks Loop
+                    let duration = 3000;
+                    let end = Date.now() + duration;
+                    (function frame() {
+                        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+                        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    }());
+                }
+            })
+            .catch(err => console.error("Leaderboard check failed", err));
+        }
+
         // 3. Score Visualization (Chart.js)
         const ctx = document.getElementById('scoreChart');
         if (ctx && typeof Chart !== 'undefined') {

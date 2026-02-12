@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     const currentPattern = localStorage.getItem('currentExamPattern'); // 'standard' or 'new_pattern'
     const attemptMode = localStorage.getItem('currentAttemptMode'); // 'exam' or 'practice'
+
+    // Default HTML is usually 05:00. We only change it if New Pattern is detected.
+    if (timerElement && currentPattern === 'new_pattern') {
+        timerElement.innerText = "10:00";
+    }
     
     let timerInterval;
     let testInProgress = false;
