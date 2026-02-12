@@ -18,13 +18,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message);
 
+        console.log("Full Result Data Received:", data); // Troubleshooting log
+
         // 1. Render Score and Progress Circle
         const total = Math.round(data.totalScore || 0);
-        document.getElementById('total-score-display').innerText = total;
+        const scoreDisplay = document.getElementById('total-score-display');
+        if (scoreDisplay) scoreDisplay.innerText = total;
         
         const circle = document.getElementById('total-score-circle');
-        const degrees = (total / 50) * 360;
-        circle.style.background = `conic-gradient(#fbbf24 ${degrees}deg, #eee ${degrees}deg)`;
+        if (circle) {
+            const degrees = (total / 50) * 360;
+            circle.style.background = `conic-gradient(#fbbf24 ${degrees}deg, #eee ${degrees}deg)`;
+        }
 
         // 2. Render Breakdown Cards
         const breakdown = document.getElementById('score-breakdown');
@@ -35,53 +40,65 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
 
-        // 3. Render Visualization (Bar Chart)
-        new Chart(document.getElementById('scoreChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Typing', 'Excel MCQ'],
-                datasets: [{
-                    label: 'Score',
-                    data: [data.typingScore, data.mcqScore],
-                    backgroundColor: ['#fbbf24', '#3b82f6'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                scales: { x: { max: 30, beginAtZero: true } },
-                plugins: { legend: { display: false } }
-            }
-        });
+        // 3. Score Visualization (Chart.js)
+        const ctx = document.getElementById('scoreChart');
+        if (ctx && typeof Chart !== 'undefined') {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Typing', 'Excel MCQ'],
+                    datasets: [{
+                        data: [data.typingScore || 0, data.mcqScore || 0],
+                        backgroundColor: ['#fbbf24', '#3b82f6'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: { x: { max: 30, beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
 
         // 4. Fetch Pattern-Specific Percentile
         const percRes = await fetch(`/api/results/percentile/${sessionId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const percData = await percRes.json();
-        document.getElementById('percentile-rank').innerText = `${percData.percentile}%`;
+        const rankEl = document.getElementById('percentile-rank');
+        if (rankEl) rankEl.innerText = `${percData.percentile || 0}%`;
 
         // 5. Initialize MCQ Review
         mcqData = data.mcqReviewData || [];
+        console.log("MCQ Data count:", mcqData.length);
         renderMcq();
 
-        // 6. Navigation Button Listeners
-        document.getElementById('next-mcq').onclick = () => {
-            if (currentIdx < mcqData.length - 1) {
-                currentIdx++;
-                renderMcq();
-            }
-        };
-        document.getElementById('prev-mcq').onclick = () => {
-            if (currentIdx > 0) {
-                currentIdx--;
-                renderMcq();
-            }
-        };
+        // 6. Navigation Buttons
+        const nextBtn = document.getElementById('next-mcq');
+        const prevBtn = document.getElementById('prev-mcq');
+
+        if (nextBtn) {
+            nextBtn.onclick = () => {
+                if (currentIdx < mcqData.length - 1) {
+                    currentIdx++;
+                    renderMcq();
+                }
+            };
+        }
+        if (prevBtn) {
+            prevBtn.onclick = () => {
+                if (currentIdx > 0) {
+                    currentIdx--;
+                    renderMcq();
+                }
+            };
+        }
 
     } catch (err) {
         console.error("RENDER ERROR:", err);
-        document.getElementById('mcq-viewer-content').innerHTML = `<p class="error">Loading Failed: ${err.message}</p>`;
+        const viewer = document.getElementById('mcq-viewer-content');
+        if (viewer) viewer.innerHTML = `<p class="error">Failed to load: ${err.message}</p>`;
     }
 });
 
