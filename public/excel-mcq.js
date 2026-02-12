@@ -66,6 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (nextBtn) {
             nextBtn.innerText = currentIdx === 9 ? 'Finish Exam' : 'Next Question';
         }
+        // ADD THIS LINE AT THE END:
+        updateButtons();
     }
 
     // 3. Global selection handler (attached to window for onclick)
@@ -75,21 +77,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // 4. Navigation
-    nextBtn.onclick = () => {
-        if (currentIdx < questions.length - 1) {
-            currentIdx++;
-            renderQuestion();
-        } else {
-            submitExam();
+    nextBtn.addEventListener('click', () => {
+        // A. If we are on the LAST question, this button acts as "Submit"
+        if (currentIdx === questions.length - 1) {
+            const hasAnswered = userAnswers[questions[currentIdx]._id] !== undefined;
+            if (!hasAnswered) {
+                alert("Please select an answer before submitting.");
+                return;
+            }
+            // >>> THIS CALLS THE API <<<
+            submitExam(); 
+            return; 
         }
-    };
 
-    prevBtn.onclick = () => {
+        // B. Otherwise, it just goes to the next question
+        currentIdx++;
+        renderQuestion();
+    });
+
+    prevBtn.addEventListener('click', () => {
         if (currentIdx > 0) {
             currentIdx--;
             renderQuestion();
         }
-    };
+    });
+
+    function updateButtons() {
+        // Disable Previous on first slide
+        prevBtn.disabled = (currentIdx === 0);
+        
+        // Change Next to "Finish" on last slide
+        if (currentIdx === questions.length - 1) {
+            nextBtn.innerText = "Finish & Submit";
+            nextBtn.style.backgroundColor = "#16a34a"; // Green color
+        } else {
+            nextBtn.innerText = "Next";
+            nextBtn.style.backgroundColor = ""; // Reset color
+        }
+    }
 
     // 5. Timer Logic
     function startTimer() {
