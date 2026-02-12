@@ -24,13 +24,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE_URL}/api/results/${sessionId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const results = await response.json();
-            if (!response.ok) throw new Error(results.message);
             
-            await displayResults(results);
+            // Check if response is okay
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || "Failed to fetch results");
+            }
+
+            const data = await response.json();
+            
+            // Process results as a single object
+            await displayResults(data);
+            
+            // Call the restored percentile route
             fetchPercentile(sessionId);
 
         } catch (error) {
+            console.error("Result Fetch Error:", error);
             if(detailsContainer) detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
@@ -114,45 +124,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function displayResults(data) {
-        // 1. Identify the Pattern (data is a single object now)
+        // Identify the Pattern from the single object
         const pattern = data.testPattern || 'standard';
         
-        // 2. Map Results directly from the new unified fields
+        // Use direct field names from your TestResult model
         const typingScore = Math.round(data.typingScore || 0);
         const letterScore = Math.round(data.letterScore || 0);
         const excelScore  = Math.round(data.excelScore || 0);
-        const totalScore  = Math.round(data.totalScore || 0);
+        const totalScore  = Math.round(data.totalScore || (typingScore + letterScore + excelScore));
 
-        // Update Title & Progress Circle
-        scoreValueElement.textContent = totalScore;
-        if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; } 
-        else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; } 
-        else { resultsTitle.textContent = 'Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
+        // Update Overall Score Display
+        if (scoreValueElement) scoreValueElement.textContent = totalScore;
         
-        const scoreDegrees = (totalScore / 50) * 360;
-        totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
+        if (resultsTitle) {
+            if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; } 
+            else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; } 
+            else { resultsTitle.textContent = 'Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
+        }
+        
+        if (totalScoreCircle) {
+            const scoreDegrees = (totalScore / 50) * 360;
+            totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
+        }
 
-        // 3. Render Chart
+        // --- CHART SCALING (Adjusted for Pattern) ---
         const labels = pattern === 'new_pattern' ? ['Typing', 'Excel MCQ'] : ['Typing', 'Letter', 'Excel'];
-        const chartScores = pattern === 'new_pattern' 
+        const chartData = pattern === 'new_pattern' 
             ? [(data.typingScore / 30) * 100, (data.mcqScore / 20) * 100]
             : [(data.typingScore / 20) * 100, (data.letterScore / 10) * 100, (data.excelScore / 20) * 100];
 
-        new Chart(document.getElementById('skills-chart-canvas'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Percentage',
-                    data: chartScores,
-                    backgroundColor: 'rgba(245, 158, 11, 0.7)',
-                    borderRadius: 5
-                }]
-            },
-            options: { indexAxis: 'y', scales: { x: { max: 100 } } }
-        });
+        if (chartCanvas) {
+            new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: chartData,
+                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    indexAxis: 'y', 
+                    responsive: true, 
+                    scales: { x: { max: 100, ticks: { callback: v => v + '%' } } } 
+                }
+            });
+        }
 
-        // 4. Update Detailed Breakdown HTML
+        // --- DETAILED REPORT (Unified Logic) ---
         let detailsHtml = `
             <div class="test-block">
                 <h3>⌨ Typing Test <span class="score">${typingScore} / ${pattern === 'new_pattern' ? 30 : 20}</span></h3>
@@ -162,16 +185,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (pattern === 'standard') {
             detailsHtml += `
-                <div class="test-block"><h3>✉ Letter Test <span class="score">${letterScore} / 10</span></h3><div class="feedback">${formatLetterFeedback(data.letterFeedback)}</div></div>
-                <div class="test-block"><h3>📊 Excel Practical <span class="score">${excelScore} / 20</span></h3><div class="feedback">${formatExcelFeedback(data.excelFeedback)}</div></div>
+                <div class="test-block">
+                    <h3>✉ Letter Test <span class="score">${letterScore} / 10</span></h3>
+                    <div class="feedback">${formatLetterFeedback(data.letterFeedback)}</div>
+                </div>
+                <div class="test-block">
+                    <h3>📊 Excel Practical <span class="score">${excelScore} / 20</span></h3>
+                    <div class="feedback">${formatExcelFeedback(data.excelFeedback)}</div>
+                </div>
             `;
         } else {
             detailsHtml += `
-                <div class="test-block"><h3>📊 Excel MCQ <span class="score">${Math.round(data.mcqScore || 0)} / 20</span></h3><p>View the "results-new" page for detailed MCQ breakdown.</p></div>
+                <div class="test-block">
+                    <h3>📊 Excel MCQ Review</h3>
+                    <p>Detailed MCQ analysis is available on the specialized review page.</p>
+                </div>
             `;
         }
 
-        detailsContainer.innerHTML = detailsHtml;
+        if (detailsContainer) detailsContainer.innerHTML = detailsHtml;
+
+        // Trigger Podium Comparison
         renderComparison(totalScore, pattern);
     }
 

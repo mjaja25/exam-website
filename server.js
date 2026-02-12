@@ -606,40 +606,39 @@ app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) =
             user: req.userId 
         });
 
-        if (!currentResult) {
-            return res.status(404).json({ message: "Result not found" });
-        }
+        if (!currentResult) return res.status(404).json({ message: "Result not found" });
 
+        // 1. Determine the pattern pool (Standard vs New)
         const pattern = currentResult.testPattern || 'standard';
-        const currentScore = currentResult.totalScore;
+        const currentScore = currentResult.totalScore || 0;
 
-        // 1. Count how many people took the SAME pattern
-        const totalParticipants = await TestResult.countDocuments({ 
+        // 2. Count ONLY participants who took the same exam pattern
+        const totalInPool = await TestResult.countDocuments({ 
             testPattern: pattern,
             status: 'completed' 
         });
 
-        // 2. Count how many scored LESS than or EQUAL to the current user
+        // 3. Count how many scored less than or equal to this user in that pool
         const scoredLower = await TestResult.countDocuments({
             testPattern: pattern,
             status: 'completed',
             totalScore: { $lte: currentScore }
         });
 
-        // 3. Calculate Percentile
-        const percentile = totalParticipants > 0 
-            ? ((scoredLower / totalParticipants) * 100).toFixed(1) 
+        // 4. Calculate Percentile
+        const percentile = totalInPool > 0 
+            ? ((scoredLower / totalInPool) * 100).toFixed(1) 
             : 100;
 
         res.json({
             percentile: parseFloat(percentile),
-            totalParticipants,
-            rank: totalParticipants - scoredLower + 1
+            totalParticipants: totalInPool,
+            patternPool: pattern === 'new_pattern' ? "10+5 MCQ Pattern" : "Standard Pattern"
         });
 
     } catch (error) {
         console.error("Percentile Error:", error);
-        res.status(500).json({ message: "Error calculating performance metrics" });
+        res.status(500).json({ message: "Error calculating percentile" });
     }
 });
 

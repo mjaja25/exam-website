@@ -20,12 +20,18 @@
                 <h2>Overall Score</h2>
                 <div class="card-body">
                     <div class="score-circle" id="total-score-circle">
-                        <span><span id="score-value">0</span> / 50</span>
+                        <span><span id="total-score-display">0</span> / 50</span>
                     </div>
                     <p>You performed better than <strong id="percentile-rank">0%</strong> of test-takers.</p>
                 </div>
             </div>
-        
+
+            <div class="card scoreboard-card">
+                <h2>Score Breakdown</h2>
+                <div class="score-grid" id="score-breakdown">
+                    </div>
+            </div>
+
             <div class="card chart-card">
                 <h2>Score Visualization</h2>
                 <canvas id="scoreChart"></canvas>

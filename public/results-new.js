@@ -21,18 +21,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Fetch failed");
 
-        // 2. Render Scoreboard
-        document.getElementById('total-score-display').innerText = Math.round(data.totalScore || 0);
+        // 1. Render Total Score and Progress Circle
+        const totalScore = Math.round(data.totalScore || 0);
+        document.getElementById('total-score-display').innerText = totalScore;
+        
+        const circle = document.getElementById('total-score-circle');
+        const degrees = (totalScore / 50) * 360;
+        circle.style.background = `conic-gradient(#fbbf24 ${degrees}deg, #eee ${degrees}deg)`;
+
+        // 2. Render Breakdown Cards
         document.getElementById('score-breakdown').innerHTML = `
             <div class="mini-card"><strong>Typing</strong><p>${Math.round(data.typingScore || 0)}/30</p></div>
             <div class="mini-card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore || 0)}/20</p></div>
         `;
 
-        // 3. Setup MCQ Data
+        // 3. Fetch Percentile (The ranking logic)
+        // FETCH SEPARATE PERCENTILE
+        const percRes = await fetch(`/api/results/percentile/${sessionId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const percData = await percRes.json();
+
+        const rankEl = document.getElementById('percentile-rank');
+        if (rankEl) {
+            rankEl.innerText = `${percData.percentile}%`;
+        }
+
+        // 4. Setup MCQ Data
         mcqData = data.mcqReviewData || [];
         renderMcq();
 
-        // 4. FIX: Attach Button Listeners (This was likely missing)
+        // 5. FIX: Attach Button Listeners (This was likely missing)
         document.getElementById('next-mcq').onclick = () => {
             if (currentIdx < mcqData.length - 1) {
                 currentIdx++;
