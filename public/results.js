@@ -12,7 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailsContainer = document.getElementById('test-details-container');
     
     const token = localStorage.getItem('token');
-    const sessionId = localStorage.getItem('currentSessionId');
+
+    // >>> FIX STARTS HERE <<<
+    const urlParams = new URLSearchParams(window.location.search);
+    // Priority 1: Get ID from URL (History View). Priority 2: Get from Storage (Fresh Finish)
+    const sessionId = urlParams.get('sessionId') || localStorage.getItem('currentSessionId');
+    // >>> FIX ENDS HERE <<<
 
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
@@ -44,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if(detailsContainer) detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
+    
+    // ... rest of your file (displayResults, fetchPercentile, etc.) ...
 
     // Generate PDF
     async function generatePDF() {
