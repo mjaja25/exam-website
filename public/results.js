@@ -274,35 +274,35 @@ document.addEventListener('DOMContentLoaded', () => {
         return html + '</div>';
     }
 
-    // async function triggerCelebration(score) {
-    //     // 1. Pop confetti immediately on load
-    //     if (typeof confetti === 'function') {
-    //         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    //     }
+    async function triggerCelebration(score) {
+        // 1. Pop confetti immediately on load
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
 
-    //     // 2. Check Leaderboard for Fireworks
-    //     try {
-    //         const res = await fetch('/api/leaderboard/all', {
-    //             headers: { 'Authorization': `Bearer ${token}` }
-    //         });
-    //         const lb = await res.json();
-    //         const leaders = lb['std_overall'] || [];
+        // 2. Check Leaderboard for Fireworks
+        try {
+            const res = await fetch('/api/leaderboard/all', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const lb = await res.json();
+            const leaders = lb['std_overall'] || [];
             
-    //         // Check if user's score matches any of the top scores
-    //         const isTopScorer = leaders.some(l => Math.round(l.totalScore) === Math.round(score));
+            // Check if user's score matches any of the top scores
+            const isTopScorer = leaders.some(l => Math.round(l.totalScore) === Math.round(score));
 
-    //         if (isTopScorer && typeof confetti === 'function') {
-    //             // Fireworks Effect
-    //             let duration = 3000;
-    //             let end = Date.now() + duration;
-    //             (function frame() {
-    //                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-    //                 confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-    //                 if (Date.now() < end) requestAnimationFrame(frame);
-    //             }());
-    //         }
-    //     } catch (e) { console.error("Celebration Error:", e); }
-    // }
+            if (isTopScorer && typeof confetti === 'function') {
+                // Fireworks Effect
+                let duration = 3000;
+                let end = Date.now() + duration;
+                (function frame() {
+                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            }
+        } catch (e) { console.error("Celebration Error:", e); }
+    }
 
 
     async function fetchPercentile(sessionId) {
