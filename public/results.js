@@ -185,16 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (err) { console.error("Chart Error:", err); }
-
-
-        // --- CONDITIONAL CONFETTI ---
-        // Only celebrate if the user JUST finished (ID comes from Storage, not URL)
-        const urlParams = new URLSearchParams(window.location.search);
-        const isHistoryView = urlParams.has('sessionId'); 
-
-        if (!isHistoryView) {
-            triggerCelebration(data.totalScore);
-        }
         
         // --- DETAILED REPORT (Unified Logic) ---
         let detailsHtml = `
@@ -229,7 +219,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Trigger Podium Comparison
         renderComparison(totalScore, pattern);
 
-        triggerCelebration(totalScore);
+        // --- CONDITIONAL CONFETTI (FIXED) ---
+        // Check if the URL has a sessionId (Meaning the user clicked "View" from Dashboard history)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isHistoryView = urlParams.has('sessionId'); 
+
+        // ONLY trigger celebration if it's a fresh test
+        if (!isHistoryView) {
+            triggerCelebration(totalScore);
+        }
     }
 
     

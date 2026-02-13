@@ -432,7 +432,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
 
         // Generate explanations for system checks
         const typographyExplanation = typographyScore === 2 
-            ? "Correct font (Times New Roman) and size (12pt/4) used." 
+            ? "Correct font (Times New Roman) and size (12pt) used." 
             : "Issues detected with font family or size settings.";
 
         const subjectExplanation = subjectScore === 2 
