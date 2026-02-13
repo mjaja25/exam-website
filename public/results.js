@@ -154,34 +154,77 @@ document.addEventListener('DOMContentLoaded', () => {
             totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
         }
 
-        // --- CHART SCALING (Adjusted for Pattern) ---
-        const labels = pattern === 'new_pattern' ? ['Typing', 'Excel MCQ'] : ['Typing', 'Letter', 'Excel'];
-        const chartData = pattern === 'new_pattern' 
-            ? [(data.typingScore / 30) * 100, (data.mcqScore / 20) * 100]
-            : [(data.typingScore / 20) * 100, (data.letterScore / 10) * 100, (data.excelScore / 20) * 100];
-
-        if (chartCanvas) {
-            new Chart(chartCanvas, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Success Rate (%)',
-                        data: chartData,
-                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
-                        borderColor: 'rgba(245, 158, 11, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: { 
-                    indexAxis: 'y', 
-                    responsive: true, 
-                    scales: { x: { max: 100, ticks: { callback: v => v + '%' } } } 
-                }
+        // CHART ------------
+        try {
+            // 1. Fetch Global Stats
+            const statsRes = await fetch(`${API_BASE_URL}/api/stats/global`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-        }
+            const stats = await statsRes.json();
 
+            // 2. Prepare Data (Standard Pattern: Typing, Letter, Excel)
+            const labels = ['Typing', 'Letter', 'Excel'];
+            
+            // User's Scores
+            const userScores = [
+                data.typingScore || 0, 
+                data.letterScore || 0, 
+                data.excelScore || 0
+            ];
+
+            // Average Scores
+            const avgScores = [
+                Math.round(stats.avgTyping || 0), 
+                Math.round(stats.avgLetter || 0), 
+                Math.round(stats.avgExcel || 0)
+            ];
+
+            // Top Scores
+            const topScores = [
+                stats.maxTyping || 0, 
+                stats.maxLetter || 0, 
+                stats.maxExcel || 0
+            ];
+
+            // 3. Render Chart
+            const chartCanvas = document.getElementById('skills-chart-canvas');
+            if (chartCanvas) {
+                new Chart(chartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'You',
+                                data: userScores,
+                                backgroundColor: '#fbbf24', // Yellow
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Average',
+                                data: avgScores,
+                                backgroundColor: '#9ca3af', // Gray
+                                borderRadius: 4,
+                                hidden: true // Hidden by default to avoid clutter
+                            },
+                            {
+                                label: 'Top Scorer',
+                                data: topScores,
+                                backgroundColor: '#10b981', // Green
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: { 
+                        indexAxis: 'y', 
+                        responsive: true,
+                        scales: { x: { beginAtZero: true } } 
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Chart Error:", err);
+        }
         // --- DETAILED REPORT (Unified Logic) ---
         let detailsHtml = `
             <div class="test-block">

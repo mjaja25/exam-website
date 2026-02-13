@@ -768,6 +768,41 @@ app.get('/api/leaderboard/all', async (req, res) => {
     }
 });
 
+// --- server.js ---
+app.get('/api/stats/global', authMiddleware, async (req, res) => {
+    try {
+        // Calculate stats across ALL completed tests
+        const stats = await TestResult.aggregate([
+            { $match: { status: 'completed' } },
+            {
+                $group: {
+                    _id: null,
+                    // Averages
+                    avgTyping: { $avg: "$typingScore" },
+                    avgLetter: { $avg: "$letterScore" },
+                    avgExcel: { $avg: "$excelScore" },
+                    avgMCQ:    { $avg: "$mcqScore" },
+                    // High Scores
+                    maxTyping: { $max: "$typingScore" },
+                    maxLetter: { $max: "$letterScore" },
+                    maxExcel: { $max: "$excelScore" },
+                    maxMCQ:    { $max: "$mcqScore" }
+                }
+            }
+        ]);
+
+        // If no tests exist yet, return 0s
+        res.json(stats[0] || { 
+            avgTyping: 0, avgLetter: 0, avgExcel: 0, avgMCQ: 0,
+            maxTyping: 0, maxLetter: 0, maxExcel: 0, maxMCQ: 0
+        });
+
+    } catch (error) {
+        console.error("Stats Error:", error);
+        res.status(500).json({ message: "Failed to fetch stats" });
+    }
+});
+
 
 // --- Admin-Only Routes ---
 app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) => {

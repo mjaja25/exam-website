@@ -66,25 +66,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 3. Score Visualization (Chart.js)
+        
+        // --- NEW CHART LOGIC STARTS HERE ---
+        // 1. Fetch Global Stats
+        const statsRes = await fetch(`/api/stats/global`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const stats = await statsRes.json();
+
+        // 2. Render Chart (New Pattern: Typing, Excel MCQ)
         const ctx = document.getElementById('scoreChart');
-        if (ctx && typeof Chart !== 'undefined') {
+        if (ctx) {
             new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Typing', 'Excel MCQ'],
-                    datasets: [{
-                        data: [data.typingScore || 0, data.mcqScore || 0],
-                        backgroundColor: ['#fbbf24', '#3b82f6'],
-                        borderRadius: 5
-                    }]
+                    datasets: [
+                        {
+                            label: 'You',
+                            data: [data.typingScore || 0, data.mcqScore || 0],
+                            backgroundColor: '#fbbf24',
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Average',
+                            data: [Math.round(stats.avgTyping || 0), Math.round(stats.avgMCQ || 0)],
+                            backgroundColor: '#9ca3af',
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Top Scorer',
+                            data: [stats.maxTyping || 0, stats.maxMCQ || 0],
+                            backgroundColor: '#10b981',
+                            borderRadius: 5
+                        }
+                    ]
                 },
                 options: {
                     indexAxis: 'y',
                     scales: { x: { max: 30, beginAtZero: true } },
-                    plugins: { legend: { display: false } }
+                    plugins: { 
+                        legend: { display: true, position: 'bottom' } // Show legend so they can see what Green/Gray means
+                    }
                 }
             });
         }
+        // --- NEW CHART LOGIC ENDS HERE ---
 
         // wpm and accuracy
         document.getElementById('score-breakdown').innerHTML = `
