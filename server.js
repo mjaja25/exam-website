@@ -771,18 +771,19 @@ app.get('/api/leaderboard/all', async (req, res) => {
 // --- server.js ---
 app.get('/api/stats/global', authMiddleware, async (req, res) => {
     try {
-        // Calculate stats across ALL completed tests
         const stats = await TestResult.aggregate([
             { $match: { status: 'completed' } },
             {
                 $group: {
-                    _id: null,
+                    _id: "$testPattern", // Group by Pattern (standard vs new_pattern)
+                    
                     // Averages
                     avgTyping: { $avg: "$typingScore" },
                     avgLetter: { $avg: "$letterScore" },
                     avgExcel: { $avg: "$excelScore" },
                     avgMCQ:    { $avg: "$mcqScore" },
-                    // High Scores
+                    
+                    // Max Scores
                     maxTyping: { $max: "$typingScore" },
                     maxLetter: { $max: "$letterScore" },
                     maxExcel: { $max: "$excelScore" },
@@ -791,11 +792,18 @@ app.get('/api/stats/global', authMiddleware, async (req, res) => {
             }
         ]);
 
-        // If no tests exist yet, return 0s
-        res.json(stats[0] || { 
-            avgTyping: 0, avgLetter: 0, avgExcel: 0, avgMCQ: 0,
-            maxTyping: 0, maxLetter: 0, maxExcel: 0, maxMCQ: 0
-        });
+        // Transform into a cleaner object for frontend
+        const result = {
+            standard: stats.find(s => s._id === 'standard') || {},
+            new_pattern: stats.find(s => s._id === 'new_pattern') || {}
+        };
+
+        // Fill defaults if missing
+        const defaultStats = { avgTyping: 0, avgLetter: 0, avgExcel: 0, avgMCQ: 0, maxTyping: 0, maxLetter: 0, maxExcel: 0, maxMCQ: 0 };
+        result.standard = { ...defaultStats, ...result.standard };
+        result.new_pattern = { ...defaultStats, ...result.new_pattern };
+
+        res.json(result);
 
     } catch (error) {
         console.error("Stats Error:", error);

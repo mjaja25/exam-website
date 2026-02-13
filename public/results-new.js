@@ -41,18 +41,88 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // >>> ADD THIS CELEBRATION LOGIC HERE <<<
-        if (typeof confetti === 'function') {
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); // Instant Pop
+        // if (typeof confetti === 'function') {
+        //     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); // Instant Pop
             
-            // Check Leaderboard for Fireworks
+        //     // Check Leaderboard for Fireworks
+        //     fetch('/api/leaderboard/all', { headers: { 'Authorization': `Bearer ${token}` } })
+        //     .then(res => res.json())
+        //     .then(lb => {
+        //         const leaders = lb['new_overall'] || [];
+        //         const total = Math.round(data.totalScore || 0);
+                
+        //         if (leaders.some(l => Math.round(l.totalScore) === total)) {
+        //             // Fireworks Loop
+        //             let duration = 3000;
+        //             let end = Date.now() + duration;
+        //             (function frame() {
+        //                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+        //                 confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+        //                 if (Date.now() < end) requestAnimationFrame(frame);
+        //             }());
+        //         }
+        //     })
+        //     .catch(err => console.error("Leaderboard check failed", err));
+        // }
+
+        // 3. Score Visualization (Chart.js)
+
+        // --- UPDATED CHART LOGIC ---
+        const statsRes = await fetch(`/api/stats/global`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const allStats = await statsRes.json();
+
+        // >>> USE ONLY NEW PATTERN STATS <<<
+        const stats = allStats.new_pattern;
+
+        const ctx = document.getElementById('scoreChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Typing', 'Excel MCQ'],
+                    datasets: [
+                        { 
+                            label: 'You', 
+                            data: [data.typingScore || 0, data.mcqScore || 0], 
+                            backgroundColor: '#fbbf24', borderRadius: 5 
+                        },
+                        { 
+                            label: 'Avg', 
+                            data: [Math.round(stats.avgTyping || 0), Math.round(stats.avgMCQ || 0)], 
+                            backgroundColor: '#9ca3af', borderRadius: 5 
+                        },
+                        { 
+                            label: 'Top', 
+                            data: [stats.maxTyping || 0, stats.maxMCQ || 0], 
+                            backgroundColor: '#10b981', borderRadius: 5 
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    // Max 30 for Typing in New Pattern
+                    scales: { x: { max: 30, beginAtZero: true } },
+                    plugins: { legend: { display: true, position: 'bottom' } }
+                }
+            });
+        }
+
+        // --- CONDITIONAL CONFETTI ---
+        const isHistoryView = urlParams.has('sessionId'); // Check URL params defined at top of file
+
+        if (!isHistoryView && typeof confetti === 'function') {
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            
+            // Fireworks Logic (Only if fresh result)
             fetch('/api/leaderboard/all', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(res => res.json())
             .then(lb => {
                 const leaders = lb['new_overall'] || [];
                 const total = Math.round(data.totalScore || 0);
-                
                 if (leaders.some(l => Math.round(l.totalScore) === total)) {
-                    // Fireworks Loop
+                    // ... Launch Fireworks ...
                     let duration = 3000;
                     let end = Date.now() + duration;
                     (function frame() {
@@ -61,57 +131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (Date.now() < end) requestAnimationFrame(frame);
                     }());
                 }
-            })
-            .catch(err => console.error("Leaderboard check failed", err));
-        }
-
-        // 3. Score Visualization (Chart.js)
-        
-        // --- NEW CHART LOGIC STARTS HERE ---
-        // 1. Fetch Global Stats
-        const statsRes = await fetch(`/api/stats/global`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const stats = await statsRes.json();
-
-        // 2. Render Chart (New Pattern: Typing, Excel MCQ)
-        const ctx = document.getElementById('scoreChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Typing', 'Excel MCQ'],
-                    datasets: [
-                        {
-                            label: 'You',
-                            data: [data.typingScore || 0, data.mcqScore || 0],
-                            backgroundColor: '#fbbf24',
-                            borderRadius: 5
-                        },
-                        {
-                            label: 'Average',
-                            data: [Math.round(stats.avgTyping || 0), Math.round(stats.avgMCQ || 0)],
-                            backgroundColor: '#9ca3af',
-                            borderRadius: 5
-                        },
-                        {
-                            label: 'Top Scorer',
-                            data: [stats.maxTyping || 0, stats.maxMCQ || 0],
-                            backgroundColor: '#10b981',
-                            borderRadius: 5
-                        }
-                    ]
-                },
-                options: {
-                    indexAxis: 'y',
-                    scales: { x: { max: 30, beginAtZero: true } },
-                    plugins: { 
-                        legend: { display: true, position: 'bottom' } // Show legend so they can see what Green/Gray means
-                    }
-                }
             });
         }
-        // --- NEW CHART LOGIC ENDS HERE ---
 
         // wpm and accuracy
         document.getElementById('score-breakdown').innerHTML = `

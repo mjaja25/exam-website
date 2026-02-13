@@ -154,39 +154,21 @@ document.addEventListener('DOMContentLoaded', () => {
             totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
         }
 
-        // CHART ------------
         try {
-            // 1. Fetch Global Stats
             const statsRes = await fetch(`${API_BASE_URL}/api/stats/global`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const stats = await statsRes.json();
-
-            // 2. Prepare Data (Standard Pattern: Typing, Letter, Excel)
-            const labels = ['Typing', 'Letter', 'Excel'];
+            const allStats = await statsRes.json();
             
-            // User's Scores
-            const userScores = [
-                data.typingScore || 0, 
-                data.letterScore || 0, 
-                data.excelScore || 0
-            ];
+            // >>> USE ONLY STANDARD STATS <<<
+            const stats = allStats.standard; 
 
-            // Average Scores
-            const avgScores = [
-                Math.round(stats.avgTyping || 0), 
-                Math.round(stats.avgLetter || 0), 
-                Math.round(stats.avgExcel || 0)
-            ];
+            // Data for Chart
+            const labels = ['Typing', 'Letter', 'Excel'];
+            const userScores = [data.typingScore, data.letterScore, data.excelScore];
+            const avgScores = [Math.round(stats.avgTyping), Math.round(stats.avgLetter), Math.round(stats.avgExcel)];
+            const topScores = [stats.maxTyping, stats.maxLetter, stats.maxExcel];
 
-            // Top Scores
-            const topScores = [
-                stats.maxTyping || 0, 
-                stats.maxLetter || 0, 
-                stats.maxExcel || 0
-            ];
-
-            // 3. Render Chart
             const chartCanvas = document.getElementById('skills-chart-canvas');
             if (chartCanvas) {
                 new Chart(chartCanvas, {
@@ -194,37 +176,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     data: {
                         labels: labels,
                         datasets: [
-                            {
-                                label: 'You',
-                                data: userScores,
-                                backgroundColor: '#fbbf24', // Yellow
-                                borderRadius: 4
-                            },
-                            {
-                                label: 'Average',
-                                data: avgScores,
-                                backgroundColor: '#9ca3af', // Gray
-                                borderRadius: 4,
-                                hidden: true // Hidden by default to avoid clutter
-                            },
-                            {
-                                label: 'Top Scorer',
-                                data: topScores,
-                                backgroundColor: '#10b981', // Green
-                                borderRadius: 4
-                            }
+                            { label: 'You', data: userScores, backgroundColor: '#fbbf24', borderRadius: 4 },
+                            { label: 'Avg', data: avgScores, backgroundColor: '#9ca3af', borderRadius: 4, hidden: true },
+                            { label: 'Top', data: topScores, backgroundColor: '#10b981', borderRadius: 4 }
                         ]
                     },
-                    options: { 
-                        indexAxis: 'y', 
-                        responsive: true,
-                        scales: { x: { beginAtZero: true } } 
-                    }
+                    options: { indexAxis: 'y', scales: { x: { beginAtZero: true, max: 20 } } } // Max 20 for Standard
                 });
             }
-        } catch (err) {
-            console.error("Chart Error:", err);
+        } catch (err) { console.error("Chart Error:", err); }
+
+
+        // --- CONDITIONAL CONFETTI ---
+        // Only celebrate if the user JUST finished (ID comes from Storage, not URL)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isHistoryView = urlParams.has('sessionId'); 
+
+        if (!isHistoryView) {
+            triggerCelebration(data.totalScore);
         }
+        
         // --- DETAILED REPORT (Unified Logic) ---
         let detailsHtml = `
             <div class="test-block">
@@ -303,35 +274,35 @@ document.addEventListener('DOMContentLoaded', () => {
         return html + '</div>';
     }
 
-    async function triggerCelebration(score) {
-        // 1. Pop confetti immediately on load
-        if (typeof confetti === 'function') {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        }
+    // async function triggerCelebration(score) {
+    //     // 1. Pop confetti immediately on load
+    //     if (typeof confetti === 'function') {
+    //         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    //     }
 
-        // 2. Check Leaderboard for Fireworks
-        try {
-            const res = await fetch('/api/leaderboard/all', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const lb = await res.json();
-            const leaders = lb['std_overall'] || [];
+    //     // 2. Check Leaderboard for Fireworks
+    //     try {
+    //         const res = await fetch('/api/leaderboard/all', {
+    //             headers: { 'Authorization': `Bearer ${token}` }
+    //         });
+    //         const lb = await res.json();
+    //         const leaders = lb['std_overall'] || [];
             
-            // Check if user's score matches any of the top scores
-            const isTopScorer = leaders.some(l => Math.round(l.totalScore) === Math.round(score));
+    //         // Check if user's score matches any of the top scores
+    //         const isTopScorer = leaders.some(l => Math.round(l.totalScore) === Math.round(score));
 
-            if (isTopScorer && typeof confetti === 'function') {
-                // Fireworks Effect
-                let duration = 3000;
-                let end = Date.now() + duration;
-                (function frame() {
-                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-                    if (Date.now() < end) requestAnimationFrame(frame);
-                }());
-            }
-        } catch (e) { console.error("Celebration Error:", e); }
-    }
+    //         if (isTopScorer && typeof confetti === 'function') {
+    //             // Fireworks Effect
+    //             let duration = 3000;
+    //             let end = Date.now() + duration;
+    //             (function frame() {
+    //                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+    //                 confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+    //                 if (Date.now() < end) requestAnimationFrame(frame);
+    //             }());
+    //         }
+    //     } catch (e) { console.error("Celebration Error:", e); }
+    // }
 
 
     async function fetchPercentile(sessionId) {
