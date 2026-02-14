@@ -4,17 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
 
     // --- Configuration State ---
-    let selectedTime = 120; // Default 2 mins
+    let selectedTime = 120;
     let selectedDiff = 'easy';
+    let isTrueSim = false;
 
-    // --- DOM Elements ---
+    // --- Active engine elements (set on launch) ---
+    let passageDisplay, userInput, timerElement, wpmElement, accuracyElement, activeEngine;
+
+    // --- DOM (config & results) ---
     const configView = document.getElementById('config-view');
-    const engineView = document.getElementById('practice-engine');
-    const passageDisplay = document.getElementById('passage-display');
-    const userInput = document.getElementById('user-input');
-    const timerElement = document.getElementById('timer');
-    const wpmElement = document.getElementById('wpm');
-    const accuracyElement = document.getElementById('accuracy');
+    const decoratedEngine = document.getElementById('decorated-engine');
+    const simEngine = document.getElementById('sim-engine');
+    const trueSimCheck = document.getElementById('true-sim-check');
     const resultsView = document.getElementById('results-view');
 
     // Results elements
@@ -34,7 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let sessionStartTime = null;
     let timerInterval = null;
     let currentPassage = '';
-    let errorMap = {}; // Track which chars are mistyped { 'expected->typed': count }
+    let errorMap = {};
+    let errorTrackedPositions = new Set();
+
+    // --- JWT Helper ---
+    function parseJwt(t) {
+        try {
+            const base64Url = t.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+            ).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) { return null; }
+    }
 
     // --- Config UI Helpers ---
     window.setTime = (seconds, btn) => {
@@ -49,20 +63,96 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.add('active');
     };
 
-    // --- Launch Function ---
+    // ========================================================
+    // LAUNCH — pick engine mode and bind elements
+    // ========================================================
     window.launchPractice = async () => {
+        isTrueSim = trueSimCheck.checked;
         configView.classList.add('hidden');
-        engineView.classList.remove('hidden');
 
-        // Set initial timer display
+        if (isTrueSim) {
+            simEngine.classList.remove('hidden');
+            activeEngine = simEngine;
+            passageDisplay = document.getElementById('sim-passage');
+            userInput = document.getElementById('sim-input');
+            timerElement = document.getElementById('sim-timer');
+            wpmElement = document.getElementById('sim-wpm');
+            accuracyElement = document.getElementById('sim-accuracy');
+        } else {
+            decoratedEngine.classList.remove('hidden');
+            activeEngine = decoratedEngine;
+            passageDisplay = document.getElementById('dec-passage');
+            userInput = document.getElementById('dec-input');
+            timerElement = document.getElementById('dec-timer');
+            wpmElement = document.getElementById('dec-wpm');
+            accuracyElement = document.getElementById('dec-accuracy');
+        }
+
+        // Set initial timer
         const mins = Math.floor(selectedTime / 60);
         const secs = selectedTime % 60;
         timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
+        // Bind input handler
+        userInput.addEventListener('input', handleInput);
+
+        // Lockdown input — disable paste, Ctrl+Backspace, drag
+        lockdownInput(userInput);
+
+        // Admin bypass
+        setupAdminBypass();
+
         await loadPassage(selectedDiff);
     };
 
-    // --- Load Passage ---
+    // ========================================================
+    // INPUT LOCKDOWN — emulate real exam restrictions
+    // ========================================================
+    function lockdownInput(textarea) {
+        // Block paste
+        textarea.addEventListener('paste', e => e.preventDefault());
+        // Block cut
+        textarea.addEventListener('cut', e => e.preventDefault());
+        // Block drop (drag-and-drop text)
+        textarea.addEventListener('drop', e => e.preventDefault());
+        // Block Ctrl+Backspace (word delete), Ctrl+A (select all), Ctrl+Z (undo)
+        textarea.addEventListener('keydown', e => {
+            if (e.ctrlKey && (e.key === 'Backspace' || e.key === 'a' || e.key === 'z' || e.key === 'y')) {
+                e.preventDefault();
+            }
+            // Block Delete key  
+            if (e.key === 'Delete') {
+                e.preventDefault();
+            }
+        });
+        // Disable context menu (right-click paste)
+        textarea.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    // ========================================================
+    // ADMIN BYPASS
+    // ========================================================
+    function setupAdminBypass() {
+        if (!token) return;
+        const payload = parseJwt(token);
+        if (!payload || payload.role !== 'admin') return;
+
+        const bypassId = isTrueSim ? 'sim-admin-bypass' : 'dec-admin-bypass';
+        const btnId = isTrueSim ? 'sim-quick-submit' : 'dec-quick-submit';
+        const bypassDiv = document.getElementById(bypassId);
+        const bypassBtn = document.getElementById(btnId);
+
+        if (bypassDiv) {
+            bypassDiv.style.display = 'block';
+            bypassBtn.addEventListener('click', () => {
+                endPractice();
+            });
+        }
+    }
+
+    // ========================================================
+    // LOAD PASSAGE
+    // ========================================================
     async function loadPassage(difficulty) {
         try {
             const res = await fetch(`${API_BASE_URL}/api/passages/random?difficulty=${difficulty}`, {
@@ -88,9 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Input Handler (character-by-character comparison) ---
-    userInput.addEventListener('input', handleInput);
-
+    // ========================================================
+    // INPUT HANDLER — character-by-character comparison
+    // ========================================================
     function handleInput() {
         if (!testInProgress) startTimer();
 
@@ -112,13 +202,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 charSpan.classList.add('incorrect');
                 charSpan.classList.remove('correct');
-                // Track error pattern
-                const key = `'${charSpan.innerText}' → '${userChar}'`;
-                errorMap[key] = (errorMap[key] || 0) + 1;
+                // Track error — only once per position
+                if (!errorTrackedPositions.has(index)) {
+                    errorTrackedPositions.add(index);
+                    const key = `'${charSpan.innerText}' → '${userChar}'`;
+                    errorMap[key] = (errorMap[key] || 0) + 1;
+                }
             }
         });
 
-        // Update live stats
+        // Live stats
         if (timeElapsedMinutes > 0) {
             const wpm = Math.round((userChars.length / 5) / timeElapsedMinutes);
             const acc = userChars.length > 0 ? Math.round((correctChars / userChars.length) * 100) : 100;
@@ -126,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             accuracyElement.textContent = `${acc}%`;
         }
 
-        // Scroll current character into view
+        // Current character highlight
         if (userChars.length < passageChars.length) {
             const nextCharSpan = passageChars[userChars.length];
             nextCharSpan.classList.add('current');
@@ -139,12 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Timer ---
+    // ========================================================
+    // TIMER
+    // ========================================================
     function startTimer() {
         if (testInProgress) return;
         testInProgress = true;
         sessionStartTime = Date.now();
-
         let timeLeft = selectedTime;
 
         timerInterval = setInterval(() => {
@@ -153,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const secs = timeLeft % 60;
             timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
-            // Timer pulse at < 30 seconds
             if (timeLeft < 30) {
                 timerElement.classList.add('timer-danger');
             }
@@ -164,14 +257,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // --- End Practice ---
+    // ========================================================
+    // END PRACTICE
+    // ========================================================
     function endPractice() {
         clearInterval(timerInterval);
         userInput.disabled = true;
         testInProgress = false;
 
         const timeElapsedMinutes = (Date.now() - sessionStartTime) / 60000;
-        const passageChars = passageDisplay.querySelectorAll('span');
         const totalTyped = userInput.value.length;
         const correctCount = passageDisplay.querySelectorAll('.correct').length;
         const errorCount = totalTyped - correctCount;
@@ -182,9 +276,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showResults(finalWpm, finalAccuracy, totalTyped, correctCount, errorCount);
     }
 
-    // --- Show Results ---
+    // ========================================================
+    // SHOW RESULTS
+    // ========================================================
     function showResults(wpm, accuracy, totalChars, correct, errors) {
-        engineView.classList.add('hidden');
+        activeEngine.classList.add('hidden');
         resultsView.classList.add('active');
 
         // Animated WPM count-up
@@ -197,9 +293,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         requestAnimationFrame(countUp);
 
-        // Animated ring — scale WPM to 360deg (80 WPM = full circle)
+        // Ring (80 WPM = full circle)
         const degrees = Math.min(360, (wpm / 80) * 360);
-        scoreRing.style.background = `conic-gradient(var(--primary-yellow, #f59e0b) var(--score-deg, 0deg), var(--border-color, #e2e8f0) var(--score-deg, 0deg))`;
         requestAnimationFrame(() => {
             scoreRing.style.setProperty('--score-deg', degrees + 'deg');
         });
@@ -216,18 +311,20 @@ document.addEventListener('DOMContentLoaded', () => {
         statCorrect.textContent = correct;
         statErrors.textContent = errors;
 
-        // Store metrics for AI analysis
+        // Store for AI
         analyzeBtn._metrics = { wpm, accuracy, totalChars, correctChars: correct, errorCount: errors };
     }
 
-    // --- AI Typing Coach ---
+    // ========================================================
+    // AI TYPING COACH (with finger drills)
+    // ========================================================
     analyzeBtn.addEventListener('click', async () => {
         analyzeBtn.disabled = true;
         analyzeBtn.textContent = '⏳ Generating Coach Feedback...';
 
         const metrics = analyzeBtn._metrics;
 
-        // Build error details string
+        // Build error details
         let errorDetails = '';
         const sortedErrors = Object.entries(errorMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
         if (sortedErrors.length > 0) {

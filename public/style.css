@@ -1576,7 +1576,6 @@ body.test-page {
     /* ADD THESE THREE LINES */
     display: flex;
     flex-direction: column;
-    min-height: 100%;
 }
 
 .practice-item button {

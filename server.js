@@ -809,12 +809,29 @@ Provide a DETAILED coaching analysis that includes:
 
 3. **Accuracy Analysis** — If accuracy is below 95%, give targeted advice. If error patterns are provided, point out specific problem areas (e.g., "You frequently mistype 'e' as 'r' — these keys are adjacent, slow down on the top row").
 
-4. **Personalized Drills** — Suggest 2-3 specific exercises:
-   - For low WPM: recommend home-row drills, common word practice
-   - For low accuracy: recommend slow-and-steady practice, problem-key focus
-   - For good performance: recommend advanced exercises to push further
+4. **Finger Drill Exercises** — Give 3-5 SPECIFIC finger drill exercises the student should practice. Format each drill as:
+   - **Drill Name**: A short name for the exercise
+   - **What to type**: The exact text or key sequence to repeat (e.g., "asdf jkl; asdf jkl;" for home row, or "the quick brown fox" for common words)
+   - **Reps**: How many times to repeat it
+   - **Purpose**: Which finger/key weakness this targets
 
-5. **Goal Setting** — Set a realistic next target (e.g., "Aim for ${Math.round(wpm * 1.15)} WPM at ${Math.min(99, accuracy + 2)}% accuracy in your next session").
+   Choose drills based on their weaknesses:
+   - If many errors on home-row keys (a,s,d,f,j,k,l,;): Give home-row isolation drills
+   - If many errors on top row (q,w,e,r,t,y,u,i,o,p): Give top-row reach drills
+   - If many errors on bottom row (z,x,c,v,b,n,m): Give bottom-row stretch drills
+   - If space-bar errors: Give word-boundary drills with short words
+   - If specific letter errors: Give drills targeting those exact letters (e.g., "referee free reef" for 'r' and 'e' confusion)
+   - If WPM < 25: Give slow single-finger isolation drills
+   - If WPM 25-45: Give common word speed drills (the, and, for, with, etc.)
+   - If WPM > 45: Give advanced bigram/trigram drills
+
+   Example format:
+   **Drill 1: Home Row Power** — Type "asdf jkl; asdf jkl; fdsa ;lkj" × 10 reps. Builds muscle memory for resting position.
+   **Drill 2: Problem Key Focus** — Type "error refer reader" × 15 reps. Targets your 'r'/'e' confusion.
+
+5. **5-Minute Practice Routine** — Give a structured 5-minute warm-up routine the student can do before their next session, broken into 1-minute segments.
+
+6. **Goal Setting** — Set a realistic next target (e.g., "Aim for ${Math.round(wpm * 1.15)} WPM at ${Math.min(99, accuracy + 2)}% accuracy in your next session").
 
 Be encouraging and specific. Use clear sections with headers.
         `;

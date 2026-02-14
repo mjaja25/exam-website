@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Typing Practice | Dream Centre</title>
     <link rel="stylesheet" href="style.css">
+    <script src="/auth.js" defer></script>
     <style>
+        /* --- Config View --- */
         .practice-config {
             max-width: 600px;
             margin: 4rem auto;
@@ -67,7 +69,131 @@
             display: none !important;
         }
 
-        /* Results View */
+        /* --- True Simulation Toggle --- */
+        .sim-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+            padding: 1rem;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 10px;
+            background: var(--card-background, #f8fafc);
+        }
+
+        .sim-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #ef4444;
+            cursor: pointer;
+        }
+
+        .sim-toggle label {
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0;
+            color: var(--text-color, #334155);
+        }
+
+        .sim-toggle small {
+            display: block;
+            color: var(--text-muted, #64748b);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        /* --- Minimal Simulation Engine (True Sim) --- */
+        .sim-engine {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .sim-engine .sim-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: var(--text-color, #334155);
+        }
+
+        .sim-engine .sim-passage {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            line-height: 2;
+            min-height: 180px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .sim-engine .sim-passage span.correct {
+            color: #16a34a;
+        }
+
+        .sim-engine .sim-passage span.incorrect {
+            color: #dc2626;
+            text-decoration: underline;
+            text-decoration-color: #dc2626;
+        }
+
+        .sim-engine .sim-passage span.current {
+            border-bottom: 2px solid var(--primary-yellow, #f59e0b);
+            font-weight: 700;
+        }
+
+        .sim-engine .sim-textarea {
+            width: 100%;
+            min-height: 160px;
+            padding: 1.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            resize: none;
+            outline: none;
+            background: var(--card-background, #fff);
+            color: var(--text-color, #1e293b);
+        }
+
+        .sim-engine .sim-textarea:focus {
+            border-color: var(--primary-yellow, #f59e0b);
+        }
+
+        /* --- Admin Bypass --- */
+        .admin-bypass {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .admin-bypass button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: 0.2s;
+        }
+
+        .admin-bypass button:hover {
+            opacity: 1;
+        }
+
+        /* --- Results View --- */
         .results-wrapper {
             max-width: 900px;
             margin: 2rem auto;
@@ -246,22 +372,72 @@
                 </div>
             </div>
 
+            <div class="sim-toggle">
+                <input type="checkbox" id="true-sim-check" />
+                <div>
+                    <label for="true-sim-check">True Simulation Mode</label>
+                    <small>Minimal UI, monospaced font, large textarea — emulates a real exam environment</small>
+                </div>
+            </div>
+
             <button class="primary start-btn" onclick="launchPractice()">Launch Practice Session</button>
         </div>
 
-        <!-- PRACTICE ENGINE -->
-        <div id="practice-engine" class="hidden">
-            <div class="stats-bar">
-                <div class="stat">Time: <span id="timer">00:00</span></div>
-                <div class="stat">WPM: <span id="wpm">0</span></div>
-                <div class="stat">Accuracy: <span id="accuracy">100%</span></div>
+        <!-- DECORATED ENGINE (uses standard test styling) -->
+        <div id="decorated-engine" class="hidden">
+            <div class="test-container">
+                <header class="test-header desktop-only">
+                    <hgroup>
+                        <h2>Typing Practice</h2>
+                        <p>Practice at your own pace. This is unranked.</p>
+                    </hgroup>
+                </header>
+
+                <div class="stats-bar desktop-only">
+                    <div class="stat-item">
+                        <span>WPM</span>
+                        <p id="dec-wpm">0</p>
+                    </div>
+                    <div class="stat-item">
+                        <span>Accuracy</span>
+                        <p id="dec-accuracy">100%</p>
+                    </div>
+                    <div class="stat-item">
+                        <span>Time Left</span>
+                        <p id="dec-timer">02:00</p>
+                    </div>
+                </div>
+
+                <div class="typing-wrapper">
+                    <div id="dec-passage" class="passage-card">Loading passage...</div>
+                    <textarea id="dec-input" rows="5" placeholder="Start typing here..." autocomplete="off"
+                        autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                </div>
+
+                <div id="dec-admin-bypass" class="admin-bypass">
+                    <button id="dec-quick-submit">⚡ Admin: Quick Submit</button>
+                </div>
             </div>
-            <div id="passage-display" class="passage-box"></div>
-            <textarea id="user-input" class="input-area" placeholder="Start typing here..."></textarea>
+        </div>
+
+        <!-- TRUE SIMULATION ENGINE (minimal, monospace, large) -->
+        <div id="sim-engine" class="sim-engine hidden">
+            <div class="sim-stats">
+                <span>Time: <strong id="sim-timer">02:00</strong></span>
+                <span>WPM: <strong id="sim-wpm">0</strong></span>
+                <span>Accuracy: <strong id="sim-accuracy">100%</strong></span>
+            </div>
+            <div id="sim-passage" class="sim-passage">Loading passage...</div>
+            <textarea id="sim-input" class="sim-textarea" placeholder="Start typing here..." autocomplete="off"
+                autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+
+            <div id="sim-admin-bypass" class="admin-bypass">
+                <button id="sim-quick-submit">⚡ Admin: Quick Submit</button>
+            </div>
         </div>
     </main>
 
-    <!-- RESULTS VIEW (outside main container for full-width) -->
+    <!-- RESULTS VIEW -->
     <div id="results-view" class="results-view results-wrapper">
         <div class="score-hero">
             <h2 id="results-title">Practice Complete!</h2>
