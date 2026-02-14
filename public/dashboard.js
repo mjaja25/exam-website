@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('currentAttemptMode', 'practice');
         localStorage.setItem('currentExamPattern', 'none');
         const routes = {
-            typing: '/typing.html',
+            typing: '/practice-typing.html',
             mcq: '/practice-mcq.html',
             letter: '/practice-letter.html',
             excel: '/practice-excel.html'
