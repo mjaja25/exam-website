@@ -784,62 +784,70 @@ app.post('/api/practice/typing-analyze', authMiddleware, async (req, res) => {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const analysisPrompt = `
-You are a professional typing coach. A student just completed a typing practice session. Analyze their performance and provide detailed, personalized coaching.
+You are a typing coach. A student completed a practice session. Return a JSON object (no markdown fences) with this EXACT structure:
 
-**Session Metrics:**
-- Words Per Minute (WPM): ${wpm}
-- Accuracy: ${accuracy}%
-- Total Characters Typed: ${totalChars}
-- Correct Characters: ${correctChars}
-- Errors Made: ${errorCount}
-- Session Duration: ${duration} seconds
+{
+  "level": "Beginner|Average|Proficient|Advanced|Expert",
+  "summary": "1-2 sentence encouraging summary of their performance",
+  "speedTip": "1-2 sentence specific tip for improving speed",
+  "accuracyTip": "1-2 sentence specific tip for improving accuracy",
+  "drills": [
+    {
+      "name": "Short drill name",
+      "text": "exact text to type repeatedly",
+      "reps": 10,
+      "target": "which weakness this fixes"
+    }
+  ],
+  "warmup": [
+    "Minute 1: description",
+    "Minute 2: description",
+    "Minute 3: description",
+    "Minute 4: description",
+    "Minute 5: description"
+  ],
+  "goalWpm": ${Math.round(wpm * 1.15)},
+  "goalAccuracy": ${Math.min(99, accuracy + 2)}
+}
 
-${errorDetails ? `**Common Mistake Patterns:**\n${errorDetails}` : ''}
+Session: ${wpm} WPM, ${accuracy}% accuracy, ${totalChars} chars, ${errorCount} errors, ${duration}s.
+${errorDetails ? `Error patterns:\n${errorDetails}` : 'No specific error patterns.'}
 
-Provide a DETAILED coaching analysis that includes:
-
-1. **Performance Summary** — Rate their speed and accuracy. Compare to benchmarks:
-   - Beginner: < 20 WPM
-   - Average: 20-40 WPM
-   - Proficient: 40-60 WPM
-   - Advanced: 60-80 WPM
-   - Expert: 80+ WPM
-
-2. **Speed Analysis** — Specific advice on improving typing speed. Mention touch-typing techniques if WPM is low.
-
-3. **Accuracy Analysis** — If accuracy is below 95%, give targeted advice. If error patterns are provided, point out specific problem areas (e.g., "You frequently mistype 'e' as 'r' — these keys are adjacent, slow down on the top row").
-
-4. **Finger Drill Exercises** — Give 3-5 SPECIFIC finger drill exercises the student should practice. Format each drill as:
-   - **Drill Name**: A short name for the exercise
-   - **What to type**: The exact text or key sequence to repeat (e.g., "asdf jkl; asdf jkl;" for home row, or "the quick brown fox" for common words)
-   - **Reps**: How many times to repeat it
-   - **Purpose**: Which finger/key weakness this targets
-
-   Choose drills based on their weaknesses:
-   - If many errors on home-row keys (a,s,d,f,j,k,l,;): Give home-row isolation drills
-   - If many errors on top row (q,w,e,r,t,y,u,i,o,p): Give top-row reach drills
-   - If many errors on bottom row (z,x,c,v,b,n,m): Give bottom-row stretch drills
-   - If space-bar errors: Give word-boundary drills with short words
-   - If specific letter errors: Give drills targeting those exact letters (e.g., "referee free reef" for 'r' and 'e' confusion)
-   - If WPM < 25: Give slow single-finger isolation drills
-   - If WPM 25-45: Give common word speed drills (the, and, for, with, etc.)
-   - If WPM > 45: Give advanced bigram/trigram drills
-
-   Example format:
-   **Drill 1: Home Row Power** — Type "asdf jkl; asdf jkl; fdsa ;lkj" × 10 reps. Builds muscle memory for resting position.
-   **Drill 2: Problem Key Focus** — Type "error refer reader" × 15 reps. Targets your 'r'/'e' confusion.
-
-5. **5-Minute Practice Routine** — Give a structured 5-minute warm-up routine the student can do before their next session, broken into 1-minute segments.
-
-6. **Goal Setting** — Set a realistic next target (e.g., "Aim for ${Math.round(wpm * 1.15)} WPM at ${Math.min(99, accuracy + 2)}% accuracy in your next session").
-
-Be encouraging and specific. Use clear sections with headers.
+Rules:
+- "level": Beginner(<20), Average(20-40), Proficient(40-60), Advanced(60-80), Expert(80+)
+- Give 3-5 drills targeting their specific weaknesses. Use actual typeable text sequences.
+- If errors on home-row keys: home-row drills. Top row: reach drills. Space errors: word-boundary drills.
+- Keep all text SHORT and actionable. No fluff.
+- Return ONLY valid JSON, no markdown.
         `;
 
         const result = await model.generateContent(analysisPrompt);
-        const analysisText = result.response.text();
+        let responseText = result.response.text().trim();
+        // Strip markdown fences if present
+        responseText = responseText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
 
-        res.json({ success: true, analysis: analysisText });
+        let analysis;
+        try {
+            analysis = JSON.parse(responseText);
+        } catch (parseErr) {
+            // Fallback if JSON parsing fails
+            analysis = {
+                level: wpm >= 80 ? 'Expert' : wpm >= 60 ? 'Advanced' : wpm >= 40 ? 'Proficient' : wpm >= 20 ? 'Average' : 'Beginner',
+                summary: `You typed at ${wpm} WPM with ${accuracy}% accuracy. Keep practicing to improve!`,
+                speedTip: 'Focus on maintaining a steady rhythm without pausing between words.',
+                accuracyTip: 'Slow down slightly and prioritize hitting the correct keys.',
+                drills: [
+                    { name: 'Home Row Basics', text: 'asdf jkl; asdf jkl; fdsa ;lkj', reps: 10, target: 'Finger placement' },
+                    { name: 'Common Words', text: 'the and for with that have from', reps: 15, target: 'Speed on frequent words' },
+                    { name: 'Top Row Reach', text: 'qwerty uiop qwerty uiop', reps: 10, target: 'Top row accuracy' }
+                ],
+                warmup: ['Minute 1: Home row warm-up', 'Minute 2: Common words', 'Minute 3: Full sentences', 'Minute 4: Speed push', 'Minute 5: Accuracy focus'],
+                goalWpm: Math.round(wpm * 1.15),
+                goalAccuracy: Math.min(99, accuracy + 2)
+            };
+        }
+
+        res.json({ success: true, analysis });
 
     } catch (error) {
         console.error('Typing Analysis Error:', error);

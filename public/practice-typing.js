@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
     const token = localStorage.getItem('token');
 
-    // --- Configuration State ---
+    // --- Config State ---
     let selectedTime = 120;
     let selectedDiff = 'easy';
     let isTrueSim = false;
 
-    // --- Active engine elements (set on launch) ---
+    // --- Active engine elements ---
     let passageDisplay, userInput, timerElement, wpmElement, accuracyElement, activeEngine;
 
     // --- DOM (config & results) ---
@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const trueSimCheck = document.getElementById('true-sim-check');
     const resultsView = document.getElementById('results-view');
 
-    // Results elements
     const scoreRing = document.getElementById('score-ring');
     const scoreWpm = document.getElementById('score-wpm');
     const resultsTitle = document.getElementById('results-title');
@@ -27,44 +26,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const statCorrect = document.getElementById('stat-correct');
     const statErrors = document.getElementById('stat-errors');
     const analyzeBtn = document.getElementById('analyze-btn');
-    const analysisPanel = document.getElementById('analysis-panel');
-    const analysisContent = document.getElementById('analysis-content');
+    const coachPanel = document.getElementById('coach-panel');
+    const coachContent = document.getElementById('coach-content');
+    const wpmChartCanvas = document.getElementById('wpm-chart');
 
     // --- Engine State ---
     let testInProgress = false;
     let sessionStartTime = null;
     let timerInterval = null;
+    let wpmSampleInterval = null;
     let currentPassage = '';
     let errorMap = {};
     let errorTrackedPositions = new Set();
 
+    // WPM timeline data: [{time: seconds, wpm: number}]
+    let wpmTimeline = [];
+
     // --- JWT Helper ---
     function parseJwt(t) {
         try {
-            const base64Url = t.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
-                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-            ).join(''));
-            return JSON.parse(jsonPayload);
+            const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(atob(b).split('').map(c =>
+                '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
         } catch (e) { return null; }
     }
 
-    // --- Config UI Helpers ---
-    window.setTime = (seconds, btn) => {
-        selectedTime = seconds;
+    // --- Config UI ---
+    window.setTime = (s, btn) => {
+        selectedTime = s;
         btn.parentElement.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     };
 
-    window.setDiff = (diff, btn) => {
-        selectedDiff = diff;
+    window.setDiff = (d, btn) => {
+        selectedDiff = d;
         btn.parentElement.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     };
 
     // ========================================================
-    // LAUNCH — pick engine mode and bind elements
+    // LAUNCH
     // ========================================================
     window.launchPractice = async () => {
         isTrueSim = trueSimCheck.checked;
@@ -88,45 +89,28 @@ document.addEventListener('DOMContentLoaded', () => {
             accuracyElement = document.getElementById('dec-accuracy');
         }
 
-        // Set initial timer
         const mins = Math.floor(selectedTime / 60);
         const secs = selectedTime % 60;
         timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
-        // Bind input handler
         userInput.addEventListener('input', handleInput);
-
-        // Lockdown input — disable paste, Ctrl+Backspace, drag
         lockdownInput(userInput);
-
-        // Admin bypass
         setupAdminBypass();
-
         await loadPassage(selectedDiff);
     };
 
     // ========================================================
-    // INPUT LOCKDOWN — emulate real exam restrictions
+    // INPUT LOCKDOWN
     // ========================================================
-    function lockdownInput(textarea) {
-        // Block paste
-        textarea.addEventListener('paste', e => e.preventDefault());
-        // Block cut
-        textarea.addEventListener('cut', e => e.preventDefault());
-        // Block drop (drag-and-drop text)
-        textarea.addEventListener('drop', e => e.preventDefault());
-        // Block Ctrl+Backspace (word delete), Ctrl+A (select all), Ctrl+Z (undo)
-        textarea.addEventListener('keydown', e => {
-            if (e.ctrlKey && (e.key === 'Backspace' || e.key === 'a' || e.key === 'z' || e.key === 'y')) {
-                e.preventDefault();
-            }
-            // Block Delete key  
-            if (e.key === 'Delete') {
-                e.preventDefault();
-            }
+    function lockdownInput(ta) {
+        ta.addEventListener('paste', e => e.preventDefault());
+        ta.addEventListener('cut', e => e.preventDefault());
+        ta.addEventListener('drop', e => e.preventDefault());
+        ta.addEventListener('keydown', e => {
+            if (e.ctrlKey && ['Backspace', 'a', 'z', 'y'].includes(e.key)) e.preventDefault();
+            if (e.key === 'Delete') e.preventDefault();
         });
-        // Disable context menu (right-click paste)
-        textarea.addEventListener('contextmenu', e => e.preventDefault());
+        ta.addEventListener('contextmenu', e => e.preventDefault());
     }
 
     // ========================================================
@@ -136,17 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!token) return;
         const payload = parseJwt(token);
         if (!payload || payload.role !== 'admin') return;
-
         const bypassId = isTrueSim ? 'sim-admin-bypass' : 'dec-admin-bypass';
         const btnId = isTrueSim ? 'sim-quick-submit' : 'dec-quick-submit';
-        const bypassDiv = document.getElementById(bypassId);
-        const bypassBtn = document.getElementById(btnId);
-
-        if (bypassDiv) {
-            bypassDiv.style.display = 'block';
-            bypassBtn.addEventListener('click', () => {
-                endPractice();
-            });
+        const div = document.getElementById(bypassId);
+        const btn = document.getElementById(btnId);
+        if (div) {
+            div.style.display = 'block';
+            btn.addEventListener('click', () => endPractice());
         }
     }
 
@@ -158,82 +138,74 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_BASE_URL}/api/passages/random?difficulty=${difficulty}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error('Could not fetch passage.');
+            if (!res.ok) throw new Error('Fetch failed');
             const data = await res.json();
             currentPassage = data.content;
 
             passageDisplay.innerHTML = '';
             currentPassage.split('').forEach(char => {
-                const charSpan = document.createElement('span');
-                charSpan.innerText = char;
-                passageDisplay.appendChild(charSpan);
+                const span = document.createElement('span');
+                span.innerText = char;
+                passageDisplay.appendChild(span);
             });
             passageDisplay.querySelector('span').classList.add('current');
             userInput.value = '';
             userInput.disabled = false;
             userInput.focus();
         } catch (err) {
-            passageDisplay.innerText = 'Error loading passage. Please try again.';
+            passageDisplay.innerText = 'Error loading passage.';
             userInput.disabled = true;
         }
     }
 
     // ========================================================
-    // INPUT HANDLER — character-by-character comparison
+    // INPUT HANDLER
     // ========================================================
     function handleInput() {
         if (!testInProgress) startTimer();
 
-        const passageChars = passageDisplay.querySelectorAll('span');
-        const userChars = userInput.value.split('');
-        const timeElapsedMinutes = (Date.now() - sessionStartTime) / 60000;
-        let correctChars = 0;
+        const spans = passageDisplay.querySelectorAll('span');
+        const chars = userInput.value.split('');
+        const elapsed = (Date.now() - sessionStartTime) / 60000;
+        let correct = 0;
 
-        passageChars.forEach((charSpan, index) => {
-            const userChar = userChars[index];
-            charSpan.classList.remove('current');
-
-            if (userChar == null) {
-                charSpan.classList.remove('correct', 'incorrect');
-            } else if (userChar === charSpan.innerText) {
-                charSpan.classList.add('correct');
-                charSpan.classList.remove('incorrect');
-                correctChars++;
+        spans.forEach((span, i) => {
+            const uc = chars[i];
+            span.classList.remove('current');
+            if (uc == null) {
+                span.classList.remove('correct', 'incorrect');
+            } else if (uc === span.innerText) {
+                span.classList.add('correct');
+                span.classList.remove('incorrect');
+                correct++;
             } else {
-                charSpan.classList.add('incorrect');
-                charSpan.classList.remove('correct');
-                // Track error — only once per position
-                if (!errorTrackedPositions.has(index)) {
-                    errorTrackedPositions.add(index);
-                    const key = `'${charSpan.innerText}' → '${userChar}'`;
+                span.classList.add('incorrect');
+                span.classList.remove('correct');
+                if (!errorTrackedPositions.has(i)) {
+                    errorTrackedPositions.add(i);
+                    const key = `'${span.innerText}' → '${uc}'`;
                     errorMap[key] = (errorMap[key] || 0) + 1;
                 }
             }
         });
 
-        // Live stats
-        if (timeElapsedMinutes > 0) {
-            const wpm = Math.round((userChars.length / 5) / timeElapsedMinutes);
-            const acc = userChars.length > 0 ? Math.round((correctChars / userChars.length) * 100) : 100;
+        if (elapsed > 0) {
+            const wpm = Math.round((chars.length / 5) / elapsed);
+            const acc = chars.length > 0 ? Math.round((correct / chars.length) * 100) : 100;
             wpmElement.textContent = wpm;
             accuracyElement.textContent = `${acc}%`;
         }
 
-        // Current character highlight
-        if (userChars.length < passageChars.length) {
-            const nextCharSpan = passageChars[userChars.length];
-            nextCharSpan.classList.add('current');
-            nextCharSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (chars.length < spans.length) {
+            spans[chars.length].classList.add('current');
+            spans[chars.length].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // End if passage completed
-        if (userChars.length >= passageChars.length) {
-            endPractice();
-        }
+        if (chars.length >= spans.length) endPractice();
     }
 
     // ========================================================
-    // TIMER
+    // TIMER + WPM SAMPLING
     // ========================================================
     function startTimer() {
         if (testInProgress) return;
@@ -241,19 +213,23 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStartTime = Date.now();
         let timeLeft = selectedTime;
 
+        // Sample WPM every 3 seconds
+        wpmTimeline = [{ time: 0, wpm: 0 }];
+        wpmSampleInterval = setInterval(() => {
+            const elapsed = (Date.now() - sessionStartTime) / 60000;
+            const typed = userInput.value.length;
+            const wpm = elapsed > 0 ? Math.round((typed / 5) / elapsed) : 0;
+            const secs = Math.round((Date.now() - sessionStartTime) / 1000);
+            wpmTimeline.push({ time: secs, wpm });
+        }, 3000);
+
         timerInterval = setInterval(() => {
             timeLeft--;
-            const mins = Math.floor(timeLeft / 60);
-            const secs = timeLeft % 60;
-            timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-            if (timeLeft < 30) {
-                timerElement.classList.add('timer-danger');
-            }
-
-            if (timeLeft <= 0) {
-                endPractice();
-            }
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            timerElement.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            if (timeLeft < 30) timerElement.classList.add('timer-danger');
+            if (timeLeft <= 0) endPractice();
         }, 1000);
     }
 
@@ -262,42 +238,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================================
     function endPractice() {
         clearInterval(timerInterval);
+        clearInterval(wpmSampleInterval);
         userInput.disabled = true;
         testInProgress = false;
 
-        const timeElapsedMinutes = (Date.now() - sessionStartTime) / 60000;
+        const elapsed = (Date.now() - sessionStartTime) / 60000;
         const totalTyped = userInput.value.length;
         const correctCount = passageDisplay.querySelectorAll('.correct').length;
         const errorCount = totalTyped - correctCount;
-
-        const finalWpm = timeElapsedMinutes > 0 ? Math.round((totalTyped / 5) / timeElapsedMinutes) : 0;
+        const finalWpm = elapsed > 0 ? Math.round((totalTyped / 5) / elapsed) : 0;
         const finalAccuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
+
+        // Final WPM sample
+        const secs = Math.round((Date.now() - sessionStartTime) / 1000);
+        wpmTimeline.push({ time: secs, wpm: finalWpm });
 
         showResults(finalWpm, finalAccuracy, totalTyped, correctCount, errorCount);
     }
 
     // ========================================================
-    // SHOW RESULTS
+    // SHOW RESULTS + DRAW WPM CHART
     // ========================================================
     function showResults(wpm, accuracy, totalChars, correct, errors) {
         activeEngine.classList.add('hidden');
         resultsView.classList.add('active');
 
-        // Animated WPM count-up
-        const startTime = performance.now();
-        const duration = 1200;
-        const countUp = (now) => {
-            const progress = Math.min((now - startTime) / duration, 1);
-            scoreWpm.textContent = Math.round(wpm * progress);
-            if (progress < 1) requestAnimationFrame(countUp);
+        // Count-up animation
+        const t0 = performance.now();
+        const dur = 1200;
+        const tick = (now) => {
+            const p = Math.min((now - t0) / dur, 1);
+            scoreWpm.textContent = Math.round(wpm * p);
+            if (p < 1) requestAnimationFrame(tick);
         };
-        requestAnimationFrame(countUp);
+        requestAnimationFrame(tick);
 
-        // Ring (80 WPM = full circle)
-        const degrees = Math.min(360, (wpm / 80) * 360);
-        requestAnimationFrame(() => {
-            scoreRing.style.setProperty('--score-deg', degrees + 'deg');
-        });
+        // Ring
+        const deg = Math.min(360, (wpm / 80) * 360);
+        requestAnimationFrame(() => scoreRing.style.setProperty('--score-deg', deg + 'deg'));
 
         // Title
         if (wpm >= 60) { resultsTitle.textContent = '🚀 Speed Demon!'; resultsTitle.style.color = '#4ade80'; }
@@ -305,60 +283,154 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (wpm >= 20) { resultsTitle.textContent = '👍 Getting There!'; resultsTitle.style.color = '#3b82f6'; }
         else { resultsTitle.textContent = '💪 Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
 
-        // Stats
         statAccuracy.textContent = `${accuracy}%`;
         statChars.textContent = totalChars;
         statCorrect.textContent = correct;
         statErrors.textContent = errors;
 
-        // Store for AI
         analyzeBtn._metrics = { wpm, accuracy, totalChars, correctChars: correct, errorCount: errors };
+
+        drawWpmChart();
     }
 
     // ========================================================
-    // AI TYPING COACH (with finger drills)
+    // WPM TIMELINE CHART (Canvas)
+    // ========================================================
+    function drawWpmChart() {
+        const canvas = wpmChartCanvas;
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = canvas.offsetWidth * dpr;
+        canvas.height = canvas.offsetHeight * dpr;
+        ctx.scale(dpr, dpr);
+
+        const W = canvas.offsetWidth;
+        const H = canvas.offsetHeight;
+        const pad = { top: 20, right: 20, bottom: 35, left: 45 };
+        const chartW = W - pad.left - pad.right;
+        const chartH = H - pad.top - pad.bottom;
+
+        const data = wpmTimeline;
+        if (data.length < 2) return;
+
+        const maxTime = data[data.length - 1].time || 1;
+        const maxWpm = Math.max(20, ...data.map(d => d.wpm)) * 1.15;
+
+        const x = (t) => pad.left + (t / maxTime) * chartW;
+        const y = (w) => pad.top + chartH - (w / maxWpm) * chartH;
+
+        // Background
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card-background') || '#fff';
+        ctx.fillRect(0, 0, W, H);
+
+        // Grid lines
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 4; i++) {
+            const gy = pad.top + (chartH / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, gy);
+            ctx.lineTo(pad.left + chartW, gy);
+            ctx.stroke();
+        }
+
+        // Y axis labels
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 4; i++) {
+            const val = Math.round(maxWpm * (1 - i / 4));
+            const gy = pad.top + (chartH / 4) * i;
+            ctx.fillText(val, pad.left - 8, gy + 4);
+        }
+
+        // X axis labels
+        ctx.textAlign = 'center';
+        const xSteps = Math.min(6, data.length);
+        for (let i = 0; i < xSteps; i++) {
+            const idx = Math.floor((i / (xSteps - 1)) * (data.length - 1));
+            const d = data[idx];
+            ctx.fillText(`${d.time}s`, x(d.time), H - 8);
+        }
+
+        // Gradient fill
+        const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+        grad.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
+        grad.addColorStop(1, 'rgba(245, 158, 11, 0.02)');
+
+        ctx.beginPath();
+        ctx.moveTo(x(data[0].time), y(0));
+        data.forEach(d => ctx.lineTo(x(d.time), y(d.wpm)));
+        ctx.lineTo(x(data[data.length - 1].time), y(0));
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Line
+        ctx.beginPath();
+        data.forEach((d, i) => {
+            if (i === 0) ctx.moveTo(x(d.time), y(d.wpm));
+            else ctx.lineTo(x(d.time), y(d.wpm));
+        });
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // Dots
+        data.forEach(d => {
+            ctx.beginPath();
+            ctx.arc(x(d.time), y(d.wpm), 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        });
+
+        // Axis labels
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Time', W / 2, H - 0);
+        ctx.save();
+        ctx.translate(12, H / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('WPM', 0, 0);
+        ctx.restore();
+    }
+
+    // ========================================================
+    // AI COACH — Visual Cards
     // ========================================================
     analyzeBtn.addEventListener('click', async () => {
         analyzeBtn.disabled = true;
-        analyzeBtn.textContent = '⏳ Generating Coach Feedback...';
+        analyzeBtn.textContent = '⏳ Generating...';
 
         const metrics = analyzeBtn._metrics;
-
-        // Build error details
         let errorDetails = '';
-        const sortedErrors = Object.entries(errorMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
-        if (sortedErrors.length > 0) {
-            errorDetails = sortedErrors.map(([key, count]) => `- ${key} (${count} times)`).join('\n');
-        }
+        const sorted = Object.entries(errorMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        if (sorted.length > 0) errorDetails = sorted.map(([k, c]) => `- ${k} (${c}×)`).join('\n');
 
         try {
             const res = await fetch(`${API_BASE_URL}/api/practice/typing-analyze`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
-                    wpm: metrics.wpm,
-                    accuracy: metrics.accuracy,
-                    totalChars: metrics.totalChars,
-                    correctChars: metrics.correctChars,
-                    errorCount: metrics.errorCount,
-                    duration: selectedTime,
-                    errorDetails: errorDetails
+                    wpm: metrics.wpm, accuracy: metrics.accuracy,
+                    totalChars: metrics.totalChars, correctChars: metrics.correctChars,
+                    errorCount: metrics.errorCount, duration: selectedTime, errorDetails
                 })
             });
 
-            if (!res.ok) throw new Error('Analysis failed');
+            if (!res.ok) throw new Error('fail');
             const data = await res.json();
+            const a = data.analysis;
 
-            let formatted = data.analysis
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
-
-            analysisContent.innerHTML = formatted;
-            analysisPanel.classList.add('active');
-            analysisPanel.scrollIntoView({ behavior: 'smooth' });
+            renderCoachCards(a);
+            coachPanel.classList.add('active');
+            coachPanel.scrollIntoView({ behavior: 'smooth' });
 
         } catch (err) {
             if (typeof showToast === 'function') showToast('Failed to generate analysis.', 'error');
@@ -367,4 +439,89 @@ document.addEventListener('DOMContentLoaded', () => {
             analyzeBtn.textContent = '🤖 Get AI Typing Coach';
         }
     });
+
+    // ========================================================
+    // RENDER COACH CARDS
+    // ========================================================
+    function renderCoachCards(a) {
+        const levelClass = `level-${(a.level || 'average').toLowerCase()}`;
+
+        let html = '';
+
+        // Summary card
+        html += `
+        <div class="coach-card">
+            <div class="coach-card-header">
+                <div class="icon" style="background:#fefce8;">📊</div>
+                <h4>Performance Summary</h4>
+            </div>
+            <p><span class="level-badge ${levelClass}">${a.level || 'Average'}</span> ${a.summary || ''}</p>
+        </div>`;
+
+        // Speed & Accuracy tips (side by side on larger screens)
+        html += `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1rem;">
+            <div class="coach-card" style="margin-bottom:0;">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#dbeafe;">⚡</div>
+                    <h4>Speed Tip</h4>
+                </div>
+                <p>${a.speedTip || ''}</p>
+            </div>
+            <div class="coach-card" style="margin-bottom:0;">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#fce7f3;">🎯</div>
+                    <h4>Accuracy Tip</h4>
+                </div>
+                <p>${a.accuracyTip || ''}</p>
+            </div>
+        </div>`;
+
+        // Drill cards
+        if (a.drills && a.drills.length > 0) {
+            html += `
+            <div class="coach-card">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#d1fae5;">🏋️</div>
+                    <h4>Finger Drill Exercises</h4>
+                </div>`;
+            a.drills.forEach((d, i) => {
+                html += `
+                <div class="drill-card">
+                    <div class="drill-name">${i + 1}. ${d.name}</div>
+                    <div class="drill-text">${d.text}</div>
+                    <div class="drill-meta">× ${d.reps} reps · ${d.target}</div>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+
+        // Warmup routine
+        if (a.warmup && a.warmup.length > 0) {
+            html += `
+            <div class="coach-card">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#ede9fe;">🔥</div>
+                    <h4>5-Minute Warm-Up Routine</h4>
+                </div>
+                <ul class="warmup-list">
+                    ${a.warmup.map(w => `<li>${w}</li>`).join('')}
+                </ul>
+            </div>`;
+        }
+
+        // Goal
+        if (a.goalWpm || a.goalAccuracy) {
+            html += `
+            <div class="goal-bar">
+                <div class="goal-icon">🎯</div>
+                <div class="goal-text">
+                    Next Target: <strong>${a.goalWpm || '–'} WPM</strong> at <strong>${a.goalAccuracy || '–'}%</strong> accuracy
+                    <small>A realistic step up from your current performance</small>
+                </div>
+            </div>`;
+        }
+
+        coachContent.innerHTML = html;
+    }
 });

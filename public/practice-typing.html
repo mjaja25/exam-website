@@ -93,7 +93,6 @@
             font-weight: 600;
             cursor: pointer;
             margin: 0;
-            color: var(--text-color, #334155);
         }
 
         .sim-toggle small {
@@ -118,7 +117,6 @@
             margin-bottom: 1rem;
             font-family: 'Courier New', monospace;
             font-size: 1rem;
-            color: var(--text-color, #334155);
         }
 
         .sim-engine .sim-passage {
@@ -130,8 +128,8 @@
             font-family: 'Courier New', monospace;
             font-size: 1.1rem;
             line-height: 2;
-            min-height: 180px;
-            max-height: 300px;
+            min-height: 200px;
+            max-height: 350px;
             overflow-y: auto;
         }
 
@@ -142,7 +140,6 @@
         .sim-engine .sim-passage span.incorrect {
             color: #dc2626;
             text-decoration: underline;
-            text-decoration-color: #dc2626;
         }
 
         .sim-engine .sim-passage span.current {
@@ -152,10 +149,10 @@
 
         .sim-engine .sim-textarea {
             width: 100%;
-            min-height: 160px;
-            padding: 1.25rem;
+            min-height: 220px;
+            padding: 1.5rem;
             font-family: 'Courier New', monospace;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             line-height: 1.8;
             border: 2px solid var(--border-color, #e2e8f0);
             border-radius: 8px;
@@ -167,6 +164,14 @@
 
         .sim-engine .sim-textarea:focus {
             border-color: var(--primary-yellow, #f59e0b);
+        }
+
+        /* --- Decorated textarea override (bigger) --- */
+        .typing-wrapper textarea {
+            min-height: 200px !important;
+            font-size: 1.1rem !important;
+            line-height: 1.8 !important;
+            padding: 1.25rem !important;
         }
 
         /* --- Admin Bypass --- */
@@ -211,8 +216,7 @@
 
         .score-hero {
             text-align: center;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 2rem 2rem 1rem;
         }
 
         .score-ring {
@@ -224,7 +228,6 @@
             align-items: center;
             justify-content: center;
             background: conic-gradient(var(--primary-yellow, #f59e0b) var(--score-deg, 0deg), var(--border-color, #e2e8f0) var(--score-deg, 0deg));
-            transition: --score-deg 1.2s ease-out;
             position: relative;
         }
 
@@ -248,7 +251,7 @@
         .score-label {
             font-size: 0.85rem;
             color: var(--text-muted, #64748b);
-            margin-top: 0.5rem;
+            margin-top: 0.25rem;
         }
 
         .stats-grid {
@@ -280,6 +283,27 @@
             letter-spacing: 0.05em;
         }
 
+        /* --- WPM Timeline Chart --- */
+        .chart-section {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-section h3 {
+            margin: 0 0 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chart-section canvas {
+            width: 100%;
+            height: 200px;
+        }
+
+        /* --- Action Buttons --- */
         .action-buttons {
             display: flex;
             gap: 1rem;
@@ -319,26 +343,181 @@
             cursor: wait;
         }
 
-        .analysis-panel {
-            background: var(--card-background, #fff);
-            border: 1px solid var(--border-color, #e2e8f0);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
+        /* --- AI Coach Panel (visual cards) --- */
+        .coach-panel {
             display: none;
-            line-height: 1.7;
-            white-space: pre-wrap;
-            font-size: 0.95rem;
+            margin-top: 2rem;
             animation: fadeInUp 0.4s ease-out;
         }
 
-        .analysis-panel.active {
+        .coach-panel.active {
             display: block;
         }
 
-        .analysis-panel h3 {
-            margin: 0 0 1rem 0;
-            color: var(--primary-yellow, #f59e0b);
+        .coach-card {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .coach-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .coach-card-header .icon {
+            font-size: 1.5rem;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .coach-card-header h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .coach-card p,
+        .coach-card li {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted, #475569);
+            line-height: 1.6;
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+
+        .level-beginner {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .level-average {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .level-proficient {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .level-advanced {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .level-expert {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        /* --- Drill Cards --- */
+        .drill-card {
+            background: var(--card-background, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .drill-card .drill-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .drill-card .drill-text {
+            font-family: 'Courier New', monospace;
+            background: var(--border-color, #e2e8f0);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+            word-break: break-all;
+        }
+
+        .drill-card .drill-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted, #64748b);
+        }
+
+        /* --- Warmup List --- */
+        .warmup-list {
+            list-style: none;
+            padding: 0;
+            counter-reset: warmup-counter;
+        }
+
+        .warmup-list li {
+            counter-increment: warmup-counter;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color, #e2e8f0);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .warmup-list li:last-child {
+            border-bottom: none;
+        }
+
+        .warmup-list li::before {
+            content: counter(warmup-counter);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary-yellow, #f59e0b);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* --- Goal Bar --- */
+        .goal-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #dbeafe, #ede9fe);
+            border-radius: 10px;
+        }
+
+        .goal-bar .goal-icon {
+            font-size: 2rem;
+        }
+
+        .goal-bar .goal-text {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .goal-bar .goal-text small {
+            display: block;
+            font-weight: 400;
+            color: #475569;
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -376,14 +555,14 @@
                 <input type="checkbox" id="true-sim-check" />
                 <div>
                     <label for="true-sim-check">True Simulation Mode</label>
-                    <small>Minimal UI, monospaced font, large textarea — emulates a real exam environment</small>
+                    <small>Minimal UI, monospaced font, large textarea — emulates a real exam</small>
                 </div>
             </div>
 
             <button class="primary start-btn" onclick="launchPractice()">Launch Practice Session</button>
         </div>
 
-        <!-- DECORATED ENGINE (uses standard test styling) -->
+        <!-- DECORATED ENGINE (styled like standard test) -->
         <div id="decorated-engine" class="hidden">
             <div class="test-container">
                 <header class="test-header desktop-only">
@@ -410,7 +589,7 @@
 
                 <div class="typing-wrapper">
                     <div id="dec-passage" class="passage-card">Loading passage...</div>
-                    <textarea id="dec-input" rows="5" placeholder="Start typing here..." autocomplete="off"
+                    <textarea id="dec-input" rows="8" placeholder="Start typing here..." autocomplete="off"
                         autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
                 </div>
 
@@ -420,7 +599,7 @@
             </div>
         </div>
 
-        <!-- TRUE SIMULATION ENGINE (minimal, monospace, large) -->
+        <!-- TRUE SIMULATION ENGINE -->
         <div id="sim-engine" class="sim-engine hidden">
             <div class="sim-stats">
                 <span>Time: <strong id="sim-timer">02:00</strong></span>
@@ -466,15 +645,21 @@
             </div>
         </div>
 
+        <!-- WPM Timeline Chart -->
+        <div class="chart-section">
+            <h3>📈 WPM Over Time</h3>
+            <canvas id="wpm-chart" width="800" height="200"></canvas>
+        </div>
+
         <div class="action-buttons">
             <button class="btn-analyze" id="analyze-btn">🤖 Get AI Typing Coach</button>
             <button onclick="location.reload()">🔄 Try Again</button>
             <button onclick="location.href='/dashboard.html'">🏠 Dashboard</button>
         </div>
 
-        <div id="analysis-panel" class="analysis-panel">
-            <h3>🤖 AI Typing Coach</h3>
-            <div id="analysis-content"></div>
+        <!-- AI Coach Panel (visual cards) -->
+        <div id="coach-panel" class="coach-panel">
+            <div id="coach-content"></div>
         </div>
     </div>
 
