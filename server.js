@@ -777,6 +777,59 @@ Format your response in clean sections with headers. Be encouraging but honest.
     }
 });
 
+// --- AI Typing Coach (personalized improvement advice) ---
+app.post('/api/practice/typing-analyze', authMiddleware, async (req, res) => {
+    try {
+        const { wpm, accuracy, totalChars, correctChars, errorCount, duration, errorDetails } = req.body;
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const analysisPrompt = `
+You are a professional typing coach. A student just completed a typing practice session. Analyze their performance and provide detailed, personalized coaching.
+
+**Session Metrics:**
+- Words Per Minute (WPM): ${wpm}
+- Accuracy: ${accuracy}%
+- Total Characters Typed: ${totalChars}
+- Correct Characters: ${correctChars}
+- Errors Made: ${errorCount}
+- Session Duration: ${duration} seconds
+
+${errorDetails ? `**Common Mistake Patterns:**\n${errorDetails}` : ''}
+
+Provide a DETAILED coaching analysis that includes:
+
+1. **Performance Summary** — Rate their speed and accuracy. Compare to benchmarks:
+   - Beginner: < 20 WPM
+   - Average: 20-40 WPM
+   - Proficient: 40-60 WPM
+   - Advanced: 60-80 WPM
+   - Expert: 80+ WPM
+
+2. **Speed Analysis** — Specific advice on improving typing speed. Mention touch-typing techniques if WPM is low.
+
+3. **Accuracy Analysis** — If accuracy is below 95%, give targeted advice. If error patterns are provided, point out specific problem areas (e.g., "You frequently mistype 'e' as 'r' — these keys are adjacent, slow down on the top row").
+
+4. **Personalized Drills** — Suggest 2-3 specific exercises:
+   - For low WPM: recommend home-row drills, common word practice
+   - For low accuracy: recommend slow-and-steady practice, problem-key focus
+   - For good performance: recommend advanced exercises to push further
+
+5. **Goal Setting** — Set a realistic next target (e.g., "Aim for ${Math.round(wpm * 1.15)} WPM at ${Math.min(99, accuracy + 2)}% accuracy in your next session").
+
+Be encouraging and specific. Use clear sections with headers.
+        `;
+
+        const result = await model.generateContent(analysisPrompt);
+        const analysisText = result.response.text();
+
+        res.json({ success: true, analysis: analysisText });
+
+    } catch (error) {
+        console.error('Typing Analysis Error:', error);
+        res.status(500).json({ message: 'Failed to generate typing analysis.' });
+    }
+});
+
 app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
         const result = await TestResult.findOne({

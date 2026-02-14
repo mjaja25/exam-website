@@ -1573,6 +1573,15 @@ body.test-page {
     border-radius: 12px;
     padding: 1.5rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* ADD THESE THREE LINES */
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.practice-item button {
+    /* ADD THIS LINE */
+    margin-top: auto;
 }
 
 .practice-item:hover {
