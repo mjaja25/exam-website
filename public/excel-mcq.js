@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
     const sessionId = localStorage.getItem('currentSessionId');
-    
+
     let questions = [];
     let currentIdx = 0;
     let userAnswers = {}; // Stores { questionId: selectedIndex }
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Render Question
     function renderQuestion() {
         const q = questions[currentIdx];
-        
+
         // Safety check: if questions didn't load properly
         if (!q) {
             questionArea.innerHTML = `<div class="error">Error: Question data is missing.</div>`;
@@ -82,12 +82,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentIdx === questions.length - 1) {
             const hasAnswered = userAnswers[questions[currentIdx]._id] !== undefined;
             if (!hasAnswered) {
-                alert("Please select an answer before submitting.");
+                if (typeof showToast === 'function') showToast('Please select an answer before submitting.', 'info');
                 return;
             }
             // >>> THIS CALLS THE API <<<
-            submitExam(); 
-            return; 
+            submitExam();
+            return;
         }
 
         // B. Otherwise, it just goes to the next question
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateButtons() {
         // Disable Previous on first slide
         prevBtn.disabled = (currentIdx === 0);
-        
+
         // Change Next to "Finish" on last slide
         if (currentIdx === questions.length - 1) {
             nextBtn.innerText = "Finish & Submit";
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                alert("Time is up! Submitting your answers.");
+                if (typeof showToast === 'function') showToast('Time is up! Submitting your answers.', 'info');
                 submitExam();
             }
         }, 1000);
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 window.location.href = '/results-new.html';
             } else {
-                alert("Submission failed. Please contact admin.");
+                if (typeof showToast === 'function') showToast('Submission failed. Please contact admin.', 'error');
             }
         } catch (err) {
             console.error(err);

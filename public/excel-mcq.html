@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,18 +8,75 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="results.css">
     <style>
-        .mcq-container { max-width: 800px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .question-box { margin-bottom: 2rem; display: none; }
-        .question-box.active { display: block; }
-        .options-grid { display: grid; gap: 1rem; margin-top: 1.5rem; }
-        .option-btn { padding: 1rem; border: 2px solid #e2e8f0; border-radius: 8px; background: none; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
-        .option-btn:hover { border-color: #3b82f6; background: #eff6ff; }
-        .option-btn.selected { border-color: #3b82f6; background: #3b82f6; color: white; }
-        .timer-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 1rem; }
-        .timer-progress { height: 100%; background: #ef4444; width: 100%; transition: width 1s linear; }
-        .nav-buttons { display: flex; justify-content: space-between; margin-top: 2rem; }
+        .mcq-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .question-box {
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .question-box.active {
+            display: block;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .option-btn {
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .option-btn.selected {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: white;
+        }
+
+        .timer-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: #ef4444;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
     </style>
 </head>
+
 <body>
     <header class="test-header">
         <div class="logo">Dream Centre <span>Proficiency Portal</span></div>
@@ -34,7 +92,7 @@
             <div id="progress-text" style="font-weight: bold; margin-bottom: 10px;">
                 Question 1 of 10
             </div>
-            
+
             <div id="question-area">
                 <div class="loading">Fetching your curated exam set...</div>
             </div>
@@ -46,6 +104,8 @@
         </div>
     </main>
 
+    <script src="toast.js"></script>
     <script src="excel-mcq.js"></script>
 </body>
+
 </html>

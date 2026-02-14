@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,6 +10,7 @@
     <script src="/test-ui.js" defer></script>
     <script src="/disable-back.js" defer></script>
 </head>
+
 <body class="test-page letter-page">
     <header class="mobile-header">
         <span id="mobile-stage-title">Stage 2: Letter</span>
@@ -23,7 +25,7 @@
             <div class="progress-container">
                 <div id="progress-bar" class="progress-bar"></div>
             </div>
-             <div class="timer-display">
+            <div class="timer-display">
                 <span>Time Left:</span>
                 <strong id="timer">3:00</strong>
             </div>
@@ -56,16 +58,18 @@
                 <div id="user-input" class="text-editor" contenteditable="true"></div>
             </div>
         </div>
-        
+
         <footer class="test-footer">
             <button id="submit-btn" class="submit-btn-main">Submit & Proceed</button>
         </footer>
     </main>
 
+    <script src="toast.js"></script>
     <script src="letter.js"></script>
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="spinner"></div>
         <p>Submitting letter, please wait...</p>
     </div>
 </body>
+
 </html>

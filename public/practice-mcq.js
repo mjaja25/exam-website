@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!res.ok) throw new Error("Could not load practice set");
             questions = await res.json();
-            
+
             selectionView.classList.add('hidden');
             questionView.classList.remove('hidden');
             renderQuestion();
         } catch (err) {
-            alert(err.message);
+            if (typeof showToast === 'function') showToast(err.message, 'error');
         }
     };
 
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = questions[currentIdx];
         const buttons = optionsContainer.querySelectorAll('.option-btn');
         const feedbackMsg = document.getElementById('feedback-msg');
-        
+
         // Disable all buttons to prevent double-clicking
         buttons.forEach(btn => btn.disabled = true);
 

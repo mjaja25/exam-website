@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Dynamic URL & Element Grabbing ---
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
-    
+
     const resultsTitle = document.getElementById('results-title');
     const totalScoreCircle = document.getElementById('total-score-circle');
     const scoreValueElement = document.getElementById('score-value');
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chartCanvas = document.getElementById('skills-chart-canvas');
     const legendContainer = document.getElementById('chart-legend');
     const detailsContainer = document.getElementById('test-details-container');
-    
+
     const token = localStorage.getItem('token');
 
     // >>> FIX STARTS HERE <<<
@@ -22,14 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Main Fetch Function ---
     async function fetchSessionResults() {
         if (!sessionId) {
-            if(detailsContainer) detailsContainer.innerHTML = "<p>Session ID not found. Please start a new test from your dashboard.</p>";
+            if (detailsContainer) detailsContainer.innerHTML = "<p>Session ID not found. Please start a new test from your dashboard.</p>";
             return;
         }
         try {
             const response = await fetch(`${API_BASE_URL}/api/results/${sessionId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             // Check if response is okay
             if (!response.ok) {
                 const err = await response.json();
@@ -37,33 +37,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            
+
             // Process results as a single object
             await displayResults(data);
-            
+
             // Call the restored percentile route
             fetchPercentile(sessionId);
 
         } catch (error) {
             console.error("Result Fetch Error:", error);
-            if(detailsContainer) detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
+            if (detailsContainer) detailsContainer.innerHTML = `<p>Error loading results: ${error.message}</p>`;
         }
     }
-    
+
     // ... rest of your file (displayResults, fetchPercentile, etc.) ...
 
     // Generate PDF
     async function generatePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         doc.setFontSize(20);
         doc.text("Test Performance Report", 20, 20);
         doc.setFontSize(12);
         doc.text(`User ID: ${localStorage.getItem('userId')}`, 20, 40);
         doc.text(`Score: ${currentResult.score}/20`, 20, 50);
         doc.text(`Feedback: ${currentResult.feedback}`, 20, 60, { maxWidth: 170 });
-        
+
         doc.save("performance_report.pdf");
     }
 
@@ -133,25 +133,40 @@ document.addEventListener('DOMContentLoaded', () => {
     async function displayResults(data) {
         // Identify the Pattern from the single object
         const pattern = data.testPattern || 'standard';
-        
+
         // Use direct field names from your TestResult model
         const typingScore = Math.round(data.typingScore || 0);
         const letterScore = Math.round(data.letterScore || 0);
-        const excelScore  = Math.round(data.excelScore || 0);
-        const totalScore  = Math.round(data.totalScore || (typingScore + letterScore + excelScore));
+        const excelScore = Math.round(data.excelScore || 0);
+        const totalScore = Math.round(data.totalScore || (typingScore + letterScore + excelScore));
 
-        // Update Overall Score Display
-        if (scoreValueElement) scoreValueElement.textContent = totalScore;
-        
+        // Update Overall Score Display with animation
+        if (scoreValueElement) {
+            // Animate number counting up
+            const startTime = performance.now();
+            const duration = 1200;
+            const countUp = (now) => {
+                const progress = Math.min((now - startTime) / duration, 1);
+                scoreValueElement.textContent = Math.round(totalScore * progress);
+                if (progress < 1) requestAnimationFrame(countUp);
+            };
+            requestAnimationFrame(countUp);
+        }
+
         if (resultsTitle) {
-            if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; } 
-            else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; } 
+            if (totalScore >= 40) { resultsTitle.textContent = 'Excellent Performance!'; resultsTitle.style.color = '#4ade80'; }
+            else if (totalScore >= 25) { resultsTitle.textContent = 'Great Effort!'; resultsTitle.style.color = '#f59e0b'; }
             else { resultsTitle.textContent = 'Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
         }
-        
+
         if (totalScoreCircle) {
+            // Use CSS @property --score-deg for smooth animated ring
             const scoreDegrees = (totalScore / 50) * 360;
-            totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) ${scoreDegrees}deg, var(--border-color, #eee) ${scoreDegrees}deg)`;
+            totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) var(--score-deg), var(--border-color, #eee) var(--score-deg))`;
+            // Trigger the transition after a tiny delay
+            requestAnimationFrame(() => {
+                totalScoreCircle.style.setProperty('--score-deg', scoreDegrees + 'deg');
+            });
         }
 
         try {
@@ -159,9 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const allStats = await statsRes.json();
-            
+
             // >>> USE ONLY STANDARD STATS <<<
-            const stats = allStats.standard; 
+            const stats = allStats.standard;
 
             // Data for Chart
             const labels = ['Typing', 'Letter', 'Excel'];
@@ -185,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (err) { console.error("Chart Error:", err); }
-        
+
         // --- DETAILED REPORT (Unified Logic) ---
         let detailsHtml = `
             <div class="test-block">
@@ -222,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- CONDITIONAL CONFETTI (FIXED) ---
         // Check if the URL has a sessionId (Meaning the user clicked "View" from Dashboard history)
         const urlParams = new URLSearchParams(window.location.search);
-        const isHistoryView = urlParams.has('sessionId'); 
+        const isHistoryView = urlParams.has('sessionId');
 
         // ONLY trigger celebration if it's a fresh test
         if (!isHistoryView) {
@@ -230,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    
+
 
     function formatLetterFeedback(feedback) {
         if (!feedback || feedback === 'N/A') return '<p>No feedback available.</p>';
@@ -285,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const lb = await res.json();
             const leaders = lb['std_overall'] || [];
-            
+
             // Check if user's score matches any of the top scores
             const isTopScorer = leaders.some(l => Math.round(l.totalScore) === Math.round(score));
 
@@ -333,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Select the right category to compare against
             const categoryKey = pattern === 'new_pattern' ? 'new_overall' : 'std_overall';
             const topPerformers = data[categoryKey];
-            
+
             if (!topPerformers || topPerformers.length === 0) return;
 
             const topScore = topPerformers[0].totalScore;

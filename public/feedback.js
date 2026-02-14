@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ feedbackType, message })
             });
             const data = await response.json();
-            alert(data.message);
+            if (typeof showToast === 'function') showToast(data.message, 'success');
             if (response.ok) {
                 window.location.href = '/dashboard.html';
             }
         } catch (error) {
-            alert('An error occurred. Please try again.');
+            if (typeof showToast === 'function') showToast('An error occurred. Please try again.', 'error');
         }
     });
 });

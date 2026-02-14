@@ -1,22 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Typing Practice | Dream Centre</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .practice-config { max-width: 600px; margin: 4rem auto; padding: 2.5rem; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
-        .config-group { margin-bottom: 2rem; text-align: left; }
-        .config-group label { display: block; margin-bottom: 0.75rem; font-weight: 600; color: #475569; }
-        .selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .select-btn { padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; transition: 0.2s; font-weight: 500; }
-        .select-btn:hover { border-color: #3b82f6; color: #3b82f6; }
-        .select-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-        .start-btn { width: 100%; padding: 1rem; margin-top: 1rem; font-size: 1.1rem; }
-        .hidden { display: none !important; }
+        .practice-config {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .config-group {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .config-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .selector-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .select-btn {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .select-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .select-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
+
 <body class="dashboard-page">
     <header class="test-header">
         <div class="logo">Typing <span>Practice Zone</span></div>
@@ -26,7 +78,7 @@
     <main class="container">
         <div id="config-view" class="practice-config">
             <h2 style="margin-bottom: 1.5rem;">Configure Your Session</h2>
-            
+
             <div class="config-group">
                 <label>Test Duration</label>
                 <div class="selector-grid">
@@ -59,6 +111,8 @@
         </div>
     </main>
 
+    <script src="toast.js"></script>
     <script src="practice-typing.js"></script>
 </body>
+
 </html>

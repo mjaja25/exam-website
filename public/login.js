@@ -21,8 +21,9 @@ peekButton.addEventListener('click', () => {
 });
 
 // --- Mobile Warning (Correct Placement) ---
+const mobileWarning = document.getElementById('mobile-warning');
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-if (isMobile) {
+if (isMobile && mobileWarning) {
     mobileWarning.style.display = 'block'; // Show the banner
     document.body.classList.add('mobile-warning-active'); // Add padding to the body
 }
@@ -41,7 +42,7 @@ loginForm.addEventListener('submit', async (event) => {
             body: JSON.stringify({ email, password })
         });
         const data = await response.json();
-        
+
         if (response.ok) {
             localStorage.setItem('token', data.token);
             window.location.href = '/dashboard.html';

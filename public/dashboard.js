@@ -2,17 +2,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Dynamic URL Config ---
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const API_BASE_URL = isLocal ? 'http://localhost:3000' : '';
-    
+
     // --- Element Grabbing ---
     const welcomeHeader = document.getElementById('welcome-header');
     const logoutBtn = document.getElementById('logout-btn');
     const adminBtn = document.getElementById('admin-btn');
-    const startTestBtn = document.getElementById('open-exam-modal-btn'); 
+    const startTestBtn = document.getElementById('open-exam-modal-btn');
     const resultsSummary = document.getElementById('results-summary');
     const token = localStorage.getItem('token');
-    
+
     // Modals
-    const patternModal = document.getElementById('pattern-modal'); 
+    const patternModal = document.getElementById('pattern-modal');
 
     // --- 1. Mobile Warning Logic ---
     const mobileWarning = document.getElementById('mobile-warning');
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cat = categories[currentCategoryIndex];
                 const winners = data[cat.key] ? data[cat.key].slice(0, 3) : [];
                 const podium = document.getElementById('carousel-winners');
-                
+
                 if (document.getElementById('carousel-title')) {
                     document.getElementById('carousel-title').innerText = cat.label;
                 }
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         return `
-                            <div class="winner-entry rank-${i+1}">
+                            <div class="winner-entry rank-${i + 1}">
                                 <span class="medal">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
                                 <span class="username">${w.user?.username || 'Anonymous'}</span>
                                 <span class="score-val">${Math.round(displayVal)} <small>${unit}</small></span>
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 2. Navigation & Selection ---
-    
+
     window.openExamModal = () => {
         if (patternModal) patternModal.style.display = 'flex';
     };
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 4. Data Fetching & Display ---
-    
+
     async function fetchDashboardData() {
         if (!token) {
             window.location.href = '/login.html';
@@ -135,31 +135,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (!response.ok) throw new Error(data.message);
-            
+
             if (data.user) {
                 welcomeHeader.textContent = `Welcome, ${data.user.username}!`;
                 if (data.user.role === 'admin') adminBtn.style.display = 'inline-block';
             }
-            
+
             displaySimpleResults(data.results);
             startLeaderboardCarousel();
         } catch (error) {
             console.error('Error loading dashboard:', error);
         }
     }
-    
+
     function displaySimpleResults(results) {
         if (!results || results.length === 0) {
             resultsSummary.innerHTML = '<tr><td colspan="4">You have no past results.</td></tr>';
             return;
         }
 
-        resultsSummary.innerHTML = ''; 
+        resultsSummary.innerHTML = '';
 
         results.forEach(session => {
             const total = Math.round(session.totalScore || 0);
             const date = new Date(session.submittedAt).toLocaleDateString();
             const patternLabel = session.testPattern === 'new_pattern' ? '10+5' : 'Std';
+            const maxScore = session.testPattern === 'new_pattern' ? 50 : 50;
             const sessionId = session.sessionId;
             const pattern = session.testPattern || 'standard';
 
@@ -167,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tableRow.innerHTML = `
                 <td>${date}</td>
                 <td>${patternLabel}</td>
-                <td><strong>${total} / 50</strong></td>
+                <td><strong>${total} / ${maxScore}</strong></td>
                 <td>
                     <button class="view-results-btn" onclick="viewResult('${sessionId}', '${pattern}')">
                         View
@@ -193,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target == patternModal) window.closeModal();
     };
 

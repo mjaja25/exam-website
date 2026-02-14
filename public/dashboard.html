@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
 </head>
+
 <body class="dashboard-page">
     <header class="dashboard-header">
         <div class="page-wrap dashboard-header-inner">
@@ -45,7 +47,23 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="results-summary"></tbody>
+                    <tbody id="results-summary">
+                        <tr class="skeleton-row">
+                            <td colspan="4">
+                                <div class="skeleton skeleton-text" style="width:90%;margin:auto"></div>
+                            </td>
+                        </tr>
+                        <tr class="skeleton-row">
+                            <td colspan="4">
+                                <div class="skeleton skeleton-text medium" style="margin:auto"></div>
+                            </td>
+                        </tr>
+                        <tr class="skeleton-row">
+                            <td colspan="4">
+                                <div class="skeleton skeleton-text short" style="margin:auto"></div>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -76,7 +94,11 @@
         <div id="leaderboard-carousel" class="carousel-card" onclick="location.href='/leaderboards.html'">
             <div id="carousel-content">
                 <h4 id="carousel-title">Standard Test: Overall Top 3</h4>
-                <div id="carousel-winners" class="winners-flex"></div>
+                <div id="carousel-winners" class="winners-flex">
+                    <div class="skeleton skeleton-text" style="width:60px;height:3rem"></div>
+                    <div class="skeleton skeleton-text" style="width:60px;height:4rem"></div>
+                    <div class="skeleton skeleton-text" style="width:60px;height:3rem"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -88,19 +110,26 @@
                 <button onclick="closeModal()" class="close-btn">&times;</button>
             </header>
             <div class="modal-grid" style="display: grid; gap: 1rem; padding: 1rem 0;">
-                <div class="option-card" onclick="handleExamSelection('new_pattern')" style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
+                <div class="option-card" onclick="handleExamSelection('new_pattern')"
+                    style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
                     <h4 style="margin:0; color: #3b82f6;">New NSSB Pattern (10+5)</h4>
-                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">10m Typing + 5m Excel MCQ. Aligned with 2025 guidelines.</p>
+                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">10m Typing + 5m Excel MCQ. Aligned with 2025
+                        guidelines.</p>
                 </div>
-                <div class="option-card" onclick="handleExamSelection('standard')" style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
+                <div class="option-card" onclick="handleExamSelection('standard')"
+                    style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
                     <h4 style="margin:0;">Standard CPT (3-Stage)</h4>
-                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">Typing + Letter + Practical Excel. Comprehensive proficiency test.</p>
+                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">Typing + Letter + Practical Excel. Comprehensive
+                        proficiency test.</p>
                 </div>
             </div>
-            <p style="font-size: 0.8rem; color: #64748b; text-align: center;">Note: Refreshing is disabled once the exam starts.</p>
+            <p style="font-size: 0.8rem; color: #64748b; text-align: center;">Note: Refreshing is disabled once the exam
+                starts.</p>
         </div>
     </div>
 
+    <footer class="site-footer">Built with ❤️ for <strong>Dream Centre</strong></footer>
     <script src="dashboard.js"></script>
 </body>
+
 </html>

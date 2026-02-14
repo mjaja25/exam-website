@@ -20,15 +20,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log("Full Result Data Received:", data); // Troubleshooting log
 
-        // 1. Render Score and Progress Circle
+        // 1. Render Score and Progress Circle with animation
         const total = Math.round(data.totalScore || 0);
         const scoreDisplay = document.getElementById('total-score-display');
-        if (scoreDisplay) scoreDisplay.innerText = total;
-        
+        if (scoreDisplay) {
+            const startTime = performance.now();
+            const duration = 1200;
+            const countUp = (now) => {
+                const progress = Math.min((now - startTime) / duration, 1);
+                scoreDisplay.innerText = Math.round(total * progress);
+                if (progress < 1) requestAnimationFrame(countUp);
+            };
+            requestAnimationFrame(countUp);
+        }
+
         const circle = document.getElementById('total-score-circle');
         if (circle) {
             const degrees = (total / 50) * 360;
-            circle.style.background = `conic-gradient(#fbbf24 ${degrees}deg, #eee ${degrees}deg)`;
+            circle.style.background = `conic-gradient(#fbbf24 var(--score-deg), #eee var(--score-deg))`;
+            requestAnimationFrame(() => {
+                circle.style.setProperty('--score-deg', degrees + 'deg');
+            });
         }
 
         // 2. Render Breakdown Cards
@@ -43,14 +55,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // >>> ADD THIS CELEBRATION LOGIC HERE <<<
         // if (typeof confetti === 'function') {
         //     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); // Instant Pop
-            
+
         //     // Check Leaderboard for Fireworks
         //     fetch('/api/leaderboard/all', { headers: { 'Authorization': `Bearer ${token}` } })
         //     .then(res => res.json())
         //     .then(lb => {
         //         const leaders = lb['new_overall'] || [];
         //         const total = Math.round(data.totalScore || 0);
-                
+
         //         if (leaders.some(l => Math.round(l.totalScore) === total)) {
         //             // Fireworks Loop
         //             let duration = 3000;
@@ -83,20 +95,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 data: {
                     labels: ['Typing', 'Excel MCQ'],
                     datasets: [
-                        { 
-                            label: 'You', 
-                            data: [data.typingScore || 0, data.mcqScore || 0], 
-                            backgroundColor: '#fbbf24', borderRadius: 5 
+                        {
+                            label: 'You',
+                            data: [data.typingScore || 0, data.mcqScore || 0],
+                            backgroundColor: '#fbbf24', borderRadius: 5
                         },
-                        { 
-                            label: 'Avg', 
-                            data: [Math.round(stats.avgTyping || 0), Math.round(stats.avgMCQ || 0)], 
-                            backgroundColor: '#9ca3af', borderRadius: 5 
+                        {
+                            label: 'Avg',
+                            data: [Math.round(stats.avgTyping || 0), Math.round(stats.avgMCQ || 0)],
+                            backgroundColor: '#9ca3af', borderRadius: 5
                         },
-                        { 
-                            label: 'Top', 
-                            data: [stats.maxTyping || 0, stats.maxMCQ || 0], 
-                            backgroundColor: '#10b981', borderRadius: 5 
+                        {
+                            label: 'Top',
+                            data: [stats.maxTyping || 0, stats.maxMCQ || 0],
+                            backgroundColor: '#10b981', borderRadius: 5
                         }
                     ]
                 },
@@ -114,24 +126,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!isHistoryView && typeof confetti === 'function') {
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-            
+
             // Fireworks Logic (Only if fresh result)
             fetch('/api/leaderboard/all', { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(res => res.json())
-            .then(lb => {
-                const leaders = lb['new_overall'] || [];
-                const total = Math.round(data.totalScore || 0);
-                if (leaders.some(l => Math.round(l.totalScore) === total)) {
-                    // ... Launch Fireworks ...
-                    let duration = 3000;
-                    let end = Date.now() + duration;
-                    (function frame() {
-                        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-                        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-                        if (Date.now() < end) requestAnimationFrame(frame);
-                    }());
-                }
-            });
+                .then(res => res.json())
+                .then(lb => {
+                    const leaders = lb['new_overall'] || [];
+                    const total = Math.round(data.totalScore || 0);
+                    if (leaders.some(l => Math.round(l.totalScore) === total)) {
+                        // ... Launch Fireworks ...
+                        let duration = 3000;
+                        let end = Date.now() + duration;
+                        (function frame() {
+                            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+                            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+                            if (Date.now() < end) requestAnimationFrame(frame);
+                        }());
+                    }
+                });
         }
 
         // wpm and accuracy
@@ -205,11 +217,11 @@ function renderMcq() {
         <p class="q-text">${q.questionText}</p>
         <div class="opt-list">
             ${q.options.map((opt, i) => {
-                let cls = 'opt-box';
-                if (i === q.correctAnswer) cls += ' correct-box';
-                if (i === q.userAnswer && !isCorrect) cls += ' wrong-box';
-                return `<div class="${cls}">${String.fromCharCode(65 + i)}. ${opt}</div>`;
-            }).join('')}
+        let cls = 'opt-box';
+        if (i === q.correctAnswer) cls += ' correct-box';
+        if (i === q.userAnswer && !isCorrect) cls += ' wrong-box';
+        return `<div class="${cls}">${String.fromCharCode(65 + i)}. ${opt}</div>`;
+    }).join('')}
         </div>
     `;
     if (counter) counter.innerText = `Question ${currentIdx + 1} of ${mcqData.length}`;

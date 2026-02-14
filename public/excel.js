@@ -30,12 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Could not fetch question.');
-            
+
             const question = await response.json();
             questionNameElement.textContent = question.questionName;
             downloadBtn.href = question.questionFilePath; // Set the correct Cloudinary download link
             currentQuestionId = question._id;
-            
+
             downloadBtn.removeAttribute('disabled');
             // Start the timer as usual
             startTimer();
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         if (testInProgress) return;
         testInProgress = true;
-        
+
         const startTime = new Date().getTime();
         const totalDuration = 420 * 1000; // 5 minutes in milliseconds
 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return;
             }
-            
+
             // --- Progress Bar Animation Logic (Correct Placement) ---
             const stageBasePercent = 66.66;
             const stageDurationPercent = (timeElapsed / totalDuration) * 33.34;
@@ -75,9 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
             const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
             const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if(timerElement) timerElement.textContent = formattedTime;
-            if(mobileTimerElement) mobileTimerElement.textContent = formattedTime;
+
+            if (timerElement) timerElement.textContent = formattedTime;
+            if (mobileTimerElement) mobileTimerElement.textContent = formattedTime;
         }, 1000);
     }
 
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Temporarily remove the warning so the download can start without a pop-up.
         window.removeEventListener('beforeunload', handleBeforeUnload);
 
-        
+
 
         // Re-add the warning immediately after. This happens so fast the user won't notice,
         // but it re-enables protection for any future accidental refreshes.
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const submitButton = excelForm.querySelector('button[type="submit"]');
         const loadingOverlay = document.getElementById('loading-overlay');
         submitButton.disabled = true;
-        if(loadingOverlay) loadingOverlay.style.display = 'flex';
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
         const sessionId = localStorage.getItem('currentSessionId');
         const formData = new FormData();
@@ -120,10 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             window.location.href = '/results.html';
         } catch (error) {
-            if(loadingOverlay) loadingOverlay.style.display = 'none';
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
             submitButton.disabled = false;
             window.addEventListener('beforeunload', handleBeforeUnload);
-            alert('File upload failed! Please try again.');
+            if (typeof showToast === 'function') showToast('File upload failed! Please try again.', 'error');
         }
     });
 

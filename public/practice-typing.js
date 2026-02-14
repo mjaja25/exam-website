@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration State ---
     let selectedTime = 120; // Default 2 mins
     let selectedDiff = 'easy';
-    
+
     // --- Engine Elements ---
     const configView = document.getElementById('config-view');
     const engineView = document.getElementById('practice-engine');
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.launchPractice = async () => {
         configView.classList.add('hidden');
         engineView.classList.remove('hidden');
-        
+
         // Fetch passage based on difficulty (New API endpoint suggested)
         await loadPassage(selectedDiff);
         startPracticeTimer(selectedTime);
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
-            
+
             passageDisplay.innerHTML = data.content.split('').map(char => `<span>${char}</span>`).join('');
             passageDisplay.querySelector('span').classList.add('current');
             userInput.focus();
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (timeLeft <= 0) {
                 clearInterval(interval);
-                alert("Practice Session Finished!");
+                if (typeof showToast === 'function') showToast('Practice Session Finished!', 'success');
                 location.reload(); // Returns to config screen
             }
         }, 1000);

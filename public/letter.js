@@ -26,12 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         event.returnValue = '';
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     // block ctrl
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey) {
             e.preventDefault();
-            alert("Shortcuts (Ctrl key) are disabled for this test.");
+            if (typeof showToast === 'function') showToast('Shortcuts (Ctrl key) are disabled for this test.', 'info');
         }
     });
 
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         if (testInProgress) return;
         testInProgress = true;
-        
+
         const startTime = new Date().getTime();
         const totalDuration = 180 * 1000; // 5 minutes in milliseconds
 
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 endTest();
                 return;
             }
-            
+
             // --- Progress Bar Animation Logic for Stage 2 ---
             const stageBasePercent = 33.33;
             const stageDurationPercent = (timeElapsed / totalDuration) * 33.33;
@@ -79,9 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
             const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
             const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if(timerElement) timerElement.textContent = formattedTime;
-            if(mobileTimerElement) mobileTimerElement.textContent = formattedTime;
+
+            if (timerElement) timerElement.textContent = formattedTime;
+            if (mobileTimerElement) mobileTimerElement.textContent = formattedTime;
         }, 1000);
     }
 
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // submission css overlay
         const loadingOverlay = document.getElementById('loading-overlay');
-        if(loadingOverlay) loadingOverlay.style.display = 'flex';
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
         // 2. Data Preparation
         // innerHTML is crucial here to capture the <span> indent from Step 1
@@ -158,11 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` // Using your existing token variable
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     content: letterContent,
                     sessionId: sessionId,
                     // Ensure currentQuestionId is defined in your outer scope
-                    questionId: currentQuestionId 
+                    questionId: currentQuestionId
                 })
             });
 
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('beforeunload', handleBeforeUnload);
             submitBtn.disabled = false;
             userInputElement.contentEditable = true;
-            alert('An error occurred while submitting. Please try again.');
+            if (typeof showToast === 'function') showToast('An error occurred while submitting. Please try again.', 'error');
             console.error("Submission error:", error);
         }
     }
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         });
     });
-    
+
     // --- Editor Toolbar Logic ---
     boldBtn.addEventListener('click', () => document.execCommand('bold'));
     italicBtn.addEventListener('click', () => document.execCommand('italic'));

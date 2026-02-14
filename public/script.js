@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (timerElement && currentPattern === 'new_pattern') {
         timerElement.innerText = "10:00";
     }
-    
+
     let timerInterval;
     let testInProgress = false;
     let currentPassage = '';
@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Main Test Functions ---
     async function loadNewPassage() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/passages/random`, { 
-                headers: { 'Authorization': `Bearer ${token}` } 
+            const response = await fetch(`${API_BASE_URL}/api/passages/random`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Could not fetch passage.');
             const passageData = await response.json();
@@ -63,13 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleInput() {
         if (!testInProgress) startTimer();
-        
+
         const passageChars = passageDisplayElement.querySelectorAll('span');
         const userChars = userInputElement.value.split('');
-        
+
         const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
         let correctChars = 0;
-        
+
         passageChars.forEach((charSpan, index) => {
             const userChar = userChars[index];
             charSpan.classList.remove('current');
@@ -84,12 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 charSpan.classList.remove('correct');
             }
         });
-        
+
         if (timeElapsedMinutes > 0) {
             wpmElement.textContent = Math.round((correctChars / 5) / timeElapsedMinutes);
             accuracyElement.textContent = `${Math.round((correctChars / userChars.length) * 100)}%`;
         }
-        
+
         if (userChars.length < passageChars.length) {
             const nextCharSpan = passageChars[userChars.length];
             nextCharSpan.classList.add('current');
@@ -108,13 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // DYNAMIC TIMER LOGIC
         // Standard is 5 mins and New Pattern is 10 mins (600s). Practice can be 5 mins (300s).
-        let durationSeconds; 
+        let durationSeconds;
         if (attemptMode === 'practice') {
             durationSeconds = 300; // Practice is always 5 mins
         } else if (currentPattern === 'standard') {
-            durationSeconds = 300; // Standard Exam is 10 mins
+            durationSeconds = 300; // Standard Exam is 5 mins
         } else {
-            durationSeconds = 600; // New Pattern (10+5) Exam is 5 mins
+            durationSeconds = 600; // New Pattern (10+5) Exam is 10 mins
         }
 
         const totalDuration = durationSeconds * 1000;
@@ -127,18 +127,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 endTest();
                 return;
             }
-            
+
             // Progress bar logic (Adjusted for 3 stages in standard, 2 in new)
             const progressMultiplier = currentPattern === 'new_pattern' ? 50 : 33.33;
             const stageDurationPercent = (timeElapsed / totalDuration) * progressMultiplier;
-            if(progressBar) progressBar.style.width = `${stageDurationPercent}%`;
+            if (progressBar) progressBar.style.width = `${stageDurationPercent}%`;
 
             const minutes = Math.floor((remainingMilliseconds / 1000) / 60);
             const seconds = Math.floor((remainingMilliseconds / 1000) % 60);
             const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            if(timerElement) timerElement.textContent = formattedTime;
-            if(mobileTimerElement) mobileTimerElement.textContent = formattedTime;
+
+            if (timerElement) timerElement.textContent = formattedTime;
+            if (mobileTimerElement) mobileTimerElement.textContent = formattedTime;
+
+            // Timer pulse effect when < 30 seconds remain
+            if (remainingMilliseconds < 30000) {
+                if (timerElement) timerElement.classList.add('timer-danger');
+                if (mobileTimerElement) mobileTimerElement.classList.add('timer-danger');
+            }
         }, 1000);
     }
 
@@ -146,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
         clearInterval(timerInterval);
         userInputElement.disabled = true;
-        
+
         const timeElapsedMinutes = (new Date().getTime() - sessionStartTime) / 60000;
         const correctChars = passageDisplayElement.querySelectorAll('.correct').length;
         const totalTypedChars = userInputElement.value.length;
@@ -154,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const finalAccuracy = totalTypedChars > 0 ? Math.round((correctChars / totalTypedChars) * 100) : 100;
 
         if (attemptMode === 'practice') {
-            alert(`Practice Complete! WPM: ${finalWpm}, Accuracy: ${finalAccuracy}%`);
+            showToast(`Practice Complete! WPM: ${finalWpm}, Accuracy: ${finalAccuracy}%`, 'success');
             window.location.href = '/dashboard.html';
             return;
         }
@@ -174,22 +180,22 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetch(`${API_BASE_URL}/api/submit/typing`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 
-                    wpm: finalWpm, 
-                    accuracy: finalAccuracy, 
+                body: JSON.stringify({
+                    wpm: finalWpm,
+                    accuracy: finalAccuracy,
                     typingMarks: typingMarks.toFixed(2), // Send scaled marks
                     sessionId: sessionId,
-                    testPattern: currentPattern 
+                    testPattern: currentPattern
                 })
             });
 
             if (currentPattern === 'new_pattern') {
-                window.location.href = '/excel-mcq.html'; 
+                window.location.href = '/excel-mcq.html';
             } else {
                 window.location.href = '/letter.html';
             }
         } catch (error) {
-            alert("There was an error submitting your result.");
+            showToast('There was an error submitting your result.', 'error');
         }
     }
 
@@ -206,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === ' ') {
             e.preventDefault();
             const currentText = userInputElement.value;
-            if (currentText === '' || currentText.endsWith(' ')) return; 
+            if (currentText === '' || currentText.endsWith(' ')) return;
 
             const currentLength = currentText.length;
             let nextSpaceIndex = currentPassage.indexOf(' ', currentLength);
@@ -227,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const base64Url = token.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
 
@@ -238,11 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const userToken = localStorage.getItem('token');
+    if (token) {
+        const payload = parseJwt(token);
 
-    if (userToken) {
-        const payload = parseJwt(userToken);
-        
         // Check if the role is admin
         if (payload && payload.role === 'admin') {
             const adminDiv = document.getElementById('admin-bypass');
@@ -250,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (adminDiv) {
                 adminDiv.style.display = 'block'; // Make the button visible for admin
-                
+
                 quickSubmitBtn.addEventListener('click', () => {
                     if (confirm("Admin: End this test immediately and process current results?")) {
                         console.log("Admin bypass triggered.");
@@ -260,6 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    
+
     loadNewPassage();
 });

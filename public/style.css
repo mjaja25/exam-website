@@ -1,67 +1,76 @@
 /* --- MODERN YELLOW & DARK THEME --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
+html {
+    scroll-behavior: smooth;
+}
+
 /* --- Pico Global Styles & Refinements --- */
 /* These styles apply to the pages using Pico.css (Dashboard, Admin, etc.) */
 /* 1. Default Theme (NEW Light Mode) */
 :root {
     --primary-yellow: #f59e0b;
-    --background-color: #ffffff; /* Changed to pure white */
-    --card-background: #f9fafb; /* A very light gray for the card */
-    --text-color: #111827; /* Darker text for better contrast */
+    --background-color: #ffffff;
+    /* Changed to pure white */
+    --card-background: #f9fafb;
+    /* A very light gray for the card */
+    --text-color: #111827;
+    /* Darker text for better contrast */
     --text-muted: #6b7280;
     --border-color: #e5e7eb;
     --dark-text-on-btn: #ffffff;
 }
 
-:root{
-  --page-width: 1200px; /* or 960px, choose one */
+:root {
+    --page-width: 1200px;
+    /* or 960px, choose one */
 }
 
 /* all centered page sections */
 .container,
 main.container,
 .dashboard-content,
-.dashboard-header-inner{
-  max-width: var(--page-width);
-  margin: 0 auto;
+.dashboard-header-inner {
+    max-width: var(--page-width);
+    margin: 0 auto;
 }
 
 /* keep padding consistent */
 .dashboard-header-inner,
-.dashboard-content{
-  padding-left: 2rem;
-  padding-right: 2rem;
+.dashboard-content {
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 
 /* 2. Dark Mode Theme (Stays the same) */
 @media (prefers-color-scheme: dark) {
     :root {
         /* Deep Charcoal for the main background */
-        --background-color: #0f172a; 
-        
+        --background-color: #0f172a;
+
         /* Slightly lighter Slate for cards to create "elevation" */
-        --card-background: #1e293b; 
-        
+        --card-background: #1e293b;
+
         /* Soft white for primary text to prevent eye strain */
-        --text-color: #f8fafc; 
-        
+        --text-color: #f8fafc;
+
         /* Muted blue-gray for secondary text */
-        --text-muted: #94a3b8; 
-        
+        --text-muted: #94a3b8;
+
         /* Darker border to define card edges without being harsh */
-        --border-color: #334155; 
-        
+        --border-color: #334155;
+
         /* Adjust Primary Yellow slightly for better visibility on dark backgrounds */
-        --primary-yellow: #fbbf24; 
+        --primary-yellow: #fbbf24;
     }
+
     .feedback {
         /* Use the darker background color to create an 'inset' effect against the card */
-        background: var(--background-color); 
-        
+        background: var(--background-color);
+
         /* Ensure the border matches the dark theme palette */
         border-color: var(--border-color);
-        
+
         /* Force the text color to your soft white variable */
         color: var(--text-color);
     }
@@ -70,38 +79,113 @@ main.container,
     .excel-feedback-item div {
         color: var(--text-color);
     }
-    
+
     .feedback-remarks-title {
         color: var(--primary-yellow);
     }
 }
 
-article, table, input, button, select {
-  border-radius: var(--pico-border-radius);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+article,
+table,
+input,
+button,
+select {
+    border-radius: var(--pico-border-radius);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
 body {
-  font-family: 'Inter', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
 }
 
 
 /* --- APP-SPECIFIC STYLES (for Pico pages) --- */
-.passage span.correct { color: var(--pico-color-green-500); }
-.passage span.incorrect { color: var(--pico-color-red-600); text-decoration: underline; }
-.hidden { display: none; }
-.test-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-.results-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: center; }
-.score-summary { text-align: center; }
-.progress-circle { width: 150px; height: 150px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: conic-gradient(var(--pico-primary) 0deg, var(--pico-form-element-background-color) 0deg); margin: 0 auto 1rem; font-size: 1.2em; transition: background 1s ease-in-out; }
-.progress-circle span { font-size: 2.5em; font-weight: bold; }
-.result-card { border: 1px solid var(--pico-form-element-border-color); border-radius: var(--pico-border-radius); padding: 1rem; margin-bottom: 1rem; }
-.test-header { width: 100%; margin-bottom: 2rem; }
-.progress-container { width: 100%; background-color: var(--pico-form-element-background-color); border: 1px solid var(--pico-form-element-border-color); border-radius: var(--pico-border-radius); padding: 0.25rem; }
-.progress-bar { width: 33%; height: 1rem; background-color: var(--pico-primary); border-radius: calc(var(--pico-border-radius) / 2); transition: width 0.5s ease-in-out; }
+.passage span.correct {
+    color: var(--pico-color-green-500);
+}
+
+.passage span.incorrect {
+    color: var(--pico-color-red-600);
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none;
+}
+
+.test-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.score-summary {
+    text-align: center;
+}
+
+.progress-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: conic-gradient(var(--pico-primary) 0deg, var(--pico-form-element-background-color) 0deg);
+    margin: 0 auto 1rem;
+    font-size: 1.2em;
+    transition: background 1s ease-in-out;
+}
+
+.progress-circle span {
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+.result-card {
+    border: 1px solid var(--pico-form-element-border-color);
+    border-radius: var(--pico-border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.test-header {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.progress-container {
+    width: 100%;
+    background-color: var(--pico-form-element-background-color);
+    border: 1px solid var(--pico-form-element-border-color);
+    border-radius: var(--pico-border-radius);
+    padding: 0.25rem;
+}
+
+.progress-bar {
+    width: 33%;
+    height: 1rem;
+    background-color: var(--pico-primary);
+    border-radius: calc(var(--pico-border-radius) / 2);
+    transition: width 0.5s ease-in-out;
+}
 
 
 /* --- CUSTOM LOGIN/SIGNUP PAGE STYLES --- */
@@ -115,6 +199,7 @@ h1, h2, h3, h4, h5, h6 {
     --text-muted: #888888;
     --dark-text-on-btn: #ffffff;
 }
+
 @media (prefers-color-scheme: dark) {
     :root {
         --background-color: #121212;
@@ -124,11 +209,13 @@ h1, h2, h3, h4, h5, h6 {
         --border-color: #2e2e2e;
     }
 }
+
 body.auth-page {
     margin: 0;
     font-family: 'Poppins', sans-serif;
     display: flex;
-    flex-direction: column; /* This is the fix */
+    flex-direction: column;
+    /* This is the fix */
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -137,6 +224,7 @@ body.auth-page {
     box-sizing: border-box;
     overflow-x: hidden;
 }
+
 /* --- Animated Background --- */
 .background-shapes {
     position: absolute;
@@ -147,7 +235,9 @@ body.auth-page {
     z-index: 0;
     overflow-x: hidden;
 }
-.background-shapes::before, .background-shapes::after {
+
+.background-shapes::before,
+.background-shapes::after {
     content: '';
     position: absolute;
     width: 400px;
@@ -158,23 +248,39 @@ body.auth-page {
     opacity: 0.3;
     animation: spin 20s linear infinite;
 }
+
 .background-shapes::after {
     bottom: -100px;
     right: -100px;
     animation-delay: -10s;
 }
+
 @keyframes spin {
-    0% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.2); }
-    100% { transform: rotate(360deg) scale(1); }
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
 }
 
 /* --- Auth Card Styling --- */
-.auth-page .auth-container { position: relative; z-index: 1; padding: 1rem; }
+.auth-page .auth-container {
+    position: relative;
+    z-index: 1;
+    padding: 1rem;
+}
 
 .auth-page .auth-card {
-    width: 90%; /* This allows the card to shrink on smaller screens */
-    max-width: 420px; /* This sets a maximum size for larger screens */
+    width: 90%;
+    /* This allows the card to shrink on smaller screens */
+    max-width: 420px;
+    /* This sets a maximum size for larger screens */
     padding: 40px;
     background-color: var(--card-background);
     border-radius: 16px;
@@ -185,26 +291,42 @@ body.auth-page {
     transition: background-color 0.5s ease;
 }
 
-.auth-page .logo { width: 80px; margin-bottom: 1rem; }
-.auth-page .auth-card h2 { font-size: 2rem; font-weight: 700; margin: 0; }
-.auth-page .auth-card .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+.auth-page .logo {
+    width: 80px;
+    margin-bottom: 1rem;
+}
+
+.auth-page .auth-card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.auth-page .auth-card .subtitle {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
 
 /* --- Animated Input Fields (WITH FIX) --- */
 .auth-page .input-group {
     position: relative;
     margin-bottom: 1.5rem;
 }
+
 .auth-page .input-group input {
     width: 100%;
-    padding: 10px 40px 10px 0; /* Add 40px padding on the right for the icon */
+    padding: 10px 40px 10px 0;
+    /* Add 40px padding on the right for the icon */
     background: transparent;
     border: none;
     border-bottom: 2px solid var(--light-gray);
     color: var(--text-color);
     font-size: 1rem;
     outline: none;
-    box-sizing: border-box; /* Important for correct padding calculation */
+    box-sizing: border-box;
+    /* Important for correct padding calculation */
 }
+
 .auth-page .input-group label {
     position: absolute;
     top: 10px;
@@ -213,15 +335,18 @@ body.auth-page {
     pointer-events: none;
     transition: all 0.3s ease;
 }
-.auth-page .input-group input:focus + label,
-.auth-page .input-group input:valid + label {
+
+.auth-page .input-group input:focus+label,
+.auth-page .input-group input:valid+label {
     top: -12px;
     font-size: 0.8rem;
     color: var(--primary-yellow);
 }
+
 .auth-page .peek-button {
     position: absolute;
-    top: 10px; /* Align with the text, not the center of the group */
+    top: 10px;
+    /* Align with the text, not the center of the group */
     right: 5px;
     background: none;
     border: none;
@@ -233,7 +358,7 @@ body.auth-page {
 }
 
 /* --- Buttons and Links --- */
-.auth-page #login-form button[type="submit"], 
+.auth-page #login-form button[type="submit"],
 .auth-page #signup-form button[type="submit"] {
     width: 100%;
     max-width: 380px;
@@ -252,49 +377,96 @@ body.auth-page {
     transition: all 0.3s ease;
     margin-top: 1rem;
 }
-.auth-page #login-form button[type="submit"]:hover, 
+
+.auth-page #login-form button[type="submit"]:hover,
 .auth-page #signup-form button[type="submit"]:hover {
     box-shadow: 0 0 15px var(--primary-yellow);
     transform: translateY(-2px);
 }
-.auth-page .separator { margin: 1.5rem 0; color: var(--text-muted); }
-.auth-page .social-button { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; max-width: 380px; margin: 0 auto; box-sizing: border-box; padding: 12px; border: 1px solid var(--light-gray); border-radius: 8px; background-color: transparent; color: var(--text-color); text-decoration: none; transition: all 0.3s ease; }
-.auth-page .social-button:hover { background-color: var(--light-gray); color: var(--dark-text-on-btn)}
-.auth-page .social-button img { width: 20px; }
-.auth-page .footer-link { margin-top: 1.5rem; color: var(--text-muted); }
-.auth-page .footer-link a { color: var(--primary-yellow); text-decoration: none; }
-.auth-page .error-text { color: #ff5252; min-height: 1.2em; text-align: left; font-size: 0.9rem; }
+
+.auth-page .separator {
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+}
+
+.auth-page .social-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.auth-page .social-button:hover {
+    background-color: var(--light-gray);
+    color: var(--dark-text-on-btn)
+}
+
+.auth-page .social-button img {
+    width: 20px;
+}
+
+.auth-page .footer-link {
+    margin-top: 1.5rem;
+    color: var(--text-muted);
+}
+
+.auth-page .footer-link a {
+    color: var(--primary-yellow);
+    text-decoration: none;
+}
+
+.auth-page .error-text {
+    color: #ff5252;
+    min-height: 1.2em;
+    text-align: left;
+    font-size: 0.9rem;
+}
 
 /* --- Mobile Optimization --- */
 /* These styles will ONLY apply to screens 768px wide or smaller */
 @media (max-width: 768px) {
     body.auth-page {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: var(--background-color);
-    box-sizing: border-box;
-    overflow-x: hidden;
-}
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: var(--background-color);
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
     .auth-page .auth-card {
         width: 100%;
-        height: 100vh; /* Make the card fill the entire screen height */
+        height: 100vh;
+        /* Make the card fill the entire screen height */
         padding: 30px;
         /* border: none;
         border-radius: 0; 
         box-shadow: none; 
         backdrop-filter: none;  */
-        background-color: var(--background-color); /* Use a solid background */
-        
+        background-color: var(--background-color);
+        /* Use a solid background */
+
         /* Center the form content vertically on the mobile screen */
         display: flex;
         flex-direction: column;
         justify-content: center;
-        box-sizing: border-box; /* Ensure padding is included in height calculation */
+        box-sizing: border-box;
+        /* Ensure padding is included in height calculation */
     }
 }
 
@@ -337,12 +509,10 @@ body.auth-page {
     height: 1rem;
     border-radius: 8px;
     width: 0%;
-    background: linear-gradient(
-        90deg,
-        #ffdd57,
-        #ffc107,
-        #ff9800
-    );
+    background: linear-gradient(90deg,
+            #ffdd57,
+            #ffc107,
+            #ff9800);
     background-size: 200% 100%;
     animation: shine 2s linear infinite;
     box-shadow: 0 0 6px rgba(255, 193, 7, 0.6), inset 0 -1px 3px rgba(0, 0, 0, 0.2);
@@ -350,8 +520,13 @@ body.auth-page {
 }
 
 @keyframes shine {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 
@@ -384,18 +559,18 @@ body.dashboard-page {
     border-bottom: 1px solid var(--border-color);
 }
 
-.page-wrap{
-  width: min(100%, var(--page-width));
-  margin-inline: auto;
-  padding-inline: 2rem;
-  box-sizing: border-box;
+.page-wrap {
+    width: min(100%, var(--page-width));
+    margin-inline: auto;
+    padding-inline: 2rem;
+    box-sizing: border-box;
 }
 
 /* Constrain the header contents */
-.dashboard-header-inner{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.dashboard-header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .logo-area {
@@ -449,20 +624,30 @@ body.dashboard-page {
     padding-top: 2rem;
 }
 
-.start-test-card {     
+.start-test-card {
     display: grid;
     grid-area: exam;
-    align-content: center; }
-.past-results-card { grid-area: results; }
-.practice-zone-card { grid-area: practice; }
-.carousel-card { grid-area: leaderboard; }
+    align-content: center;
+}
+
+.past-results-card {
+    grid-area: results;
+}
+
+.practice-zone-card {
+    grid-area: practice;
+}
+
+.carousel-card {
+    grid-area: leaderboard;
+}
 
 .card {
     transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .card:hover {
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 .card {
@@ -472,7 +657,8 @@ body.dashboard-page {
     padding: 2rem;
 }
 
-button.primary, button.secondary {
+button.primary,
+button.secondary {
     border-radius: 10px;
 }
 
@@ -498,17 +684,21 @@ button.primary, button.secondary {
     box-shadow: 0 0 15px var(--primary-yellow);
     transform: translateY(-2px);
 }
+
 .past-results-card {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* This centers the content vertically */
-    align-items: center; /* This centers the content horizontally */
+    justify-content: center;
+    /* This centers the content vertically */
+    align-items: center;
+    /* This centers the content horizontally */
     gap: 1rem;
 }
 
 /* This is the key fix */
 .results-table-wrapper {
-    max-height: 260px;       /* adjust as you like */
+    max-height: 260px;
+    /* adjust as you like */
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -559,6 +749,7 @@ button.primary, button.secondary {
     border-bottom: none;
     margin-bottom: 0;
 }
+
 .view-results-btn {
     padding: 0.5rem 1rem;
     border: 1px solid var(--border-color);
@@ -575,69 +766,6 @@ button.primary, button.secondary {
     transform: translateY(-1px);
 }
 
-/* --- INSTRUCTIONS MODAL STYLES --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: var(--card-background);
-    padding: 2rem;
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    max-width: 600px;
-    width: 90%;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-}
-
-.modal-content header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-}
-
-.modal-content header h2 {
-    margin: 0;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-    color: var(--text-muted);
-}
-
-.modal-content footer {
-    text-align: right;
-    margin-top: 1.5rem;
-}
-
-.modal-content footer button {
-    background-color: var(--primary-yellow);
-    color: var(--dark-text-on-btn);
-    cursor: pointer; /* This is the fix */
-}
-
-/* Blur effect for the main content when modal is open */
-body.modal-open .dashboard-header,
-body.modal-open .dashboard-content {
-    filter: blur(5px);
-}
-
-/* In public/style.css */
 
 /* --- INSTRUCTIONS MODAL STYLES (FINAL VERSION) --- */
 .modal-overlay {
@@ -650,8 +778,10 @@ body.modal-open .dashboard-content {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1001; /* Highest z-index to ensure it's on top of everything */
-    padding: 1rem; /* Add padding for small screens */
+    z-index: 1001;
+    /* Highest z-index to ensure it's on top of everything */
+    padding: 1rem;
+    /* Add padding for small screens */
     box-sizing: border-box;
 }
 
@@ -663,9 +793,11 @@ body.modal-open .dashboard-content {
     max-width: 600px;
     width: 100%;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-    display: flex; /* Enable flexbox for better layout control */
+    display: flex;
+    /* Enable flexbox for better layout control */
     flex-direction: column;
-    max-height: 90vh; /* Prevent modal from being taller than the screen */
+    max-height: 90vh;
+    /* Prevent modal from being taller than the screen */
 }
 
 .modal-content header {
@@ -675,7 +807,8 @@ body.modal-open .dashboard-content {
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 1rem;
     margin-bottom: 1rem;
-    flex-shrink: 0; /* Prevent header from shrinking */
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
 }
 
 .modal-content header h2 {
@@ -692,8 +825,10 @@ body.modal-open .dashboard-content {
 
 /* This is the key fix for mobile */
 .modal-content section {
-    overflow-y: auto; /* Make the main content scrollable */
-    flex-grow: 1; /* Allow it to take up available space */
+    overflow-y: auto;
+    /* Make the main content scrollable */
+    flex-grow: 1;
+    /* Allow it to take up available space */
 }
 
 .modal-content footer {
@@ -701,7 +836,8 @@ body.modal-open .dashboard-content {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color);
-    flex-shrink: 0; /* Prevent footer from shrinking */
+    flex-shrink: 0;
+    /* Prevent footer from shrinking */
 }
 
 .modal-content footer button {
@@ -711,8 +847,8 @@ body.modal-open .dashboard-content {
 }
 
 /* This blurs the background content when the modal is open */
-body.modal-open > .dashboard-header,
-body.modal-open > .dashboard-content {
+body.modal-open>.dashboard-header,
+body.modal-open>.dashboard-content {
     filter: blur(5px);
 }
 
@@ -750,14 +886,17 @@ body.admin-page {
 /* Make table scrollable on small screens */
 .table-container {
     overflow-x: auto;
-    max-height: 500px; /* Set a maximum height for the table area */
-    overflow-y: auto; /* Add a vertical scrollbar when content exceeds the height */
+    max-height: 500px;
+    /* Set a maximum height for the table area */
+    overflow-y: auto;
+    /* Add a vertical scrollbar when content exceeds the height */
     border: 1px solid var(--border-color);
     border-radius: var(--pico-border-radius);
 }
 
 .admin-page .table-container table {
-    margin-bottom: 0; /* Remove default margin to prevent double borders */
+    margin-bottom: 0;
+    /* Remove default margin to prevent double borders */
 }
 
 /* Make the table header sticky */
@@ -765,7 +904,8 @@ body.admin-page {
     position: sticky;
     top: 0;
     background-color: var(--card-background);
-    z-index: 1; /* Ensures header stays on top of scrolling content */
+    z-index: 1;
+    /* Ensures header stays on top of scrolling content */
 }
 
 .admin-content table {
@@ -773,7 +913,8 @@ body.admin-page {
     border-collapse: collapse;
 }
 
-.admin-content th, .admin-content td {
+.admin-content th,
+.admin-content td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
@@ -849,7 +990,8 @@ body.test-page {
     font-family: 'Inter', sans-serif;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align to top */
+    align-items: flex-start;
+    /* Align to top */
     min-height: 100vh;
     padding: 2rem;
 }
@@ -861,7 +1003,8 @@ body.test-page {
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 2rem;
-    position: relative; /* Required for sticky positioning of children */
+    position: relative;
+    /* Required for sticky positioning of children */
 }
 
 .stats-bar {
@@ -873,7 +1016,8 @@ body.test-page {
     border-radius: 8px;
     position: sticky;
     top: 0;
-    z-index: 10; /* Ensures it stays on top of other content */
+    z-index: 10;
+    /* Ensures it stays on top of other content */
 }
 
 .stat-item {
@@ -908,17 +1052,22 @@ body.test-page {
 
 /* --- These are the fixes for the error highlighting --- */
 .passage-card span.correct {
-    color: #4ade80; /* A pleasant green */
+    color: #4ade80;
+    /* A pleasant green */
 }
+
 .passage-card span.incorrect {
-    color: #f87171; /* A softer red */
+    color: #f87171;
+    /* A softer red */
     text-decoration: underline;
 }
+
 .passage-card span.current {
     background-color: var(--primary-yellow);
     color: var(--dark-text-on-btn);
     border-radius: 2px;
 }
+
 /* --- End of fixes --- */
 
 .test-page textarea {
@@ -938,23 +1087,6 @@ body.test-page {
     border-color: var(--primary-yellow);
     box-shadow: 0 0 10px var(--primary-yellow);
 }
-/* In public/style.css */
-
-/* Blinking cursor for the current character in the typing test */
-.passage-card span.current {
-    background-color: var(--primary-yellow);
-    color: var(--dark-text-on-btn);
-    border-radius: 2px;
-}
-
-
-
-
-
-
-
-
-
 
 
 
@@ -962,14 +1094,19 @@ body.test-page {
 .test-page .test-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 4rem); /* Fill screen height minus padding */
+    height: calc(100vh - 4rem);
+    /* Fill screen height minus padding */
 }
+
 .letter-body {
-    flex-grow: 1; /* Allow this section to grow */
+    flex-grow: 1;
+    /* Allow this section to grow */
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Important fix for flexbox overflow */
+    min-height: 0;
+    /* Important fix for flexbox overflow */
 }
+
 .question-card {
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
@@ -978,6 +1115,7 @@ body.test-page {
     margin-bottom: 1.5rem;
     flex-shrink: 0;
 }
+
 .editor-container {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -987,14 +1125,17 @@ body.test-page {
     flex-grow: 1;
     min-height: 0;
 }
+
 .editor-toolbar {
     display: flex;
-    flex-wrap: wrap; /* Allow items to wrap on small screens */
+    flex-wrap: wrap;
+    /* Allow items to wrap on small screens */
     gap: 0.5rem;
     padding: 0.5rem;
     border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
+
 .toolbar-btn {
     width: 36px;
     height: 36px;
@@ -1005,6 +1146,7 @@ body.test-page {
     cursor: pointer;
     border-radius: 4px;
 }
+
 .toolbar-select {
     background-color: transparent;
     border: 1px solid var(--border-color);
@@ -1012,9 +1154,12 @@ body.test-page {
     color: var(--text-color);
     padding: 0.25rem 0.5rem;
 }
-.toolbar-btn:hover, .toolbar-select:hover {
+
+.toolbar-btn:hover,
+.toolbar-select:hover {
     background-color: var(--border-color);
 }
+
 .text-editor {
     flex-grow: 1;
     padding: 1.5rem;
@@ -1022,23 +1167,29 @@ body.test-page {
     line-height: 1.6;
     color: var(--text-color);
     outline: none;
-    overflow-y: auto; /* Adds a scrollbar when content overflows */
+    overflow-y: auto;
+    /* Adds a scrollbar when content overflows */
 }
+
 .test-footer {
     display: flex;
-    justify-content: flex-end; /* Push button to the right */
+    justify-content: flex-end;
+    /* Push button to the right */
     align-items: center;
     margin-top: 1.5rem;
     flex-shrink: 0;
 }
+
 .timer-display {
     font-size: 1.2rem;
     color: var(--text-muted);
 }
+
 .timer-display strong {
     color: var(--primary-yellow);
     font-variant-numeric: tabular-nums;
 }
+
 .submit-btn-main {
     padding: 10px 20px;
     border: none;
@@ -1058,15 +1209,19 @@ body.test-page {
 
 /* Editor behavior */
 .text-editor {
-    white-space: pre-wrap;   /* Preserve spaces and line breaks */
-    word-break: normal;      /* Do NOT break mid-word */
+    white-space: pre-wrap;
+    /* Preserve spaces and line breaks */
+    word-break: normal;
+    /* Do NOT break mid-word */
     overflow-x: hidden;
 }
 
 /* Indentation marker */
 .editor-indent {
-    white-space: pre;        /* Preserve the spaces inside */
-    display: inline;         /* Stay in text flow */
+    white-space: pre;
+    /* Preserve the spaces inside */
+    display: inline;
+    /* Stay in text flow */
 }
 
 
@@ -1087,7 +1242,8 @@ body.test-page {
     gap: 2rem;
 }
 
-.instructions-card, .upload-card {
+.instructions-card,
+.upload-card {
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1161,15 +1317,19 @@ body.test-page {
 /* This media query applies only when the screen height is 720px or less */
 @media (max-height: 720px) {
     .passage-card {
-        max-height: 180px; /* Reduce height on shorter screens */
-        font-size: 1.1rem; /* Slightly smaller font to fit more text */
+        max-height: 180px;
+        /* Reduce height on shorter screens */
+        font-size: 1.1rem;
+        /* Slightly smaller font to fit more text */
     }
 
     .test-page textarea {
-        min-height: 120px; /* Reduce height of the typing area */
+        min-height: 120px;
+        /* Reduce height of the typing area */
         font-size: 1.1rem;
     }
 }
+
 /* --- End of Small Screen Fix --- */
 
 
@@ -1187,6 +1347,7 @@ body.test-page {
 
 /* --- GLOBAL MOBILE OPTIMIZATIONS (for all internal pages) --- */
 @media (max-width: 768px) {
+
     /* Reduce padding on all main pages for more space */
     body.dashboard-page,
     body.admin-page,
@@ -1213,6 +1374,7 @@ body.test-page {
     .admin-content {
         padding: 1rem;
     }
+
     .content-management {
         /* Stack the content management cards */
         grid-template-columns: 1fr;
@@ -1224,10 +1386,12 @@ body.test-page {
         /* Make the test container fill the full screen height on mobile */
         height: calc(100vh - 2rem);
     }
+
     .test-header hgroup h2 {
-        font-size: 1.25rem; /* Make titles smaller on mobile */
+        font-size: 1.25rem;
+        /* Make titles smaller on mobile */
     }
-    
+
     /* Stack the Excel page layout vertically */
     .excel-content {
         grid-template-columns: 1fr;
@@ -1238,11 +1402,16 @@ body.test-page {
         margin: 0;
         padding: 0;
     }
-    .score-section, .skills-layout {
-        flex-direction: column; /* Stack the cards vertically */
+
+    .score-section,
+    .skills-layout {
+        flex-direction: column;
+        /* Stack the cards vertically */
     }
+
     .card {
-        min-width: unset; /* Allow cards to shrink */
+        min-width: unset;
+        /* Allow cards to shrink */
     }
 }
 
@@ -1256,6 +1425,7 @@ body.test-page {
 
 /* On mobile screens... */
 @media (max-width: 768px) {
+
     /* Hide the large desktop header and stats bar */
     .desktop-only {
         display: none;
@@ -1277,6 +1447,7 @@ body.test-page {
         z-index: 100;
         box-sizing: border-box;
     }
+
     .mobile-header strong {
         font-size: 1.1rem;
         color: var(--primary-yellow);
@@ -1295,17 +1466,21 @@ body.test-page {
 
     /* This new wrapper will handle the flexible content */
     .typing-wrapper {
-        flex-grow: 1; /* Allows this container to fill available space */
+        flex-grow: 1;
+        /* Allows this container to fill available space */
         display: flex;
         flex-direction: column;
-        min-height: 0; /* A crucial fix for flexbox overflow */
+        min-height: 0;
+        /* A crucial fix for flexbox overflow */
     }
 
     /* The passage card will now have a fixed height and scroll if needed */
     body.typing-page .passage-card {
-        flex-shrink: 0; /* Prevent the passage card from shrinking */
+        flex-shrink: 0;
+        /* Prevent the passage card from shrinking */
         height: 30%;
-        max-height: none; /* Override previous max-height */
+        max-height: none;
+        /* Override previous max-height */
         overflow-y: auto;
     }
 
@@ -1313,9 +1488,11 @@ body.test-page {
     body.typing-page textarea {
         /* Set a fixed height for a single line */
         height: 50px;
-        min-height: 50px; /* Override previous min-height */
+        min-height: 50px;
+        /* Override previous min-height */
         /* Ensure text is vertically centered */
-        line-height: 1.5; /* Adjust as needed for your font */
+        line-height: 1.5;
+        /* Adjust as needed for your font */
         padding-top: 12px;
         padding-bottom: 12px;
         /* Prevent the user from manually resizing it */
@@ -1342,8 +1519,10 @@ body.test-page {
     .modal-content section {
         /* Allow the main content area to scroll */
         overflow-y: auto;
-        flex-grow: 1; /* Let it take up the available space */
-        padding-right: 1rem; /* Add some space for the scrollbar */
+        flex-grow: 1;
+        /* Let it take up the available space */
+        padding-right: 1rem;
+        /* Add some space for the scrollbar */
     }
 
     .modal-content header,
@@ -1363,17 +1542,7 @@ body.test-page {
 
 
 
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(4px);
-    display: none; /* Controlled by JS */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
+
 
 .option-card:hover {
     border-color: #3b82f6 !important;
@@ -1383,7 +1552,8 @@ body.test-page {
 }
 
 .practice-zone-card {
-    grid-column: 1 / -1; /* spans full width */
+    grid-column: 1 / -1;
+    /* spans full width */
 }
 
 .section-title {
@@ -1407,12 +1577,14 @@ body.test-page {
 
 .practice-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 
 @media (max-width: 768px) {
-    .practice-section { grid-template-columns: 1fr; }
+    .practice-section {
+        grid-template-columns: 1fr;
+    }
 }
 
 
@@ -1425,21 +1597,66 @@ body.test-page {
 
 .carousel-card {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem;
-    cursor: pointer; text-align: center; min-height: 180px; position: relative;
-    overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    cursor: pointer;
+    text-align: center;
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.winners-flex { display: flex; justify-content: space-around; align-items: flex-end; margin-top: 1rem; }
+.winners-flex {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    margin-top: 1rem;
+}
 
-.winner { text-align: center; transition: 0.5s ease-in-out; }
-.winner.rank-1 { order: 2; transform: scale(1.1); color: #fbbf24; font-weight: bold; } /* Gold */
-.winner.rank-2 { order: 1; color: #cbd5e1; } /* Silver */
-.winner.rank-3 { order: 3; color: #cd7f32; } /* Bronze */
+.winner {
+    text-align: center;
+    transition: 0.5s ease-in-out;
+}
 
-.crown { font-size: 1.5rem; display: block; margin-bottom: 0.2rem; }
-.winner-name { font-size: 1rem; display: block; }
-.winner-score { font-size: 0.8rem; opacity: 0.8; }
+.winner.rank-1 {
+    order: 2;
+    transform: scale(1.1);
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+/* Gold */
+.winner.rank-2 {
+    order: 1;
+    color: #cbd5e1;
+}
+
+/* Silver */
+.winner.rank-3 {
+    order: 3;
+    color: #cd7f32;
+}
+
+/* Bronze */
+
+.crown {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.winner-name {
+    font-size: 1rem;
+    display: block;
+}
+
+.winner-score {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
 
 
 
@@ -1458,14 +1675,38 @@ body.test-page {
     animation: slideIn 0.5s ease-out;
 }
 
-.comparison-header h3 { color: #0369a1; margin: 0; }
-.comparison-msg { color: #0284c7; font-size: 1.2rem; margin: 1rem 0 0.5rem; font-weight: 800; }
-.comparison-subtext { color: #0c4a6e; font-size: 0.95rem; line-height: 1.4; }
-.hidden { display: none; }
+.comparison-header h3 {
+    color: #0369a1;
+    margin: 0;
+}
+
+.comparison-msg {
+    color: #0284c7;
+    font-size: 1.2rem;
+    margin: 1rem 0 0.5rem;
+    font-weight: 800;
+}
+
+.comparison-subtext {
+    color: #0c4a6e;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.hidden {
+    display: none;
+}
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -1523,10 +1764,225 @@ body.test-page {
 }
 
 .test-block .feedback {
-    border: 1px solid var(--border-color); /* Add a subtle full border */
-    border-left: 5px solid var(--primary-yellow); 
-    padding: 15px; 
-    font-size: 14px; 
-    border-radius: 8px; 
+    border: 1px solid var(--border-color);
+    /* Add a subtle full border */
+    border-left: 5px solid var(--primary-yellow);
+    padding: 15px;
+    font-size: 14px;
+    border-radius: 8px;
     margin-top: 10px;
+}
+
+/* ============================================================
+   VISUAL ENHANCEMENTS
+   ============================================================ */
+
+/* --- 1. Card Fade-In Animations --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-content .card,
+.score-section .card,
+.admin-content .card,
+.practice-item,
+.carousel-card,
+.comparison-container,
+.report-grid .card {
+    animation: fadeInUp 0.5s ease-out both;
+}
+
+.dashboard-content .card:nth-child(2),
+.score-section .card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.dashboard-content .card:nth-child(3),
+.score-section .card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.dashboard-content .card:nth-child(4),
+.score-section .card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.practice-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.practice-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+/* --- 2. Gradient Buttons --- */
+.start-test-card button,
+.practice-zone-card button,
+.submit-btn-main,
+.auth-card button[type="submit"],
+.content-management button,
+.modal-content footer button {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    color: #fff;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.start-test-card button:hover,
+.practice-zone-card button:hover,
+.submit-btn-main:hover,
+.auth-card button[type="submit"]:hover,
+.content-management button:hover,
+.modal-content footer button:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f87171 100%);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+}
+
+/* --- 3. Timer Pulse Effect --- */
+@keyframes timerPulse {
+
+    0%,
+    100% {
+        color: var(--primary-yellow);
+        transform: scale(1);
+    }
+
+    50% {
+        color: #ef4444;
+        transform: scale(1.12);
+    }
+}
+
+.timer-danger {
+    animation: timerPulse 0.8s ease-in-out infinite !important;
+}
+
+/* --- 4. Loading Skeleton Placeholders --- */
+@keyframes skeletonPulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.skeleton {
+    background: var(--border-color);
+    border-radius: 6px;
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.skeleton-text.short {
+    width: 40%;
+}
+
+.skeleton-text.medium {
+    width: 65%;
+}
+
+.skeleton-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+/* --- 5. Toast Notifications --- */
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 280px;
+    max-width: 400px;
+    padding: 0.9rem 1.25rem;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.925rem;
+    font-weight: 500;
+    color: #fff;
+    pointer-events: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+}
+
+.toast-visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.toast-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+/* --- 6. Animated Score Ring (Results Pages) --- */
+@property --score-deg {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.score-circle {
+    --score-deg: 0deg;
+    transition: --score-deg 1.2s ease-out;
+}
+
+/* --- 7. Footer Branding --- */
+.site-footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-top: 3rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.site-footer a {
+    color: var(--primary-yellow);
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    text-decoration: underline;
 }

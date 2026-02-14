@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign Up - Proficiency Test</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="auth-page">
     <div class="background-shapes"></div>
     <main class="auth-container">
@@ -15,7 +17,7 @@
             </div>
             <h2>Create Your Account</h2>
             <p class="subtitle">Join now to start your test.</p>
-            
+
             <form id="signup-form">
                 <div class="input-group">
                     <input type="text" id="username" name="username" required>
@@ -29,19 +31,19 @@
                     <input type="password" id="password" name="password" required>
                     <label for="password">Password</label>
                     <button type="button" id="peek-button-pass" class="peek-button">
-                        </button>
+                    </button>
                 </div>
                 <div class="input-group">
                     <input type="password" id="confirm-password" name="confirm-password" required>
                     <label for="confirm-password">Confirm Password</label>
                     <button type="button" id="peek-button-confirm" class="peek-button">
-                        </button>
+                    </button>
                 </div>
                 <button type="submit">Sign Up</button>
             </form>
-            
+
             <div class="separator">or</div>
-            
+
             <a href="/api/auth/google" class="social-button google">
                 <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google Logo">
                 Sign up with Google
@@ -52,6 +54,8 @@
             </p>
         </div>
     </main>
+    <script src="toast.js"></script>
     <script src="signup.js"></script>
 </body>
+
 </html>

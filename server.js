@@ -43,7 +43,7 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
-('./passport-setup');
+// passport-setup is already required at top of file (line 5)
 
 // -------------------
 //  STORAGE & UPLOAD CONFIGURATION
@@ -233,10 +233,10 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
         // Find the results for that user
         let results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
 
-        // Modify the filePath for any Excel results before sending
+        // Modify the excelFilePath for any Excel results before sending
         results = results.map(r => {
-            if (r.testType === 'Excel' && r.filePath) {
-                r.filePath = createDownloadUrl(r.filePath);
+            if (r.excelFilePath) {
+                r.excelFilePath = createDownloadUrl(r.excelFilePath);
             }
             return r;
         });
@@ -315,9 +315,9 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
         // Calculate marks: New Pattern = 30 max, Standard = 20 max
         let typingScore = 0;
         if (testPattern === 'new_pattern') {
-            typingScore = Math.round(30, (wpm / 35) * 30);
+            typingScore = Math.min(30, Math.round((wpm / 35) * 30));
         } else {
-            typingScore = Math.round(20, (wpm / 35) * 20);
+            typingScore = Math.min(20, Math.round((wpm / 35) * 20));
         }
 
         // Create or Update the TestResult
@@ -496,8 +496,13 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
 
         const solutionWorkbook = new ExcelJS.Workbook();
         await solutionWorkbook.xlsx.load(solutionFileBuffer);
-        const solutionSheet1Data = JSON.stringify(solutionWorkbook.getWorksheet(1).getSheetValues());
-        const solutionSheet2Instructions = JSON.stringify(solutionWorkbook.getWorksheet(2).getSheetValues());
+        const solutionSheet1 = solutionWorkbook.getWorksheet(1);
+        const solutionSheet2 = solutionWorkbook.getWorksheet(2);
+        if (!solutionSheet1 || !solutionSheet2) {
+            return res.status(400).json({ message: 'Solution file is missing required worksheets (Sheet1 for data, Sheet2 for instructions).' });
+        }
+        const solutionSheet1Data = JSON.stringify(solutionSheet1.getSheetValues());
+        const solutionSheet2Instructions = JSON.stringify(solutionSheet2.getSheetValues());
 
         const userWorkbook = new ExcelJS.Workbook();
         await userWorkbook.xlsx.load(userFileBuffer);
@@ -720,14 +725,14 @@ app.get('/api/leaderboard/all', async (req, res) => {
             testPattern: 'standard',
             attemptMode: 'exam',
             status: 'completed'
-        }).sort({ score: -1 }).limit(10).populate('user', 'username');
+        }).sort({ letterScore: -1 }).limit(10).populate('user', 'username');
 
         // 4. Standard Pattern - Excel
         const std_excel = await TestResult.find({
             testPattern: 'standard',
             attemptMode: 'exam',
             status: 'completed'
-        }).sort({ score: -1 }).limit(10).populate('user', 'username');
+        }).sort({ excelScore: -1 }).limit(10).populate('user', 'username');
 
         // 5. New Pattern - Overall
         const new_overall = await TestResult.find({
@@ -817,8 +822,8 @@ app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) 
     try {
         let results = await TestResult.find({}).sort({ submittedAt: -1 }).populate('user', 'username email');
         results = results.map(r => {
-            if (r.testType === 'Excel' && r.filePath) {
-                r.filePath = createDownloadUrl(r.filePath);
+            if (r.excelFilePath) {
+                r.excelFilePath = createDownloadUrl(r.excelFilePath);
             }
             return r;
         });
@@ -852,7 +857,7 @@ app.post('/api/admin/letter-questions', authMiddleware, adminMiddleware, async (
     }
 });
 
-const adminExcelUpload = uploadLocally.fields([{ name: 'questionFile', maxCount: 1 }, { name: 'solutionFile', maxCount: 1 }]);
+// adminExcelUpload removed — was unused; the route below uses `upload.fields()` instead
 app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, upload.fields([
     { name: 'questionFile', maxCount: 1 },
     { name: 'solutionFile', maxCount: 1 }
@@ -967,7 +972,7 @@ app.listen(PORT, () => {
 
 //  Check if api key is getting recognised
 
-app.get('/api/debug-key', (req, res) => {
+app.get('/api/debug-key', authMiddleware, adminMiddleware, (req, res) => {
     const key = process.env.GEMINI_API_KEY;
     res.json({
         exists: !!key,
