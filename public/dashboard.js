@@ -109,7 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.startPractice = (type) => {
         localStorage.setItem('currentAttemptMode', 'practice');
         localStorage.setItem('currentExamPattern', 'none');
-        window.location.href = (type === 'typing') ? '/typing.html' : '/practice-mcq.html';
+        const routes = {
+            typing: '/typing.html',
+            mcq: '/practice-mcq.html',
+            letter: '/practice-letter.html',
+            excel: '/practice-excel.html'
+        };
+        window.location.href = routes[type] || '/dashboard.html';
     };
 
     // --- 3. View Logic (Fixed for both patterns) ---

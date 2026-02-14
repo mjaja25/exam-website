@@ -134,8 +134,8 @@ function createDownloadUrl(url) {
 //  DATABASE CONNECTION
 // -------------------
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Successfully connected to MongoDB Atlas!'))
-  .catch(err => console.error('Error connecting to MongoDB:', err));
+    .then(() => console.log('Successfully connected to MongoDB Atlas!'))
+    .catch(err => console.error('Error connecting to MongoDB:', err));
 
 // -------------------
 //  API ROUTES
@@ -229,7 +229,7 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     try {
         // Find the user making the request
         const user = await User.findById(req.userId);
-        
+
         // Find the results for that user
         let results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
 
@@ -240,7 +240,7 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
             }
             return r;
         });
-        
+
         // Send back both the user details and their modified results
         res.json({ user: user, results: results });
 
@@ -252,19 +252,19 @@ app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
 app.get('/api/passages/random', authMiddleware, async (req, res) => {
     try {
         const requestedDiff = req.query.difficulty; // Gets 'easy', 'medium', or 'hard' from URL
-        
+
         // 1. Build the filter object
         let filter = {};
         if (requestedDiff && ['easy', 'medium', 'hard'].includes(requestedDiff)) {
             filter.difficulty = requestedDiff;
         } else {
             // Default for official exams where no difficulty is specified in the URL
-            filter.difficulty = 'medium'; 
+            filter.difficulty = 'medium';
         }
 
         // 2. Count how many passages match this difficulty
         const count = await Passage.countDocuments(filter);
-        
+
         if (count === 0) {
             // Robustness: fallback if an admin hasn't uploaded passages for a specific level yet
             return res.status(404).json({ message: `No passages found for difficulty: ${filter.difficulty}` });
@@ -298,7 +298,7 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
         const count = await ExcelQuestion.countDocuments();
         const random = Math.floor(Math.random() * count);
         const question = await ExcelQuestion.findOne().skip(random); // 'question' is correctly defined here
-        
+
         if (!question) {
             return res.status(404).json({ message: 'No excel questions found.' });
         }
@@ -323,9 +323,9 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
         // Create or Update the TestResult
         const result = await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
-            { 
-                wpm, 
-                accuracy, 
+            {
+                wpm,
+                accuracy,
                 typingScore,
                 testPattern,
                 status: 'in-progress' // Still waiting for MCQ or Letter
@@ -374,7 +374,7 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         /* ---------- NORMALIZE EDITOR INDENTATION FOR AI ---------- */
         const normalizedContent = content.replace(
             /<span\s+class=["']editor-indent["'][^>]*>\s*<\/span>/gi,
-            '    ' 
+            '    '
         );
 
         /* ---------- AI PROMPT (6-Mark Rubric) ---------- */
@@ -431,12 +431,12 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         const totalScore = scores.content + scores.format + scores.presentation + scores.typography + scores.subject;
 
         // Generate explanations for system checks
-        const typographyExplanation = typographyScore === 2 
-            ? "Correct font (Times New Roman) and size (12pt) used." 
+        const typographyExplanation = typographyScore === 2
+            ? "Correct font (Times New Roman) and size (12pt) used."
             : "Issues detected with font family or size settings.";
 
-        const subjectExplanation = subjectScore === 2 
-            ? "Subject line is correctly bolded and underlined." 
+        const subjectExplanation = subjectScore === 2
+            ? "Subject line is correctly bolded and underlined."
             : "Subject line missing required bold or underline formatting.";
 
         /* ---------- CONSTRUCT STRUCTURED FEEDBACK ---------- */
@@ -541,16 +541,16 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         }
         // --- UNIFIED UPDATE & COMPLETION ---
         const existingRecord = await TestResult.findOne({ sessionId, user: userId });
-        
+
         const typingMarks = parseFloat(existingRecord.typingScore) || 0;
         const letterMarks = parseFloat(existingRecord.letterScore) || 0;
         const excelMarks = grade.score;
-        
+
         const finalTotal = typingMarks + letterMarks + excelMarks;
 
         await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
-            { 
+            {
                 excelScore: excelMarks,
                 excelFeedback: grade.feedback,
                 totalScore: finalTotal,
@@ -564,11 +564,224 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
     }
 });
 
+// ============================================================
+// PRACTICE ROUTES (No DB writes — results returned directly)
+// ============================================================
+
+// --- Practice Letter Submission ---
+app.post('/api/practice/letter', authMiddleware, async (req, res) => {
+    try {
+        const { content, questionId } = req.body;
+        const originalQuestion = await LetterQuestion.findById(questionId);
+        if (!originalQuestion) return res.status(404).json({ message: 'Letter question not found.' });
+
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        // Deterministic format checks (same as exam)
+        const hasTimesNewRoman = /face=["']?Times New Roman["']?/i.test(content) || /font-family\s*:\s*['"]?Times New Roman/i.test(content);
+        const hasCorrectFontSize = /size=["']?4["']?/.test(content) || /font-size\s*:\s*12pt/i.test(content);
+        const subjectUnderlined = /<u>[\s\S]*Subject:/i.test(content);
+        const subjectBold = /<b>[\s\S]*Subject:/i.test(content);
+
+        let typographyScore = 0;
+        if (hasTimesNewRoman) typographyScore += 1;
+        if (hasCorrectFontSize) typographyScore += 1;
+
+        let subjectScore = 0;
+        if (subjectUnderlined) subjectScore += 1;
+        if (subjectBold) subjectScore += 1;
+
+        const normalizedContent = content.replace(/<span\s+class=["']editor-indent["'][^>]*>\s*<\/span>/gi, '    ');
+
+        const gradingPrompt = `
+        You are a formal letter examiner.
+        Below is the letter content you must grade:
+        ---
+        ${normalizedContent}
+        ---
+        Formatting facts (already verified by system):
+        - Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
+        - Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
+        - Subject Underlined: ${subjectUnderlined}
+        - Subject Bold: ${subjectBold}
+
+        Grade ONLY these categories (Total 6 Marks):
+        1. Content relevance (3 marks): Does it address "${originalQuestion.questionText}"?
+        2. Traditional layout (2 marks): Check paragraphing and spacing.
+        3. Presentation (1 mark): General formal appearance.
+
+        Return ONLY JSON:
+        {
+          "content": { "score": integer, "explanation": "string" },
+          "format": { "score": integer, "explanation": "string" },
+          "presentation": { "score": integer, "explanation": "string" }
+        }
+        Note: Explanations must be brief (1 sentence). Use whole numbers for scores.
+        `;
+
+        const aiResult = await model.generateContent(gradingPrompt);
+        const responseText = aiResult.response.text();
+
+        let aiGrade;
+        try {
+            const cleanJson = responseText.replace(/```json|```/g, '').trim();
+            aiGrade = JSON.parse(cleanJson);
+        } catch (err) {
+            return res.status(500).json({ message: 'AI evaluation failed' });
+        }
+
+        const scores = {
+            content: Math.round(aiGrade.content.score || 0),
+            format: Math.round(aiGrade.format.score || 0),
+            presentation: Math.round(aiGrade.presentation.score || 0),
+            typography: typographyScore,
+            subject: subjectScore
+        };
+        const totalScore = Math.min(10, scores.content + scores.format + scores.presentation + scores.typography + scores.subject);
+
+        res.json({
+            success: true,
+            score: totalScore,
+            maxScore: 10,
+            breakdown: [
+                { label: 'Content Relevance', score: scores.content, max: 3, explanation: aiGrade.content.explanation },
+                { label: 'Layout & Structure', score: scores.format, max: 2, explanation: aiGrade.format.explanation },
+                { label: 'Presentation', score: scores.presentation, max: 1, explanation: aiGrade.presentation.explanation },
+                { label: 'Typography (Font)', score: scores.typography, max: 2, explanation: scores.typography === 2 ? 'Correct font and size used.' : 'Issues with font family or size.' },
+                { label: 'Subject Emphasis', score: scores.subject, max: 2, explanation: scores.subject === 2 ? 'Subject correctly bolded and underlined.' : 'Subject missing bold or underline.' }
+            ]
+        });
+
+    } catch (error) {
+        console.error('Practice Letter Error:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// --- Practice Excel Submission ---
+app.post('/api/practice/excel', authMiddleware, uploadToCloudinary.single('excelFile'), async (req, res, next) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+        const { questionId } = req.body;
+        const originalQuestion = await ExcelQuestion.findById(questionId);
+        if (!originalQuestion) return res.status(404).json({ message: 'Excel question not found.' });
+
+        const solutionFileResponse = await axios.get(originalQuestion.solutionFilePath, { responseType: 'arraybuffer' });
+        const solutionFileBuffer = Buffer.from(solutionFileResponse.data);
+
+        const userFileResponse = await axios.get(req.file.path, { responseType: 'arraybuffer' });
+        const userFileBuffer = Buffer.from(userFileResponse.data);
+
+        const solutionWorkbook = new ExcelJS.Workbook();
+        await solutionWorkbook.xlsx.load(solutionFileBuffer);
+        const solutionSheet1 = solutionWorkbook.getWorksheet(1);
+        const solutionSheet2 = solutionWorkbook.getWorksheet(2);
+        if (!solutionSheet1 || !solutionSheet2) {
+            return res.status(400).json({ message: 'Solution file is missing required worksheets.' });
+        }
+        const solutionSheet1Data = JSON.stringify(solutionSheet1.getSheetValues());
+        const solutionSheet2Instructions = JSON.stringify(solutionSheet2.getSheetValues());
+
+        const userWorkbook = new ExcelJS.Workbook();
+        await userWorkbook.xlsx.load(userFileBuffer);
+        const userSheet1Data = JSON.stringify(userWorkbook.getWorksheet(1).getSheetValues());
+
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const gradingPrompt = `
+            Act as an expert Excel grader. Your response must be ONLY a valid JSON object.
+            The user was given a test named "${originalQuestion.questionName}".
+            Grade the submission out of 20 based on the 5 instructions provided. Each instruction is worth 4 marks.
+
+            ---
+            GRADING RUBRIC (Instructions): ${solutionSheet2Instructions}
+            ---
+            CORRECT SOLUTION DATA: ${solutionSheet1Data}
+            ---
+            USER SUBMISSION DATA: ${userSheet1Data}
+            ---
+
+            Return ONLY a JSON object in this exact format:
+            { 
+            "score": <number_out_of_20>, 
+            "feedback": "<string_point-by-point_feedback>" 
+            }
+            Note: You MUST provide the feedback as a single string where each observation starts with a number (1., 2., etc.) and is separated by a newline (\\n).
+        `;
+
+        const result = await model.generateContent(gradingPrompt);
+        const responseText = await result.response.text();
+
+        let grade;
+        try {
+            const cleanedText = responseText.replace(/```json|```/g, '').trim();
+            grade = JSON.parse(cleanedText);
+        } catch (parseError) {
+            grade = { score: 0, feedback: 'Automated grading failed due to an unexpected format from the AI.' };
+        }
+
+        res.json({
+            success: true,
+            score: grade.score,
+            maxScore: 20,
+            feedback: grade.feedback
+        });
+
+    } catch (error) {
+        console.error('Practice Excel Error:', error);
+        next(error);
+    }
+});
+
+// --- Detailed AI Analysis (for both letter and excel practice) ---
+app.post('/api/practice/analyze', authMiddleware, async (req, res) => {
+    try {
+        const { type, content, questionId, previousFeedback } = req.body;
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        let questionText = '';
+        if (type === 'letter') {
+            const q = await LetterQuestion.findById(questionId);
+            questionText = q ? q.questionText : 'Unknown question';
+        } else if (type === 'excel') {
+            const q = await ExcelQuestion.findById(questionId);
+            questionText = q ? q.questionName : 'Unknown question';
+        }
+
+        const analysisPrompt = `
+You are a detailed and constructive exam tutor. The student just completed a practice ${type} test.
+
+Question/Task: "${questionText}"
+
+${type === 'letter' ? `Their Letter Content:\n---\n${content}\n---` : ''}
+
+Previous Grading Feedback:
+${previousFeedback}
+
+Provide a DETAILED constructive analysis that includes:
+1. **What They Did Well** — Identify 2-3 specific strengths.
+2. **Areas for Improvement** — Point out 2-3 specific weaknesses with concrete suggestions.
+3. **Pro Tips** — Give 2-3 actionable tips to score higher next time.
+${type === 'letter' ? '4. **Sample Structure** — Show a brief outline of an ideal letter structure for this question.' : '4. **Key Concepts** — Remind them of the Excel concepts tested and common pitfalls.'}
+
+Format your response in clean sections with headers. Be encouraging but honest.
+        `;
+
+        const result = await model.generateContent(analysisPrompt);
+        const analysisText = result.response.text();
+
+        res.json({ success: true, analysis: analysisText });
+
+    } catch (error) {
+        console.error('Practice Analysis Error:', error);
+        res.status(500).json({ message: 'Failed to generate analysis.' });
+    }
+});
+
 app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
     try {
-        const result = await TestResult.findOne({ 
-            sessionId: req.params.sessionId, 
-            user: req.userId 
+        const result = await TestResult.findOne({
+            sessionId: req.params.sessionId,
+            user: req.userId
         });
 
         if (!result) return res.status(404).json({ message: "Result session not found." });
@@ -577,7 +790,7 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
         if (result.testPattern === 'new_pattern') {
             const details = Array.isArray(result.mcqDetails) ? result.mcqDetails : [];
             const qIds = details.map(d => d.questionId).filter(id => id);
-            
+
             // Fetch questions from the bank
             const questions = await MCQQuestion.find({ _id: { $in: qIds } });
 
@@ -606,9 +819,9 @@ app.get('/api/results/:sessionId', authMiddleware, async (req, res) => {
 
 app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) => {
     try {
-        const currentResult = await TestResult.findOne({ 
-            sessionId: req.params.sessionId, 
-            user: req.userId 
+        const currentResult = await TestResult.findOne({
+            sessionId: req.params.sessionId,
+            user: req.userId
         });
 
         if (!currentResult) return res.status(404).json({ message: "Result not found" });
@@ -618,9 +831,9 @@ app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) =
         const currentScore = currentResult.totalScore || 0;
 
         // 2. Count ONLY participants who took the same exam pattern
-        const totalInPool = await TestResult.countDocuments({ 
+        const totalInPool = await TestResult.countDocuments({
             testPattern: pattern,
-            status: 'completed' 
+            status: 'completed'
         });
 
         // 3. Count how many scored less than or equal to this user in that pool
@@ -631,8 +844,8 @@ app.get('/api/results/percentile/:sessionId', authMiddleware, async (req, res) =
         });
 
         // 4. Calculate Percentile
-        const percentile = totalInPool > 0 
-            ? ((scoredLower / totalInPool) * 100).toFixed(1) 
+        const percentile = totalInPool > 0
+            ? ((scoredLower / totalInPool) * 100).toFixed(1)
             : 100;
 
         res.json({
@@ -679,14 +892,14 @@ app.get('/api/leaderboard', async (req, res) => {
     try {
         const requestedPattern = req.query.pattern || 'standard'; // Default to standard
 
-        const topScores = await TestResult.find({ 
+        const topScores = await TestResult.find({
             testPattern: requestedPattern,
             attemptMode: 'exam', // Robustness: Ignore practice sessions
             status: 'completed'   // Only show finished exams
         })
-        .sort({ totalScore: -1 }) // Sort by highest total marks
-        .limit(10)
-        .populate('user', 'username'); // Get names from the User collection
+            .sort({ totalScore: -1 }) // Sort by highest total marks
+            .limit(10)
+            .populate('user', 'username'); // Get names from the User collection
 
         res.json(topScores);
     } catch (error) {
@@ -746,7 +959,7 @@ app.get('/api/leaderboard/all', async (req, res) => {
             testPattern: 'new_pattern',
             attemptMode: 'exam',
             status: 'completed'
-        }).sort({ score: -1, wpm: -1, accuracy: -1}).limit(10).populate('user', 'username');
+        }).sort({ score: -1, wpm: -1, accuracy: -1 }).limit(10).populate('user', 'username');
 
         // 7. New Pattern - Excel MCQ
         const new_mcq = await TestResult.find({
@@ -756,15 +969,16 @@ app.get('/api/leaderboard/all', async (req, res) => {
         }).sort({ mcqScore: -1 }).limit(10).populate('user', 'username');
 
         const results = {
-            std_overall, 
-            std_typing, 
+            std_overall,
+            std_typing,
             std_letter,
             std_excel,
-            new_overall, 
+            new_overall,
             new_typing,
-            new_mcq};
-        leaderboardCache=results;
-        lastCacheTime=now;
+            new_mcq
+        };
+        leaderboardCache = results;
+        lastCacheTime = now;
         res.json(results);
 
     } catch (error) {
@@ -781,18 +995,18 @@ app.get('/api/stats/global', authMiddleware, async (req, res) => {
             {
                 $group: {
                     _id: "$testPattern", // Group by Pattern (standard vs new_pattern)
-                    
+
                     // Averages
                     avgTyping: { $avg: "$typingScore" },
                     avgLetter: { $avg: "$letterScore" },
                     avgExcel: { $avg: "$excelScore" },
-                    avgMCQ:    { $avg: "$mcqScore" },
-                    
+                    avgMCQ: { $avg: "$mcqScore" },
+
                     // Max Scores
                     maxTyping: { $max: "$typingScore" },
                     maxLetter: { $max: "$letterScore" },
                     maxExcel: { $max: "$excelScore" },
-                    maxMCQ:    { $max: "$mcqScore" }
+                    maxMCQ: { $max: "$mcqScore" }
                 }
             }
         ]);
@@ -866,7 +1080,7 @@ app.post('/api/admin/excel-questions', authMiddleware, adminMiddleware, upload.f
         const { questionName } = req.body;
         const questionFile = req.files.questionFile[0];
         const solutionFile = req.files.solutionFile[0];
-        
+
         if (!questionName || !questionFile || !solutionFile) {
             return res.status(400).json({ message: 'All fields are required.' });
         }
@@ -912,10 +1126,10 @@ app.post('/api/admin/bulk-mcqs', authMiddleware, adminMiddleware, csvUpload.sing
 
                 // Bulk insert into MongoDB
                 const docs = await MCQQuestion.insertMany(results);
-                
+
                 // Delete the temporary file to keep your server clean
-                fs.unlinkSync(filePath); 
-                
+                fs.unlinkSync(filePath);
+
                 res.json({ message: "Upload successful", count: docs.length });
             } catch (err) {
                 // If DB fails, still delete the temp file
@@ -954,7 +1168,7 @@ app.post('/api/feedback', authMiddleware, async (req, res) => {
 // Centralized Error Middleware
 app.use((err, req, res, next) => {
     console.error('SERVER ERROR:', err.stack);
-    
+
     // Check if the error is from Cloudinary/Multer
     if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ message: 'File too large. Max limit is 5MB.' });
@@ -967,7 +1181,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is successfully running on http://localhost:${PORT}`);
+    console.log(`Server is successfully running on http://localhost:${PORT}`);
 });
 
 //  Check if api key is getting recognised
@@ -987,11 +1201,11 @@ app.get('/api/debug-key', authMiddleware, adminMiddleware, (req, res) => {
 app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.userId);
-        
+
         // 1. Find all active sets that the user has NOT completed yet
-        let availableSets = await MCQSet.find({ 
+        let availableSets = await MCQSet.find({
             _id: { $nin: user.completedMCQSets },
-            isActive: true 
+            isActive: true
         }).select('_id'); // We only fetch IDs first to keep it fast
 
         // 2. AUTO-RESET: If the user has completed everything, clear their history
@@ -999,7 +1213,7 @@ app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
             console.log(`User ${user.email} has seen all sets. Resetting cycle...`);
             user.completedMCQSets = [];
             await user.save();
-            
+
             // Re-fetch all currently active sets
             availableSets = await MCQSet.find({ isActive: true }).select('_id');
         }
@@ -1121,7 +1335,7 @@ app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
         // 4. Update Result and User Progress
         const finalResult = await TestResult.findOneAndUpdate(
             { sessionId, user: userId },
-            { 
+            {
                 mcqScore: mcqMarks,
                 totalScore: finalTotal,
                 status: 'completed',
@@ -1134,9 +1348,9 @@ app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
             { new: true }
         );
 
-        res.json({ 
-            success: true, 
-            redirectUrl: `/results-new.html?sessionId=${sessionId}` 
+        res.json({
+            success: true,
+            redirectUrl: `/results-new.html?sessionId=${sessionId}`
         });
     } catch (error) {
         res.status(500).json({ message: "Error saving MCQ results." });
@@ -1165,7 +1379,7 @@ app.get('/api/admin/debug-gemini', authMiddleware, adminMiddleware, async (req, 
         const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
 
         const response = await axios.get(url);
-        
+
         // This will return a list of objects containing:
         // name (e.g., models/gemini-1.5-flash)
         // supportedGenerationMethods (e.g., ["generateContent", "countTokens"])

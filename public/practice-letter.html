@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Letter Practice | Dream Centre</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="/auth.js" defer></script>
+    <style>
+        .practice-wrapper {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .practice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .practice-header h2 {
+            margin: 0;
+        }
+
+        .practice-timer {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: 'Inter', monospace;
+            color: var(--primary-yellow, #f59e0b);
+        }
+
+        .question-prompt {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-prompt h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-muted, #64748b);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .question-prompt p {
+            margin: 0;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        .editor-wrapper {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color, #e2e8f0);
+            background: var(--card-background, #f8fafc);
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 6px;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--border-color, #e2e8f0);
+        }
+
+        .toolbar-select {
+            padding: 0.4rem;
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .text-editor {
+            min-height: 300px;
+            padding: 1.5rem;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+            outline: none;
+            overflow-y: auto;
+        }
+
+        .text-editor:empty::before {
+            content: 'Start writing your letter here...';
+            color: var(--text-muted, #94a3b8);
+        }
+
+        .practice-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+
+        .practice-actions button {
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: #fff;
+        }
+
+        .btn-submit:hover {
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results View */
+        .results-view {
+            display: none;
+        }
+
+        .results-view.active {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .score-hero {
+            text-align: center;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .score-ring {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(var(--primary-yellow, #f59e0b) var(--score-deg, 0deg), var(--border-color, #e2e8f0) var(--score-deg, 0deg));
+            transition: --score-deg 1.2s ease-out;
+            position: relative;
+        }
+
+        .score-ring::after {
+            content: '';
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: var(--card-background, #fff);
+        }
+
+        .score-value {
+            position: relative;
+            z-index: 1;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-yellow, #f59e0b);
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b);
+            margin-top: 0.5rem;
+        }
+
+        .breakdown-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .breakdown-item {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .breakdown-item .label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .breakdown-item .explanation {
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b);
+            margin-top: 0.25rem;
+        }
+
+        .breakdown-item .score-badge {
+            background: var(--primary-yellow, #f59e0b);
+            color: #fff;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .action-buttons button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid var(--border-color, #e2e8f0);
+            background: none;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .action-buttons button:hover {
+            border-color: var(--primary-yellow, #f59e0b);
+            color: var(--primary-yellow, #f59e0b);
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            color: #fff !important;
+            border: none !important;
+        }
+
+        .btn-analyze:hover {
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .analysis-panel {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .analysis-panel.active {
+            display: block;
+        }
+
+        .analysis-panel h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-yellow, #f59e0b);
+        }
+
+        .review-panel {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .review-panel.active {
+            display: block;
+        }
+
+        .review-panel h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-muted, #64748b);
+        }
+
+        .review-content {
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            padding: 1.25rem;
+            min-height: 100px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 1rem;
+            color: #fff;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--primary-yellow, #f59e0b);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="dashboard-page">
+    <header class="test-header">
+        <div class="logo">Letter <span>Practice Zone</span></div>
+        <a href="/dashboard.html" class="nav-button secondary">Exit Practice</a>
+    </header>
+
+    <main class="practice-wrapper">
+        <!-- TEST VIEW -->
+        <div id="test-view">
+            <div class="practice-header">
+                <h2>✉️ Letter Writing Practice</h2>
+                <div class="practice-timer">Time: <span id="timer">03:00</span></div>
+            </div>
+
+            <div class="question-prompt">
+                <h3>Question</h3>
+                <p id="question-display">Loading question...</p>
+            </div>
+
+            <div class="editor-wrapper">
+                <div class="editor-toolbar">
+                    <button id="bold-btn" class="toolbar-btn"><b>B</b></button>
+                    <button id="italic-btn" class="toolbar-btn"><i>I</i></button>
+                    <button id="underline-btn" class="toolbar-btn"><u>U</u></button>
+                    <select id="font-family-select" class="toolbar-select">
+                        <option value="Arial">Arial</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                    </select>
+                    <select id="font-size-select" class="toolbar-select">
+                        <option value="3">11pt</option>
+                        <option value="1">8pt</option>
+                        <option value="2">10pt</option>
+                        <option value="4">12pt</option>
+                        <option value="5">14pt</option>
+                    </select>
+                </div>
+                <div id="user-input" class="text-editor" contenteditable="true"></div>
+            </div>
+
+            <div class="practice-actions">
+                <button id="submit-btn" class="btn-submit">Submit for AI Grading</button>
+            </div>
+        </div>
+
+        <!-- RESULTS VIEW -->
+        <div id="results-view" class="results-view">
+            <div class="score-hero">
+                <h2 id="results-title">Your Practice Score</h2>
+                <div class="score-ring" id="score-ring">
+                    <span class="score-value" id="score-value">0</span>
+                </div>
+                <p class="score-label" id="score-label">out of 10</p>
+            </div>
+
+            <div class="breakdown-grid" id="breakdown-grid"></div>
+
+            <div class="action-buttons">
+                <button class="btn-analyze" id="analyze-btn">🔍 Get Detailed AI Analysis</button>
+                <button id="review-btn">📄 Review Your Letter</button>
+                <button onclick="location.reload()">🔄 Try Again</button>
+                <button onclick="location.href='/dashboard.html'">🏠 Dashboard</button>
+            </div>
+
+            <div id="analysis-panel" class="analysis-panel">
+                <h3>🤖 Detailed AI Analysis</h3>
+                <div id="analysis-content"></div>
+            </div>
+
+            <div id="review-panel" class="review-panel">
+                <h3>📄 Your Submitted Letter</h3>
+                <div id="review-content" class="review-content"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>AI is grading your letter...</p>
+    </div>
+
+    <script src="toast.js"></script>
+    <script src="practice-letter.js"></script>
+</body>
+
+</html>
