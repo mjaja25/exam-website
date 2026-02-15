@@ -44,27 +44,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const PRESET_DRILLS = {
         home: {
             name: 'Home Row', reps: 10,
-            easy: 'asdf jkl; fdsa ;lkj asdf jkl; fdsa ;lkj',
-            medium: 'ffdd ;;ll ssaa kkjj ;als kdjf',
-            hard: 'asd a;dslkf sdf;lkj aksdf kajd ;ls dskfj'
+            easy: 'asdf fdsa sdfa dfas jkl; ;lkj k;jl lk;j',
+            medium: 'aajj sskk ddll ff;; ajsk dlf; skaj ;fld',
+            hard: 'asdfghjkl; ghfj dkas l;gh adfg hjkl s;gh'
         },
         top: {
             name: 'Top Row', reps: 10,
-            easy: 'qwert yuiop trewq poiuy qwert yuiop',
-            medium: 'qqww eett yyuu iioo rwte yipu',
-            hard: 'qwe qyuio weriop rtyui qiowe ypt qwer'
+            easy: 'qwer rewq werq erqw uiop piou oiup iupo',
+            medium: 'qquu wwii eerr oopp quie woir erup owiq',
+            hard: 'qwertyuiop tyqw erui opty rwet yuio pqwt'
         },
         bottom: {
             name: 'Bottom Row', reps: 10,
-            easy: 'zxcvb nm,./ bvcxz /.,mn zxcvb nm,./',
-            medium: 'zzxx ccvv nnmm ,,.. xbcv nm./',
-            hard: 'zxc z,cvnm bvc/.,x ncxvb zm,. /xnc bvcm'
+            easy: 'zxcv vcxz xcvz cvzx m,./ /.,m ,.// ./m,',
+            medium: 'zzmm xx,, cc.. vv// zmx, cv./ ,xzm ./vc',
+            hard: 'zxcvbnm,./ bnzx cvm, ./bn xvcb nm,. /zxb'
         },
         numbers: {
             name: 'Number Row', reps: 10,
-            easy: '12345 67890 54321 09876 12345 67890',
-            medium: '1122 3344 5566 7788 9900 2468',
-            hard: '142 85903 76214 39058 71624 803'
+            easy: '1234 4321 2341 3412 6789 9876 7896 8967',
+            medium: '1166 2277 3388 4499 5500 1627 3849 5091',
+            hard: '1234567890 52907 83146 07529 41638 90274'
         }
     };
     let selectedDrillType = null;
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (drillCurrentRep <= 3) {
                 tierText = p.easy;
                 drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Easy`;
-            } else if (drillCurrentRep <= 6) {
+            } else if (drillCurrentRep <= 7) {
                 tierText = p.medium;
                 drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Medium`;
             } else {
