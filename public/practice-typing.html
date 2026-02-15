@@ -625,6 +625,41 @@
             display: block;
         }
 
+        /* --- Word Set Toggle --- */
+        .word-set-picker {
+            display: none;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.75rem;
+            justify-content: center;
+        }
+
+        .word-set-picker.visible {
+            display: flex;
+        }
+
+        .word-set-btn {
+            padding: 0.35rem 0.8rem;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 20px;
+            background: var(--card-background, white);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .word-set-btn:hover {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .word-set-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
         /* --- Drill Engine --- */
         .drill-engine {
             max-width: 700px;
@@ -805,6 +840,11 @@
                     <button class="drill-pick-btn" onclick="selectDrill('custom', this)">
                         <span class="pick-icon">✏️</span> Custom
                     </button>
+                </div>
+                <div id="word-set-picker" class="word-set-picker">
+                    <button class="word-set-btn active" onclick="selectWordSet('1k', this)">1K Words</button>
+                    <button class="word-set-btn" onclick="selectWordSet('5k', this)">5K Words</button>
+                    <button class="word-set-btn" onclick="selectWordSet('10k', this)">10K Words</button>
                 </div>
                 <textarea id="drill-custom-text" class="drill-custom-input" rows="2"
                     placeholder="Type your custom drill text here..."></textarea>

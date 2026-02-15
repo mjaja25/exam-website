@@ -45,8 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         home: { name: 'Home Row', text: 'asdf jkl; fdsa ;lkj asdf jkl; fdsa ;lkj', reps: 10 },
         top: { name: 'Top Row', text: 'qwert yuiop poiuy trewq qwert yuiop', reps: 10 },
         bottom: { name: 'Bottom Row', text: 'zxcvb nm,./ /.,mn bvcxz zxcvb nm,./', reps: 10 },
-        numbers: { name: 'Number Row', text: '12345 67890 09876 54321 12345 67890', reps: 10 },
-        words: { name: 'Common Words', text: 'the and for with that have from this will your', reps: 15 }
+        numbers: { name: 'Number Row', text: '12345 67890 09876 54321 12345 67890', reps: 10 }
     };
     let selectedDrillType = null;
     let drillText = '';
@@ -55,6 +54,34 @@ document.addEventListener('DOMContentLoaded', () => {
     let drillTotalCorrect = 0;
     let drillTotalTyped = 0;
     let drillTotalErrors = 0;
+
+    // --- Word Set State ---
+    let selectedWordSet = '1k';
+    const wordSetCache = {};
+
+    async function fetchWordSet(setKey) {
+        if (wordSetCache[setKey]) return wordSetCache[setKey];
+        const file = { '1k': 'english_1k.json', '5k': 'english_5k.json', '10k': 'english_10k.json' }[setKey];
+        try {
+            const res = await fetch(`/english/${file}`);
+            const data = await res.json();
+            wordSetCache[setKey] = data.words;
+            return data.words;
+        } catch (e) {
+            return ['the', 'and', 'for', 'with', 'that', 'have', 'from', 'this', 'will', 'your'];
+        }
+    }
+
+    function pickRandomWords(wordList, count = 10) {
+        const shuffled = [...wordList].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, count).join(' ');
+    }
+
+    window.selectWordSet = (setKey, btn) => {
+        selectedWordSet = setKey;
+        document.querySelectorAll('.word-set-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    };
 
     // --- JWT Helper ---
     function parseJwt(t) {
@@ -557,21 +584,32 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.drill-pick-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const customInput = document.getElementById('drill-custom-text');
+        const wordSetPicker = document.getElementById('word-set-picker');
         if (type === 'custom') {
             customInput.classList.add('visible');
+            wordSetPicker.classList.remove('visible');
             customInput.focus();
+        } else if (type === 'words') {
+            customInput.classList.remove('visible');
+            wordSetPicker.classList.add('visible');
         } else {
             customInput.classList.remove('visible');
+            wordSetPicker.classList.remove('visible');
         }
     };
 
-    window.launchDrill = () => {
+    window.launchDrill = async () => {
         if (selectedDrillType === 'custom') {
             const customText = document.getElementById('drill-custom-text').value.trim();
             if (!customText) { if (typeof showToast === 'function') showToast('Enter custom drill text.', 'error'); return; }
             drillText = customText;
             drillReps = 10;
             startDrillEngine('Custom Drill');
+        } else if (selectedDrillType === 'words') {
+            const wordList = await fetchWordSet(selectedWordSet);
+            drillText = pickRandomWords(wordList, 10);
+            drillReps = 15;
+            startDrillEngine(`Common Words (${selectedWordSet.toUpperCase()})`);
         } else if (selectedDrillType && PRESET_DRILLS[selectedDrillType]) {
             const p = PRESET_DRILLS[selectedDrillType];
             drillText = p.text;
@@ -620,6 +658,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadDrillRep() {
         drillCurrentRep++;
         drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}`;
+
+        // Randomize words each rep for word drills
+        if (selectedDrillType === 'words' && wordSetCache[selectedWordSet]) {
+            drillText = pickRandomWords(wordSetCache[selectedWordSet], 10);
+        }
 
         drillPassageEl.innerHTML = '';
         drillText.split('').forEach(ch => {
