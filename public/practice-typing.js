@@ -503,10 +503,11 @@ document.addEventListener('DOMContentLoaded', () => {
             renderCoachCards(a);
             coachPanel.classList.add('active');
             coachPanel.scrollIntoView({ behavior: 'smooth' });
+            analyzeBtn.textContent = '✅ Analysis Generated';
 
         } catch (err) {
+            console.error('Typing analysis error:', err);
             if (typeof showToast === 'function') showToast('Failed to generate analysis.', 'error');
-        } finally {
             analyzeBtn.disabled = false;
             analyzeBtn.textContent = '🤖 Get AI Typing Coach';
         }

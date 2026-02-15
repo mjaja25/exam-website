@@ -236,10 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             analysisPanel.classList.add('active');
             analysisPanel.scrollIntoView({ behavior: 'smooth' });
+            analyzeBtn.textContent = '✅ Analysis Generated';
 
         } catch (err) {
             if (typeof showToast === 'function') showToast('Failed to generate analysis.', 'error');
-        } finally {
             analyzeBtn.disabled = false;
             analyzeBtn.textContent = '🔍 Get Detailed AI Analysis';
         }
