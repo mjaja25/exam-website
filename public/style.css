@@ -642,6 +642,41 @@ body.dashboard-page {
     grid-area: leaderboard;
 }
 
+.carousel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.carousel-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--card-background);
+    color: var(--text-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover,
+.icon-btn.active {
+    background: var(--primary-yellow);
+    color: var(--dark-text-on-btn);
+    border-color: var(--primary-yellow);
+}
+
 .card {
     transition: box-shadow 0.25s ease, transform 0.25s ease;
 }

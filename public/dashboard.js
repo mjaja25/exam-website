@@ -23,68 +23,109 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('mobile-warning-active');
     }
 
+    // --- Carousel Logic ---
+    let leaderboardData = null;
     let currentCategoryIndex = 0;
-    const categories = [
-        { key: 'std_overall', label: 'Standard Test Champions' },
-        { key: 'std_typing', label: 'Typing Speed Kings - 5 Mins' },
-        { key: 'std_letter', label: 'Top 3 Letters' },
-        { key: 'std_excel', label: 'MS Excel Masters' },
-        { key: 'new_overall', label: 'New Pattern (10+5) Leaders' },
-        { key: 'new_typing', label: 'Typing Speed Kings - 10 Mins' },
-        { key: 'new_mcq', label: 'Excel MCQ Experts' }
+    let activeCategories = [];
+    let carouselInterval;
+
+    const stdCategories = [
+        { key: 'std_overall', label: 'Standard Pattern: Overall Top 3' },
+        { key: 'std_typing', label: 'Standard: Typing Speed Kings' },
+        { key: 'std_letter', label: 'Standard: Best Letters' },
+        { key: 'std_excel', label: 'Standard: Excel Masters' }
     ];
+
+    const newCategories = [
+        { key: 'new_overall', label: 'New Pattern (10+5): Overall Leaders' },
+        { key: 'new_typing', label: 'New Pattern: Typing Speed Kings' },
+        { key: 'new_mcq', label: 'New Pattern: Excel MCQ Experts' }
+    ];
+
+    // Default to Standard
+    activeCategories = stdCategories;
+
+    window.toggleLeaderboard = (type) => {
+        // Update Buttons
+        document.querySelectorAll('.icon-btn').forEach(btn => btn.classList.remove('active'));
+        const btnSelector = type === 'standard' ? 'S' : 'N';
+        const activeBtn = Array.from(document.querySelectorAll('.icon-btn')).find(b => b.innerText.includes(btnSelector));
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Update Data Source
+        if (type === 'standard') {
+            activeCategories = stdCategories;
+        } else {
+            activeCategories = newCategories;
+        }
+
+        // Reset and Update
+        currentCategoryIndex = 0;
+        updateCarouselSlide();
+
+        // Reset Interval to avoid immediate jump
+        clearInterval(carouselInterval);
+        carouselInterval = setInterval(updateCarouselSlide, 6000);
+    };
+
+    function updateCarouselSlide() {
+        if (!leaderboardData) return;
+
+        const cat = activeCategories[currentCategoryIndex];
+        const winners = leaderboardData[cat.key] ? leaderboardData[cat.key].slice(0, 3) : [];
+        const podium = document.getElementById('carousel-winners');
+        const title = document.getElementById('carousel-title');
+
+        if (title) title.innerText = cat.label;
+
+        if (podium) {
+            podium.innerHTML = winners.map((w, i) => {
+                let displayVal = 0;
+                let unit = "Pts";
+
+                if (cat.key.includes('typing')) {
+                    displayVal = w.wpm;
+                    unit = "WPM";
+                } else if (cat.key.includes('mcq')) {
+                    displayVal = w.mcqScore;
+                    unit = "Pts";
+                } else if (cat.key.includes('letter')) {
+                    displayVal = w.letterScore || 0;
+                } else if (cat.key.includes('excel')) {
+                    displayVal = w.excelScore || 0;
+                } else {
+                    displayVal = w.totalScore;
+                }
+
+                return `
+                    <div class="winner-entry rank-${i + 1}">
+                        <span class="medal">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                        <span class="username">${w.user?.username || 'Anonymous'}</span>
+                        <span class="score-val">${Math.round(displayVal)} <small>${unit}</small></span>
+                    </div>
+                `;
+            }).join('');
+        }
+        currentCategoryIndex = (currentCategoryIndex + 1) % activeCategories.length;
+    }
 
     async function startLeaderboardCarousel() {
         try {
             const res = await fetch('/api/leaderboard/all', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await res.json();
+            leaderboardData = await res.json();
 
-            const updateSlide = () => {
-                const cat = categories[currentCategoryIndex];
-                const winners = data[cat.key] ? data[cat.key].slice(0, 3) : [];
-                const podium = document.getElementById('carousel-winners');
+            // Initialize with Standard active
+            const startBtn = Array.from(document.querySelectorAll('.icon-btn')).find(b => b.innerText.includes('S'));
+            if (startBtn) startBtn.classList.add('active');
 
-                if (document.getElementById('carousel-title')) {
-                    document.getElementById('carousel-title').innerText = cat.label;
-                }
-
-                if (podium) {
-                    podium.innerHTML = winners.map((w, i) => {
-                        let displayVal = 0;
-                        let unit = "Pts";
-
-                        if (cat.key.includes('typing')) {
-                            displayVal = w.wpm;
-                            unit = "WPM";
-                        } else if (cat.key.includes('mcq')) {
-                            displayVal = w.mcqScore;
-                            unit = "Pts";
-                        } else if (cat.key.includes('letter')) {
-                            displayVal = w.letterScore || 0;
-                        } else if (cat.key.includes('excel')) {
-                            displayVal = w.excelScore || 0;
-                        } else {
-                            displayVal = w.totalScore;
-                        }
-
-                        return `
-                            <div class="winner-entry rank-${i + 1}">
-                                <span class="medal">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
-                                <span class="username">${w.user?.username || 'Anonymous'}</span>
-                                <span class="score-val">${Math.round(displayVal)} <small>${unit}</small></span>
-                            </div>
-                        `;
-                    }).join('');
-                }
-                currentCategoryIndex = (currentCategoryIndex + 1) % categories.length;
-            };
-
-            updateSlide();
-            setInterval(updateSlide, 6000);
+            updateCarouselSlide();
+            carouselInterval = setInterval(updateCarouselSlide, 6000);
         } catch (err) {
             console.error("Leaderboard error:", err);
+            const podium = document.getElementById('carousel-winners');
+            if (podium) podium.innerHTML = '<p style="text-align:center; color:#666;">Failed to load rankings.</p>';
         }
     }
 

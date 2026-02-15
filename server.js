@@ -298,11 +298,16 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
     try {
         const count = await ExcelQuestion.countDocuments();
         const random = Math.floor(Math.random() * count);
-        const question = await ExcelQuestion.findOne().skip(random); // 'question' is correctly defined here
+        let question = await ExcelQuestion.findOne().skip(random).lean(); // Use lean() to modify object
 
         if (!question) {
             return res.status(404).json({ message: 'No excel questions found.' });
         }
+
+        // Force download for these files
+        if (question.questionFilePath) question.questionFilePath = createDownloadUrl(question.questionFilePath);
+        if (question.solutionFilePath) question.solutionFilePath = createDownloadUrl(question.solutionFilePath);
+
         res.json(question);
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching question.' });
@@ -1114,54 +1119,44 @@ app.get('/api/leaderboard/all', async (req, res) => {
     }
 
     try {
-        // 1. Standard Pattern - Overall (Typing + Letter + Practical)
-        const std_overall = await TestResult.find({
-            testPattern: 'standard',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ totalScore: -1 }).limit(10).populate('user', 'username');
+        const limit = 10;
+        const [
+            std_overall,
+            std_typing,
+            std_letter,
+            std_excel,
+            new_overall,
+            new_typing,
+            new_mcq
+        ] = await Promise.all([
+            // 1. Standard Pattern - Overall
+            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+                .sort({ totalScore: -1 }).limit(limit).populate('user', 'username'),
 
-        // 2. Standard Pattern - Pure Typing Speed
-        const std_typing = await TestResult.find({
-            testPattern: 'standard',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ wpm: -1 }).limit(10).populate('user', 'username');
+            // 2. Standard Pattern - Typing
+            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+                .sort({ wpm: -1 }).limit(limit).populate('user', 'username'),
 
-        // 3. Standard Pattern - Letter
-        const std_letter = await TestResult.find({
-            testPattern: 'standard',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ letterScore: -1 }).limit(10).populate('user', 'username');
+            // 3. Standard Pattern - Letter
+            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+                .sort({ letterScore: -1 }).limit(limit).populate('user', 'username'),
 
-        // 4. Standard Pattern - Excel
-        const std_excel = await TestResult.find({
-            testPattern: 'standard',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ excelScore: -1 }).limit(10).populate('user', 'username');
+            // 4. Standard Pattern - Excel
+            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+                .sort({ excelScore: -1 }).limit(limit).populate('user', 'username'),
 
-        // 5. New Pattern - Overall
-        const new_overall = await TestResult.find({
-            testPattern: 'new_pattern',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ totalScore: -1 }).limit(10).populate('user', 'username');
+            // 5. New Pattern - Overall
+            TestResult.find({ testPattern: 'new_pattern', attemptMode: 'exam', status: 'completed' })
+                .sort({ totalScore: -1 }).limit(limit).populate('user', 'username'),
 
-        // 6. New Pattern - Typing (10 mins)
-        const new_typing = await TestResult.find({
-            testPattern: 'new_pattern',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ score: -1, wpm: -1, accuracy: -1 }).limit(10).populate('user', 'username');
+            // 6. New Pattern - Typing (Fixed sort key from 'score' to 'typingScore')
+            TestResult.find({ testPattern: 'new_pattern', attemptMode: 'exam', status: 'completed' })
+                .sort({ typingScore: -1, wpm: -1, accuracy: -1 }).limit(limit).populate('user', 'username'),
 
-        // 7. New Pattern - Excel MCQ
-        const new_mcq = await TestResult.find({
-            testPattern: 'new_pattern',
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ mcqScore: -1 }).limit(10).populate('user', 'username');
+            // 7. New Pattern - Excel MCQ
+            TestResult.find({ testPattern: 'new_pattern', attemptMode: 'exam', status: 'completed' })
+                .sort({ mcqScore: -1 }).limit(limit).populate('user', 'username')
+        ]);
 
         const results = {
             std_overall,
