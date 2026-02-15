@@ -225,6 +225,89 @@ app.get('/api/auth/google/callback', passport.authenticate('google', { failureRe
     res.redirect(`/auth-success.html?token=${token}`);
 });
 
+// --- Forgot / Reset Password Routes ---
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+
+        // If no user found, still return 200 to prevent email enumeration
+        if (!user) {
+            return res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+        }
+
+        // Google-only user (no password set)
+        if (!user.password && user.googleId) {
+            return res.json({ googleOnly: true, message: 'This account uses Google Sign-In. Please use the "Sign in with Google" button to access your account.' });
+        }
+
+        // Generate reset token (1 hour expiry)
+        const resetToken = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        const resetUrl = `${process.env.BASE_URL}/reset-password.html?token=${resetToken}`;
+        const msg = {
+            to: user.email,
+            from: process.env.VERIFIED_SENDER_EMAIL,
+            subject: 'Password Reset Request',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 2rem;">
+                    <h2 style="color: #111827;">Password Reset</h2>
+                    <p>You requested a password reset for your Dream Centre account.</p>
+                    <p>Click the button below to set a new password. This link expires in <strong>1 hour</strong>.</p>
+                    <a href="${resetUrl}" style="display: inline-block; background: #f59e0b; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; margin: 1rem 0;">Reset Password</a>
+                    <p style="font-size: 0.85rem; color: #6b7280;">If you did not request this, you can safely ignore this email.</p>
+                </div>
+            `,
+        };
+        await sgMail.send(msg);
+
+        res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'An error occurred. Please try again later.' });
+    }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) return res.status(400).json({ message: 'Token and new password are required.' });
+        if (newPassword.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            return res.status(400).json({ message: 'Invalid or expired reset link. Please request a new one.' });
+        }
+
+        const user = await User.findOne({
+            email: decoded.email,
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired reset link. Please request a new one.' });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: 'Password has been reset successfully. You can now log in with your new password.' });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ message: 'An error occurred. Please try again later.' });
+    }
+});
+
 // --- User-Specific Routes ---
 app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
     try {
@@ -1222,6 +1305,156 @@ app.get('/api/stats/global', authMiddleware, async (req, res) => {
 
 
 // --- Admin-Only Routes ---
+
+// --- Admin User Management ---
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const search = req.query.search || '';
+        const roleFilter = req.query.role || '';
+
+        const filter = {};
+        if (search) {
+            filter.$or = [
+                { username: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+        if (roleFilter && ['user', 'admin'].includes(roleFilter)) {
+            filter.role = roleFilter;
+        }
+
+        const total = await User.countDocuments(filter);
+        const users = await User.find(filter)
+            .select('-password -verificationToken -resetPasswordToken -resetPasswordExpires -completedMCQSets')
+            .sort({ _id: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            users,
+            total,
+            page,
+            pages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        console.error('Admin fetch users error:', error);
+        res.status(500).json({ message: 'Server error fetching users.' });
+    }
+});
+
+app.post('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { username, email, password, role } = req.body;
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'Username, email, and password are required.' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+        }
+
+        const existingUser = await User.findOne({ $or: [{ email: email.toLowerCase() }, { username }] });
+        if (existingUser) {
+            const field = existingUser.email === email.toLowerCase() ? 'Email' : 'Username';
+            return res.status(409).json({ message: `${field} is already taken.` });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({
+            username,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            role: role === 'admin' ? 'admin' : 'user',
+            isVerified: true // Admin-created accounts are pre-verified
+        });
+        await newUser.save();
+
+        res.status(201).json({
+            message: 'User created successfully.',
+            user: { _id: newUser._id, username: newUser.username, email: newUser.email, role: newUser.role, isVerified: newUser.isVerified }
+        });
+    } catch (error) {
+        console.error('Admin create user error:', error);
+        res.status(500).json({ message: 'Server error creating user.' });
+    }
+});
+
+app.patch('/api/admin/users/:id/role', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        if (!role || !['user', 'admin'].includes(role)) {
+            return res.status(400).json({ message: 'Valid role (user or admin) is required.' });
+        }
+
+        // Prevent self-demotion
+        if (id === req.userId.toString() && role !== 'admin') {
+            return res.status(400).json({ message: 'You cannot demote your own account.' });
+        }
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        user.role = role;
+        await user.save();
+
+        res.json({ message: `User role updated to ${role}.`, user: { _id: user._id, username: user.username, role: user.role } });
+    } catch (error) {
+        console.error('Admin update role error:', error);
+        res.status(500).json({ message: 'Server error updating role.' });
+    }
+});
+
+app.post('/api/admin/users/:id/reset-password', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+        }
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: `Password reset for ${user.username}.` });
+    } catch (error) {
+        console.error('Admin reset password error:', error);
+        res.status(500).json({ message: 'Server error resetting password.' });
+    }
+});
+
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Prevent self-deletion
+        if (id === req.userId.toString()) {
+            return res.status(400).json({ message: 'You cannot delete your own account.' });
+        }
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        // Cascade delete related data
+        await TestResult.deleteMany({ user: id });
+        await PracticeResult.deleteMany({ user: id });
+        await User.findByIdAndDelete(id);
+
+        res.json({ message: `User "${user.username}" and all their data have been deleted.` });
+    } catch (error) {
+        console.error('Admin delete user error:', error);
+        res.status(500).json({ message: 'Server error deleting user.' });
+    }
+});
+
 app.get('/api/admin/results', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         let results = await TestResult.find({}).sort({ submittedAt: -1 }).populate('user', 'username email');

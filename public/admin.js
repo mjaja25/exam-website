@@ -478,8 +478,203 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ==============================
+    // 8. USER MANAGEMENT
+    // ==============================
+    let usersPage = 1;
+    let usersTotalPages = 1;
+
+    async function fetchUsers(page = 1) {
+        usersPage = page;
+        const search = (document.getElementById('user-search').value || '').trim();
+        const roleFilter = document.getElementById('user-role-filter').value;
+
+        const params = new URLSearchParams({ page: usersPage, limit: 15 });
+        if (search) params.append('search', search);
+        if (roleFilter) params.append('role', roleFilter);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users?${params.toString()}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            usersTotalPages = data.pages;
+            renderUsers(data.users);
+            renderUsersPagination();
+        } catch (err) {
+            console.error('Fetch users failed', err);
+        }
+    }
+
+    function renderUsers(users) {
+        const tbody = document.getElementById('users-tbody');
+        if (!users || users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999;">No users found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = users.map(u => {
+            const roleBadge = u.role === 'admin'
+                ? '<span style="background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:10px; font-size:0.7rem; font-weight:600;">Admin</span>'
+                : '<span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:10px; font-size:0.7rem; font-weight:600;">User</span>';
+            const verifiedBadge = u.isVerified
+                ? '<span style="color:#10b981; font-weight:600;">Yes</span>'
+                : '<span style="color:#ef4444; font-weight:600;">No</span>';
+            const authType = u.googleId ? 'Google' : 'Email';
+
+            return `
+                <tr>
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td>${roleBadge}</td>
+                    <td>${verifiedBadge}</td>
+                    <td>${authType}</td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            <button onclick="toggleUserRole('${u._id}', '${u.role}')" style="padding:3px 8px; border:1px solid #93c5fd; border-radius:4px; cursor:pointer; font-size:0.7rem; background:white; color:#3b82f6;">
+                                ${u.role === 'admin' ? 'Demote' : 'Promote'}
+                            </button>
+                            <button onclick="openResetPwModal('${u._id}', '${u.username}')" style="padding:3px 8px; border:1px solid #fbbf24; border-radius:4px; cursor:pointer; font-size:0.7rem; background:white; color:#d97706;">
+                                Reset PW
+                            </button>
+                            <button onclick="deleteUser('${u._id}', '${u.username}')" style="padding:3px 8px; border:1px solid #fca5a5; border-radius:4px; cursor:pointer; font-size:0.7rem; background:white; color:#ef4444;">
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderUsersPagination() {
+        const prev = document.getElementById('users-prev-btn');
+        const next = document.getElementById('users-next-btn');
+        const info = document.getElementById('users-page-info');
+
+        info.innerText = `Page ${usersPage} of ${usersTotalPages || 1}`;
+        prev.disabled = usersPage <= 1;
+        next.disabled = usersPage >= usersTotalPages;
+        prev.onclick = () => fetchUsers(usersPage - 1);
+        next.onclick = () => fetchUsers(usersPage + 1);
+    }
+
+    // Search & filter listeners
+    let userSearchTimeout;
+    document.getElementById('user-search').addEventListener('input', () => {
+        clearTimeout(userSearchTimeout);
+        userSearchTimeout = setTimeout(() => fetchUsers(1), 500);
+    });
+    document.getElementById('user-role-filter').addEventListener('change', () => fetchUsers(1));
+
+    // Toggle Role
+    window.toggleUserRole = async (id, currentRole) => {
+        const newRole = currentRole === 'admin' ? 'user' : 'admin';
+        const action = newRole === 'admin' ? 'promote to Admin' : 'demote to User';
+        if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}/role`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ role: newRole })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                fetchUsers(usersPage);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) { alert('Network error.'); }
+    };
+
+    // Delete User
+    window.deleteUser = async (id, username) => {
+        if (!confirm(`Delete user "${username}" and ALL their test data? This cannot be undone.`)) return;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                fetchUsers(usersPage);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) { alert('Network error.'); }
+    };
+
+    // Reset Password Modal
+    window.openResetPwModal = (id, username) => {
+        document.getElementById('reset-pw-user-id').value = id;
+        document.getElementById('reset-pw-user-info').textContent = `Set a new password for: ${username}`;
+        document.getElementById('reset-pw-value').value = '';
+        document.getElementById('reset-pw-modal').classList.add('active');
+    };
+
+    document.getElementById('save-reset-pw-btn').onclick = async () => {
+        const id = document.getElementById('reset-pw-user-id').value;
+        const newPassword = document.getElementById('reset-pw-value').value;
+        if (!newPassword || newPassword.length < 6) return alert('Password must be at least 6 characters.');
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ newPassword })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                document.getElementById('reset-pw-modal').classList.remove('active');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) { alert('Network error.'); }
+    };
+
+    // Add User Modal
+    document.getElementById('add-user-btn').onclick = () => {
+        document.getElementById('new-user-username').value = '';
+        document.getElementById('new-user-email').value = '';
+        document.getElementById('new-user-password').value = '';
+        document.getElementById('new-user-role').value = 'user';
+        document.getElementById('add-user-modal').classList.add('active');
+    };
+
+    document.getElementById('save-new-user-btn').onclick = async () => {
+        const username = document.getElementById('new-user-username').value.trim();
+        const email = document.getElementById('new-user-email').value.trim();
+        const password = document.getElementById('new-user-password').value;
+        const role = document.getElementById('new-user-role').value;
+
+        if (!username || !email || !password) return alert('All fields are required.');
+        if (password.length < 6) return alert('Password must be at least 6 characters.');
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ username, email, password, role })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                document.getElementById('add-user-modal').classList.remove('active');
+                fetchUsers(1);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) { alert('Network error.'); }
+    };
+
     // Initial Load
     fetchResults();
+    fetchUsers(1);
     fetchMcqBank(1);
     fetchSets();
 });

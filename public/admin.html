@@ -284,6 +284,79 @@
     </header>
 
     <main class="admin-content">
+        <!-- User Management Section -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <h2>User Management</h2>
+                <button id="add-user-btn" style="background:#10b981; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600;">+ Add User</button>
+            </div>
+            <div class="filter-bar" style="margin-top:1rem;">
+                <input type="text" id="user-search" placeholder="Search by username or email...">
+                <select id="user-role-filter">
+                    <option value="">All Roles</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Verified</th>
+                            <th>Auth</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody"></tbody>
+                </table>
+            </div>
+            <div class="pagination-controls" style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+                <button id="users-prev-btn" class="secondary" disabled>Previous</button>
+                <span id="users-page-info" style="font-size:0.9rem; color:#64748b;">Page 1</span>
+                <button id="users-next-btn" class="secondary" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Add User Modal -->
+        <div id="add-user-modal" class="modal-overlay">
+            <div class="modal-box">
+                <h3>Add New User</h3>
+                <label>Username</label>
+                <input type="text" id="new-user-username" placeholder="Username" required>
+                <label>Email</label>
+                <input type="email" id="new-user-email" placeholder="Email" required>
+                <label>Password</label>
+                <input type="password" id="new-user-password" placeholder="Min 6 characters" required>
+                <label>Role</label>
+                <select id="new-user-role">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="document.getElementById('add-user-modal').classList.remove('active')">Cancel</button>
+                    <button class="btn-save" id="save-new-user-btn">Create User</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Modal -->
+        <div id="reset-pw-modal" class="modal-overlay">
+            <div class="modal-box">
+                <h3>Reset Password</h3>
+                <p id="reset-pw-user-info" style="font-size:0.9rem; color:#64748b;"></p>
+                <input type="hidden" id="reset-pw-user-id">
+                <label>New Password</label>
+                <input type="password" id="reset-pw-value" placeholder="Min 6 characters" required>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="document.getElementById('reset-pw-modal').classList.remove('active')">Cancel</button>
+                    <button class="btn-save" id="save-reset-pw-btn">Reset Password</button>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <h2>All User Submissions</h2>
             <div class="table-container">

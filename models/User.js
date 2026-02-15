@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
     verificationToken: {
         type: String
     },
+    resetPasswordToken: {
+        type: String
+    },
+    resetPasswordExpires: {
+        type: Date
+    },
     completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }]
 });
 
