@@ -360,8 +360,8 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
             /size=["']?4["']?/.test(content) ||
             /font-size\s*:\s*12pt/i.test(content);
 
-        const subjectUnderlined = /<u>[\s\S]*Subject:/i.test(content);
-        const subjectBold = /<b>[\s\S]*Subject:/i.test(content);
+        const subjectUnderlined = /<u>[^<]*Subject:[^<]*<\/u>/i.test(content) || /<u>\s*<[^>]+>[^<]*Subject:/i.test(content);
+        const subjectBold = /<b>[^<]*Subject:[^<]*<\/b>/i.test(content) || /<strong>[^<]*Subject:[^<]*<\/strong>/i.test(content) || /<b>\s*<[^>]+>[^<]*Subject:/i.test(content) || /<strong>\s*<[^>]+>[^<]*Subject:/i.test(content);
 
         let typographyScore = 0;
         if (hasTimesNewRoman) typographyScore += 1;
@@ -580,8 +580,8 @@ app.post('/api/practice/letter', authMiddleware, async (req, res) => {
         // Deterministic format checks (same as exam)
         const hasTimesNewRoman = /face=["']?Times New Roman["']?/i.test(content) || /font-family\s*:\s*['"]?Times New Roman/i.test(content);
         const hasCorrectFontSize = /size=["']?4["']?/.test(content) || /font-size\s*:\s*12pt/i.test(content);
-        const subjectUnderlined = /<u>[\s\S]*Subject:/i.test(content);
-        const subjectBold = /<b>[\s\S]*Subject:/i.test(content);
+        const subjectUnderlined = /<u>[^<]*Subject:[^<]*<\/u>/i.test(content) || /<u>\s*<[^>]+>[^<]*Subject:/i.test(content);
+        const subjectBold = /<b>[^<]*Subject:[^<]*<\/b>/i.test(content) || /<strong>[^<]*Subject:[^<]*<\/strong>/i.test(content) || /<b>\s*<[^>]+>[^<]*Subject:/i.test(content) || /<strong>\s*<[^>]+>[^<]*Subject:/i.test(content);
 
         let typographyScore = 0;
         if (hasTimesNewRoman) typographyScore += 1;
@@ -757,19 +757,34 @@ ${type === 'letter' ? `Their Letter Content:\n---\n${content}\n---` : ''}
 Previous Grading Feedback:
 ${previousFeedback}
 
-Provide a DETAILED constructive analysis that includes:
-1. **What They Did Well** — Identify 2-3 specific strengths.
-2. **Areas for Improvement** — Point out 2-3 specific weaknesses with concrete suggestions.
-3. **Pro Tips** — Give 2-3 actionable tips to score higher next time.
-${type === 'letter' ? '4. **Sample Structure** — Show a brief outline of an ideal letter structure for this question.' : '4. **Key Concepts** — Remind them of the Excel concepts tested and common pitfalls.'}
+Return ONLY a valid JSON object (no markdown fences, no extra text) with this exact structure:
+{
+  "strengths": [
+    { "title": "Short strength title", "detail": "1-2 sentence explanation" }
+  ],
+  "improvements": [
+    { "title": "Short area title", "detail": "What was wrong", "suggestion": "How to fix it" }
+  ],
+  "tips": [
+    { "text": "Actionable tip" }
+  ],
+  ${type === 'letter' ? '"sampleStructure": "Brief outline of ideal letter structure for this question, use \\n for line breaks"' : '"keyConcepts": "Remind them of key concepts tested and common pitfalls, use \\n for line breaks"'}
+}
 
-Format your response in clean sections with headers. Be encouraging but honest.
+Include 2-3 items in each array. Be encouraging but honest.
         `;
 
         const result = await model.generateContent(analysisPrompt);
-        const analysisText = result.response.text();
+        let analysisText = result.response.text();
 
-        res.json({ success: true, analysis: analysisText });
+        // Try to parse as JSON, fallback to raw text
+        try {
+            const cleaned = analysisText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+            const parsed = JSON.parse(cleaned);
+            res.json({ success: true, analysis: parsed, structured: true });
+        } catch {
+            res.json({ success: true, analysis: analysisText, structured: false });
+        }
 
     } catch (error) {
         console.error('Practice Analysis Error:', error);

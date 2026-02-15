@@ -27,11 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // block ctrl
+    // block ctrl shortcuts (except B, I, U for formatting)
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey) {
-            e.preventDefault();
-            if (typeof showToast === 'function') showToast('Shortcuts (Ctrl key) are disabled for this test.', 'info');
+            const allowed = ['b', 'i', 'u'];
+            if (!allowed.includes(e.key.toLowerCase())) {
+                e.preventDefault();
+                if (typeof showToast === 'function') showToast('Shortcuts (Ctrl key) are disabled for this test.', 'info');
+            }
         }
     });
 

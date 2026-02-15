@@ -736,7 +736,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 tierText = p.hard;
                 drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Hard`;
             }
-            drillText = jumbleText(tierText);
+            // Only jumble hard tier — easy/medium have intentional patterns
+            drillText = (drillCurrentRep > 7) ? jumbleText(tierText) : tierText;
         }
 
         drillPassageEl.innerHTML = '';

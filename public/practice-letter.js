@@ -37,6 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('font-family-select').addEventListener('change', (e) => document.execCommand('fontName', false, e.target.value));
     document.getElementById('font-size-select').addEventListener('change', (e) => document.execCommand('fontSize', false, e.target.value));
 
+    // --- Block Ctrl shortcuts (except B, I, U for formatting) ---
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey) {
+            const allowed = ['b', 'i', 'u'];
+            if (!allowed.includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+        }
+    });
+
     // --- Tab / Indent handling (copied from letter.js) ---
     userInputElement.addEventListener('keydown', (event) => {
         const selection = window.getSelection();
@@ -214,12 +224,55 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) throw new Error('Analysis failed');
             const data = await res.json();
 
-            // Convert markdown-like headers to styled HTML
-            let formatted = data.analysis
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
+            if (data.structured && typeof data.analysis === 'object') {
+                const a = data.analysis;
+                let html = '';
 
-            analysisContent.innerHTML = formatted;
+                // Strengths
+                if (a.strengths?.length) {
+                    html += '<div class="coach-section"><h4 class="coach-heading coach-green">✅ What You Did Well</h4>';
+                    a.strengths.forEach(s => {
+                        html += `<div class="coach-card coach-card-green"><strong>${s.title}</strong><p>${s.detail}</p></div>`;
+                    });
+                    html += '</div>';
+                }
+
+                // Improvements
+                if (a.improvements?.length) {
+                    html += '<div class="coach-section"><h4 class="coach-heading coach-amber">⚠️ Areas for Improvement</h4>';
+                    a.improvements.forEach(s => {
+                        html += `<div class="coach-card coach-card-amber"><strong>${s.title}</strong><p>${s.detail}</p>`;
+                        if (s.suggestion) html += `<div class="coach-suggestion">💡 ${s.suggestion}</div>`;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                // Tips
+                if (a.tips?.length) {
+                    html += '<div class="coach-section"><h4 class="coach-heading coach-blue">🎯 Pro Tips</h4><div class="coach-tips-grid">';
+                    a.tips.forEach(t => {
+                        html += `<div class="coach-card coach-card-blue">${t.text}</div>`;
+                    });
+                    html += '</div></div>';
+                }
+
+                // Sample Structure or Key Concepts
+                const extra = a.sampleStructure || a.keyConcepts;
+                if (extra) {
+                    html += `<div class="coach-section"><h4 class="coach-heading coach-purple">📋 ${a.sampleStructure ? 'Sample Structure' : 'Key Concepts'}</h4>`;
+                    html += `<div class="coach-card coach-card-purple" style="white-space:pre-wrap;font-family:monospace;font-size:0.9rem;">${extra}</div></div>`;
+                }
+
+                analysisContent.innerHTML = html;
+            } else {
+                // Fallback: render as formatted text
+                let formatted = (typeof data.analysis === 'string' ? data.analysis : JSON.stringify(data.analysis, null, 2))
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                analysisContent.innerHTML = formatted;
+            }
+
             analysisPanel.classList.add('active');
             analysisPanel.scrollIntoView({ behavior: 'smooth' });
 

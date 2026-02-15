@@ -355,6 +355,85 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Coach Cards for AI Analysis */
+        .coach-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .coach-heading {
+            margin: 0 0 0.75rem 0;
+            font-size: 1.05rem;
+        }
+
+        .coach-green {
+            color: #4ade80;
+        }
+
+        .coach-amber {
+            color: #f59e0b;
+        }
+
+        .coach-blue {
+            color: #3b82f6;
+        }
+
+        .coach-purple {
+            color: #a855f7;
+        }
+
+        .coach-card {
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .coach-card strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .coach-card p {
+            margin: 0;
+            font-size: 0.92rem;
+            color: var(--text-muted, #64748b);
+        }
+
+        .coach-card-green {
+            background: rgba(74, 222, 128, 0.08);
+            border-left: 4px solid #4ade80;
+        }
+
+        .coach-card-amber {
+            background: rgba(245, 158, 11, 0.08);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .coach-card-blue {
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .coach-card-purple {
+            background: rgba(168, 85, 247, 0.08);
+            border-left: 4px solid #a855f7;
+        }
+
+        .coach-suggestion {
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(245, 158, 11, 0.05);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            color: var(--text-muted, #64748b);
+        }
+
+        .coach-tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.75rem;
+        }
     </style>
 </head>
 
@@ -396,7 +475,7 @@
                         <option value="5">14pt</option>
                     </select>
                 </div>
-                <div id="user-input" class="text-editor" contenteditable="true"></div>
+                <div id="user-input" class="text-editor" contenteditable="true" spellcheck="false"></div>
             </div>
 
             <div class="practice-actions">

@@ -148,12 +148,24 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (score >= 10) { resultsTitle.textContent = '👍 Good Effort!'; resultsTitle.style.color = '#f59e0b'; }
         else { resultsTitle.textContent = '💪 Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
 
-        // Feedback — format numbered list
-        const formattedFeedback = data.feedback
+        // Feedback — render as styled cards
+        const lines = data.feedback
             .replace(/\\n/g, '\n')
-            .replace(/(\d+\.)/g, '\n$1')
-            .trim();
-        feedbackContent.textContent = formattedFeedback;
+            .split(/\n/)
+            .map(l => l.trim())
+            .filter(l => l.length > 0);
+
+        let feedbackHtml = '';
+        lines.forEach(line => {
+            const numMatch = line.match(/^(\d+)\.\s*(.*)/);
+            if (numMatch) {
+                const isCorrect = /correct|right|good|well done|yes/i.test(numMatch[2]) && !/incorrect|wrong|not correct/i.test(numMatch[2]);
+                feedbackHtml += `<div class="coach-card ${isCorrect ? 'coach-card-green' : 'coach-card-amber'}" style="margin-bottom:0.5rem;"><strong>${numMatch[1]}.</strong> ${numMatch[2]}</div>`;
+            } else {
+                feedbackHtml += `<div class="coach-card coach-card-blue" style="margin-bottom:0.5rem;">${line}</div>`;
+            }
+        });
+        feedbackContent.innerHTML = feedbackHtml;
     }
 
     // --- Detailed AI Analysis ---
@@ -178,11 +190,50 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) throw new Error('Analysis failed');
             const data = await res.json();
 
-            let formatted = data.analysis
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
+            if (data.structured && typeof data.analysis === 'object') {
+                const a = data.analysis;
+                let html = '';
 
-            analysisContent.innerHTML = formatted;
+                if (a.strengths?.length) {
+                    html += '<div class="coach-section"><h4 class="coach-heading coach-green">✅ What You Did Well</h4>';
+                    a.strengths.forEach(s => {
+                        html += `<div class="coach-card coach-card-green"><strong>${s.title}</strong><p>${s.detail}</p></div>`;
+                    });
+                    html += '</div>';
+                }
+
+                if (a.improvements?.length) {
+                    html += '<div class="coach-section"><h4 class="coach-heading coach-amber">⚠️ Areas for Improvement</h4>';
+                    a.improvements.forEach(s => {
+                        html += `<div class="coach-card coach-card-amber"><strong>${s.title}</strong><p>${s.detail}</p>`;
+                        if (s.suggestion) html += `<div class="coach-suggestion">💡 ${s.suggestion}</div>`;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                if (a.tips?.length) {
+                    html += '<div class="coach-section"><h4 class="coach-heading coach-blue">🎯 Pro Tips</h4><div class="coach-tips-grid">';
+                    a.tips.forEach(t => {
+                        html += `<div class="coach-card coach-card-blue">${t.text}</div>`;
+                    });
+                    html += '</div></div>';
+                }
+
+                const extra = a.sampleStructure || a.keyConcepts;
+                if (extra) {
+                    html += `<div class="coach-section"><h4 class="coach-heading coach-purple">📋 ${a.sampleStructure ? 'Sample Structure' : 'Key Concepts'}</h4>`;
+                    html += `<div class="coach-card coach-card-purple" style="white-space:pre-wrap;font-family:monospace;font-size:0.9rem;">${extra}</div></div>`;
+                }
+
+                analysisContent.innerHTML = html;
+            } else {
+                let formatted = (typeof data.analysis === 'string' ? data.analysis : JSON.stringify(data.analysis, null, 2))
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                analysisContent.innerHTML = formatted;
+            }
+
             analysisPanel.classList.add('active');
             analysisPanel.scrollIntoView({ behavior: 'smooth' });
 
