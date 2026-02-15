@@ -42,10 +42,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Drill State ---
     const PRESET_DRILLS = {
-        home: { name: 'Home Row', text: 'asdf jkl; fdsa ;lkj asdf jkl; fdsa ;lkj', reps: 10 },
-        top: { name: 'Top Row', text: 'qwert yuiop poiuy trewq qwert yuiop', reps: 10 },
-        bottom: { name: 'Bottom Row', text: 'zxcvb nm,./ /.,mn bvcxz zxcvb nm,./', reps: 10 },
-        numbers: { name: 'Number Row', text: '12345 67890 09876 54321 12345 67890', reps: 10 }
+        home: {
+            name: 'Home Row', reps: 10,
+            easy: 'asdf jkl; fdsa ;lkj asdf jkl; fdsa ;lkj',
+            medium: 'ffdd ;;ll ssaa kkjj ;als kdjf',
+            hard: 'asd a;dslkf sdf;lkj aksdf kajd ;ls dskfj'
+        },
+        top: {
+            name: 'Top Row', reps: 10,
+            easy: 'qwert yuiop trewq poiuy qwert yuiop',
+            medium: 'qqww eett yyuu iioo rwte yipu',
+            hard: 'qwe qyuio weriop rtyui qiowe ypt qwer'
+        },
+        bottom: {
+            name: 'Bottom Row', reps: 10,
+            easy: 'zxcvb nm,./ bvcxz /.,mn zxcvb nm,./',
+            medium: 'zzxx ccvv nnmm ,,.. xbcv nm./',
+            hard: 'zxc z,cvnm bvc/.,x ncxvb zm,. /xnc bvcm'
+        },
+        numbers: {
+            name: 'Number Row', reps: 10,
+            easy: '12345 67890 54321 09876 12345 67890',
+            medium: '1122 3344 5566 7788 9900 2468',
+            hard: '142 85903 76214 39058 71624 803'
+        }
     };
     let selectedDrillType = null;
     let drillText = '';
@@ -616,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startDrillEngine(`Common Words (${selectedWordSet.toUpperCase()})`);
         } else if (selectedDrillType && PRESET_DRILLS[selectedDrillType]) {
             const p = PRESET_DRILLS[selectedDrillType];
-            drillText = p.text;
+            drillText = p.easy;
             drillReps = p.reps;
             startDrillEngine(p.name);
         } else {
@@ -702,15 +722,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (drillSource === 'config' && selectedDrillType === 'words' && wordSetCache[selectedWordSet]) {
             drillText = pickRandomWords(wordSetCache[selectedWordSet], 10);
         }
-        // Jumble row drills each rep
+        // Jumble row drills each rep — pick tier based on rep number
         if (drillSource === 'config' && ['home', 'top', 'bottom', 'numbers'].includes(selectedDrillType)) {
-            drillText = jumbleText(PRESET_DRILLS[selectedDrillType].text);
+            const p = PRESET_DRILLS[selectedDrillType];
+            let tierText;
+            if (drillCurrentRep <= 3) {
+                tierText = p.easy;
+                drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Easy`;
+            } else if (drillCurrentRep <= 6) {
+                tierText = p.medium;
+                drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Medium`;
+            } else {
+                tierText = p.hard;
+                drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Hard`;
+            }
+            drillText = jumbleText(tierText);
         }
 
         drillPassageEl.innerHTML = '';
         drillText.split('').forEach(ch => {
             const span = document.createElement('span');
-            span.innerText = ch;
+            if (ch === ' ') {
+                span.innerText = '·';
+                span.classList.add('space-char');
+                span.dataset.char = ' ';
+            } else {
+                span.innerText = ch;
+                span.dataset.char = ch;
+            }
             drillPassageEl.appendChild(span);
         });
         drillPassageEl.querySelector('span').classList.add('current');
@@ -732,10 +771,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         spans.forEach((span, i) => {
             const uc = chars[i];
+            const expected = span.dataset.char;
             span.classList.remove('current');
             if (uc == null) {
                 span.classList.remove('correct', 'incorrect');
-            } else if (uc === span.innerText) {
+            } else if (uc === expected) {
                 span.classList.add('correct');
                 span.classList.remove('incorrect');
                 correct++;
