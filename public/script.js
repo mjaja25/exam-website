@@ -183,9 +183,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     wpm: finalWpm,
                     accuracy: finalAccuracy,
-                    typingMarks: typingMarks.toFixed(2), // Send scaled marks
+                    typingMarks: typingMarks.toFixed(2),
                     sessionId: sessionId,
-                    testPattern: currentPattern
+                    testPattern: currentPattern,
+                    // New fields for AI Analysis
+                    typingDuration: Math.round(timeElapsedMinutes * 60),
+                    totalChars: totalTypedChars,
+                    correctChars: correctChars,
+                    errorCount: totalTypedChars - correctChars,
+                    typingErrorDetails: "Detailed error tracking not yet implemented in frontend."
                 })
             });
 

@@ -310,7 +310,7 @@ app.get('/api/excel-questions/random', authMiddleware, async (req, res) => {
 });
 app.post('/api/submit/typing', authMiddleware, async (req, res) => {
     try {
-        const { wpm, accuracy, sessionId, testPattern } = req.body;
+        const { wpm, accuracy, sessionId, testPattern, typingDuration, totalChars, correctChars, errorCount, typingErrorDetails } = req.body;
         const userId = req.userId;
 
         // Calculate marks: New Pattern = 30 max, Standard = 20 max
@@ -329,6 +329,12 @@ app.post('/api/submit/typing', authMiddleware, async (req, res) => {
                 accuracy,
                 typingScore,
                 testPattern,
+                // Save detailed metrics for AI Analysis
+                typingDuration,
+                totalChars,
+                correctChars,
+                errorCount,
+                typingErrorDetails,
                 status: 'in-progress' // Still waiting for MCQ or Letter
             },
             { upsert: true, new: true }
@@ -381,12 +387,10 @@ app.post('/api/submit/letter', authMiddleware, async (req, res) => {
         /* ---------- AI PROMPT (6-Mark Rubric) ---------- */
         const gradingPrompt = `
         You are a formal letter examiner. 
-
         Below is the letter content you must grade:
         ---
         ${normalizedContent}
         ---
-
         Formatting facts (already verified by system):
         - Font: ${hasTimesNewRoman ? 'Times New Roman detected' : 'Not detected'}
         - Font Size: ${hasCorrectFontSize ? '12pt detected' : 'Not detected'}
@@ -553,6 +557,7 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
             { sessionId: sessionId, user: userId },
             {
                 excelScore: excelMarks,
+                excelFilePath: req.file.path, // Save the path so we can analyze it later!
                 excelFeedback: grade.feedback,
                 totalScore: finalTotal,
                 status: 'completed' // Mark as finished
@@ -562,6 +567,102 @@ app.post('/api/submit/excel', authMiddleware, uploadToCloudinary.single('excelFi
         res.status(200).json({ message: 'Test Completed!', total: finalTotal });
     } catch (error) {
         next(error);
+    }
+});
+
+// --- NEW: Detailed Analysis for Official Exam ---
+app.post('/api/exam/analyze', authMiddleware, async (req, res) => {
+    try {
+        const { sessionId, type } = req.body;
+        const userId = req.userId;
+
+        // Fetch result (security check included: must belong to user)
+        const result = await TestResult.findOne({ sessionId, user: userId });
+        if (!result) return res.status(404).json({ message: "Exam session not found." });
+
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        let analysisPrompt = "";
+
+        // 1. TYPING ANALYSIS
+        if (type === 'typing') {
+            const { wpm, accuracy, totalChars, correctChars, errorCount, typingDuration, typingErrorDetails } = result;
+            analysisPrompt = `
+                You are a typing coach. Analyze this exam performance:
+                - Speed: ${wpm} WPM (Target: 35+)
+                - Accuracy: ${accuracy}%
+                - Duration: ${typingDuration ? typingDuration + 's' : 'Standard Exam'}
+                - Errors: ${errorCount || 'N/A'}
+                ${typingErrorDetails ? `- Patterns: ${typingErrorDetails}` : ''}
+
+                Return ONLY a valid JSON object:
+                {
+                  "strengths": [{ "title": "string", "detail": "string" }],
+                  "improvements": [{ "title": "string", "detail": "string", "suggestion": "string" }],
+                  "tips": [{ "text": "string" }]
+                }
+                Provide 2-3 items per array. Be encouraging but strict on standard.
+            `;
+        }
+        // 2. LETTER ANALYSIS
+        else if (type === 'letter') {
+            if (!result.letterContent) return res.status(400).json({ message: "No letter content found." });
+            analysisPrompt = `
+                You are a formal letter tutor. Analyze this exam submission:
+                
+                Student's Letter:
+                ---
+                ${result.letterContent}
+                ---
+
+                Previous Grading Feedback:
+                ${result.letterFeedback || "N/A"}
+
+                Return ONLY a valid JSON object:
+                {
+                  "strengths": [{ "title": "string", "detail": "string" }],
+                  "improvements": [{ "title": "string", "detail": "string", "suggestion": "string" }],
+                  "tips": [{ "text": "string" }],
+                  "sampleStructure": "Brief text outline of a perfect version of this letter"
+                }
+            `;
+        }
+        // 3. EXCEL ANALYSIS
+        else if (type === 'excel') {
+            // For Excel, ideally we re-read the file, but for speed/simplicity let's base it on the grading feedback 
+            // plus general advice, unless we want to download the file again. 
+            // Given the complexity of re-downloading and parsing 2 files again, we will enhance the existing feedback.
+            // If we really want deep analysis, we'd need to re-implement the parsing logic here.
+            // Let's use the stored feedback for now to generate "Next Steps".
+
+            analysisPrompt = `
+                You are an Excel tutor. A student just took an exam.
+                Their Score: ${result.excelScore}/20.
+                
+                Automated Grading Feedback received:
+                ${result.excelFeedback || "No detailed feedback available."}
+
+                Based on this feedback, provide a structured improvement plan.
+                Return ONLY a valid JSON object:
+                {
+                  "strengths": [{ "title": "Likely Strength", "detail": "Based on score/feedback" }],
+                  "improvements": [{ "title": "Area to Fix", "detail": "What went wrong", "suggestion": "How to master this" }],
+                  "tips": [{ "text": "General Excel Exam Tip" }]
+                }
+             `;
+        } else {
+            return res.status(400).json({ message: "Invalid analysis type." });
+        }
+
+        const aiRes = await model.generateContent(analysisPrompt);
+        let text = aiRes.response.text();
+        text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        const json = JSON.parse(text);
+
+        res.json({ success: true, analysis: json });
+
+    } catch (error) {
+        console.error("Exam Analysis Error:", error);
+        res.status(500).json({ message: "Failed to generate detailed analysis." });
     }
 });
 
@@ -1208,7 +1309,9 @@ app.post('/api/admin/bulk-mcqs', authMiddleware, adminMiddleware, csvUpload.sing
                 questionText: data.questionText,
                 options: [data.optionA, data.optionB, data.optionC, data.optionD],
                 correctAnswerIndex: parseInt(data.correctAnswerIndex),
-                category: data.category
+                category: data.category,
+                difficulty: data.difficulty || 'Medium',
+                correctExplanation: data.correctExplanation || ''
             });
         })
         .on('end', async () => {

@@ -46,11 +46,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 2. Render Breakdown Cards
         const breakdown = document.getElementById('score-breakdown');
         if (breakdown) {
-            breakdown.innerHTML = `
-                <div class="mini-card"><strong>Typing</strong><p>${Math.round(data.typingScore || 0)}/30</p></div>
-                <div class="mini-card"><strong>Excel MCQ</strong><p>${Math.round(data.mcqScore || 0)}/20</p></div>
+            let cardsHtml = '';
+
+            // TYPING (Always present)
+            cardsHtml += `
+                <div class="mini-card">
+                    <strong>Typing</strong>
+                    <p>${Math.round(data.typingScore || 0)}/${data.testPattern === 'new_pattern' ? 30 : 20}</p>
+                    <button onclick="analyzeExam('typing', '${sessionId}')" class="analyze-btn">🤖 Analyze</button>
+                    <small style="display:block; font-size:0.7em; margin-top:5px;">${data.wpm || 0} WPM | ${data.accuracy || 0}%</small>
+                </div>
             `;
+
+            // LETTER (Standard Only)
+            if (data.testPattern === 'standard' || data.letterScore !== undefined) {
+                cardsHtml += `
+                    <div class="mini-card">
+                        <strong>Letter</strong>
+                        <p>${Math.round(data.letterScore || 0)}/10</p>
+                        <button onclick="analyzeExam('letter', '${sessionId}')" class="analyze-btn">🤖 Analyze</button>
+                    </div>
+                `;
+            }
+
+            // EXCEL PRACTICAL (Standard Only)
+            if (data.testPattern === 'standard' || data.excelScore !== undefined) {
+                cardsHtml += `
+                    <div class="mini-card">
+                        <strong>Excel Practical</strong>
+                        <p>${Math.round(data.excelScore || 0)}/20</p>
+                        <button onclick="analyzeExam('excel', '${sessionId}')" class="analyze-btn">🤖 Analyze</button>
+                    </div>
+                `;
+            }
+
+            // EXCEL MCQ (New Pattern Only)
+            if (data.testPattern === 'new_pattern' || data.mcqScore !== undefined) {
+                cardsHtml += `
+                    <div class="mini-card">
+                        <strong>Excel MCQ</strong>
+                        <p>${Math.round(data.mcqScore || 0)}/20</p>
+                        <!-- No Analysis for MCQ -->
+                    </div>
+                `;
+            }
+
+            breakdown.innerHTML = cardsHtml;
         }
+
+        // 2b. Add Global Leaderboard Button
+        const headerAction = document.createElement('div');
+        headerAction.style.textAlign = 'center';
+        headerAction.style.marginTop = '20px';
+        headerAction.innerHTML = `<a href="/leaderboards.html" class="nav-button primary">🏆 View Global Leaderboard</a>`;
+        if (breakdown) breakdown.parentNode.insertBefore(headerAction, breakdown.nextSibling);
+
 
         // >>> ADD THIS CELEBRATION LOGIC HERE <<<
         // if (typeof confetti === 'function') {
@@ -85,37 +135,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         const allStats = await statsRes.json();
 
-        // >>> USE ONLY NEW PATTERN STATS <<<
-        const stats = allStats.new_pattern;
+        // Determines which stats to use based on pattern
+        const stats = data.testPattern === 'new_pattern' ? allStats.new_pattern : allStats.std_overall;
 
         const ctx = document.getElementById('scoreChart');
         if (ctx) {
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Typing', 'Excel MCQ'],
+                    labels: data.testPattern === 'new_pattern' ? ['Typing', 'Excel MCQ'] : ['Typing', 'Letter', 'Excel'],
                     datasets: [
                         {
                             label: 'You',
-                            data: [data.typingScore || 0, data.mcqScore || 0],
+                            data: data.testPattern === 'new_pattern'
+                                ? [data.typingScore, data.mcqScore]
+                                : [data.typingScore, data.letterScore, data.excelScore],
                             backgroundColor: '#fbbf24', borderRadius: 5
                         },
                         {
                             label: 'Avg',
-                            data: [Math.round(stats.avgTyping || 0), Math.round(stats.avgMCQ || 0)],
+                            data: data.testPattern === 'new_pattern'
+                                ? [stats.avgTyping || 0, stats.avgMCQ || 0]
+                                : [stats.avgTyping || 0, stats.avgLetter || 0, stats.avgExcel || 0],
                             backgroundColor: '#9ca3af', borderRadius: 5
                         },
-                        {
-                            label: 'Top',
-                            data: [stats.maxTyping || 0, stats.maxMCQ || 0],
-                            backgroundColor: '#10b981', borderRadius: 5
-                        }
+                        // 'Top' might need adjustment if structure differs
                     ]
                 },
                 options: {
                     indexAxis: 'y',
-                    // Max 30 for Typing in New Pattern
-                    scales: { x: { max: 30, beginAtZero: true } },
+                    scales: { x: { beginAtZero: true } },
                     plugins: { legend: { display: true, position: 'bottom' } }
                 }
             });
@@ -146,21 +195,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
         }
 
-        // wpm and accuracy
-        document.getElementById('score-breakdown').innerHTML = `
-            <div class="mini-card">
-                <strong>Typing</strong>
-                <p>${Math.round(data.typingScore || 0)}/30</p>
-                <small style="display:block; font-size:0.8em; color:#666;">
-                    ${data.wpm || 0} WPM | ${data.accuracy || 0}% Acc
-                </small>
-            </div>
-            <div class="mini-card">
-                <strong>Excel MCQ</strong>
-                <p>${Math.round(data.mcqScore || 0)}/20</p>
-            </div>
-        `;
-
         // 4. Fetch Pattern-Specific Percentile
         const percRes = await fetch(`/api/results/percentile/${sessionId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -170,9 +204,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (rankEl) rankEl.innerText = `${percData.percentile || 0}%`;
 
         // 5. Initialize MCQ Review
-        mcqData = data.mcqReviewData || [];
-        console.log("MCQ Data count:", mcqData.length);
-        renderMcq();
+        if (data.mcqReviewData) {
+            mcqData = data.mcqReviewData || [];
+            if (mcqData.length > 0) {
+                renderMcq();
+                document.getElementById('mcq-review-section').style.display = 'block';
+            } else {
+                document.getElementById('mcq-review-section').style.display = 'none';
+            }
+        }
 
         // 6. Navigation Buttons
         const nextBtn = document.getElementById('next-mcq');
@@ -226,3 +266,67 @@ function renderMcq() {
     `;
     if (counter) counter.innerText = `Question ${currentIdx + 1} of ${mcqData.length}`;
 }
+
+// --- ANALYSIS MODAL LOGIC ---
+window.analyzeExam = async function (type, sessionId) {
+    // Inject Modal if not exists
+    if (!document.getElementById('analysis-modal')) {
+        const modalHtml = `
+            <div id="analysis-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+                <div class="modal-content" style="background:white; padding:2rem; border-radius:10px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; position:relative;">
+                    <span onclick="document.getElementById('analysis-modal').style.display='none'" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:1.5rem;">&times;</span>
+                    <h2 id="anal-title" style="margin-top:0;">AI Analysis</h2>
+                    <div id="anal-body">Loading analysis...</div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    const modal = document.getElementById('analysis-modal');
+    const body = document.getElementById('anal-body');
+    const title = document.getElementById('anal-title');
+
+    modal.style.display = 'flex';
+    title.innerText = `AI Analysis: ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    body.innerHTML = '<div class="spinner"></div><p style="text-align:center">Consulting AI Tutor...</p>';
+
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/exam/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ sessionId, type })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message);
+
+        const analysis = data.analysis;
+
+        // Render Analysis
+        let html = '';
+
+        if (analysis.strengths) {
+            html += `<h3>💪 Strengths</h3><ul>${analysis.strengths.map(s => `<li><strong>${s.title}</strong>: ${s.detail}</li>`).join('')}</ul>`;
+        }
+        if (analysis.improvements) {
+            html += `<h3>📈 Areas for Improvement</h3><ul>${analysis.improvements.map(s => `<li><strong>${s.title}</strong>: ${s.detail}<br><em>Tip: ${s.suggestion}</em></li>`).join('')}</ul>`;
+        }
+        if (analysis.tips) {
+            html += `<h3>💡 Pro Tips</h3><ul>${analysis.tips.map(t => `<li>${t.text}</li>`).join('')}</ul>`;
+        }
+        if (analysis.sampleStructure) {
+            html += `<h3>📝 Suggested Structure</h3><pre style="background:#f4f4f5; padding:10px; border-radius:5px; white-space:pre-wrap;">${analysis.sampleStructure}</pre>`;
+        }
+
+        body.innerHTML = html;
+
+    } catch (err) {
+        body.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+    }
+};
