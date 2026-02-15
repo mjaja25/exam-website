@@ -156,9 +156,13 @@ exports.getMyRank = async (req, res) => {
 
             // Calculate Rank and Percentile
             const rank = betterCount + 1; // 1-based rank
+            
+            // FIXED: Percentile should show what % you're better than
+            // If you're rank 1 out of 100, you're better than 99% (Top 1%)
+            // Formula: (rank / totalUsers) * 100 = percentile you're in
             const percentile = totalUsers > 1 
-                ? Math.round(((totalUsers - rank) / totalUsers) * 100) 
-                : 100;
+                ? Math.round((rank / totalUsers) * 100) 
+                : 1; // If only 1 user, they're in top 1%
 
             // Trend: Compare latest vs previous
             const latestTwo = await TestResult.find({
