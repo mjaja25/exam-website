@@ -15,9 +15,12 @@ const dynamicStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: (req, file) => {
         let folder;
-        if (req.path.includes('/admin/excel-questions')) {
+        // Debugging
+        // console.log('Upload Path Check:', req.path, req.baseUrl, req.originalUrl);
+        
+        if (req.originalUrl.includes('/admin/excel-questions')) {
             folder = 'excel_templates';
-        } else if (req.path.includes('/profile')) {
+        } else if (req.originalUrl.includes('/profile')) {
             folder = 'user_avatars'; // New folder for avatars
         } else {
             folder = 'excel_submissions';

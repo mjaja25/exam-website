@@ -59,7 +59,7 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://code.jquery.com"], // Allow Toast & JS libraries
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Allow Google Fonts
             fontSrc: ["'self'", "https://fonts.gstatic.com"], // Allow Font loading
-            imgSrc: ["'self'", "data:", "https://res.cloudinary.com"], // Allow Cloudinary images
+            imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.cloudinary.com"], // Allow Cloudinary images & local previews
             connectSrc: ["'self'", "https://api.sendgrid.com", "https://generativelanguage.googleapis.com"], // Allow external APIs
             frameSrc: ["'self'"], // Prevent clickjacking
         },

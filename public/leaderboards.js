@@ -193,15 +193,24 @@ function renderLeaderboard() {
 
         const unit = getUnitForCategory(currentCategory);
 
+        let avatarHtml = `<div class="avatar-placeholder">${entry.user.username.substring(0, 2).toUpperCase()}</div>`;
+        if (entry.user.avatar) {
+            if (entry.user.avatar.startsWith('default-')) {
+                const map = { '1': '🐶', '2': '🐱', '3': '🦊', '4': '🦁' };
+                const id = entry.user.avatar.split('-')[1];
+                const emoji = map[id] || '👤';
+                avatarHtml = `<div class="avatar-placeholder" style="background:#f1f5f9;font-size:1.5rem;border:1px solid #e2e8f0;">${emoji}</div>`;
+            } else {
+                avatarHtml = `<img src="${entry.user.avatar}" class="avatar-img" alt="${entry.user.username}">`;
+            }
+        }
+
         return `
             <tr class="rank-row rank-${rank} ${isMe ? 'is-me' : ''}" onclick="${!isMe ? `openCompare('${entry._id}')` : ''}" style="${!isMe ? 'cursor:pointer' : ''}">
                 <td>${rank}</td>
                 <td>
                     <div class="user-cell">
-                        ${entry.user.avatar ? 
-                            `<img src="${entry.user.avatar}" class="avatar-img" alt="${entry.user.username}">` :
-                            `<div class="avatar-placeholder">${entry.user.username.substring(0, 2).toUpperCase()}</div>`
-                        }
+                        ${avatarHtml}
                         <div>
                             <span class="winner-name" style="font-weight: 600; color: #0f172a;">
                                 ${entry.user.username} ${isMe ? '(You)' : ''}
