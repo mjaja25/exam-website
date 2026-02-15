@@ -57,6 +57,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://code.jquery.com"], // Allow Toast & JS libraries
+            scriptSrcAttr: ["'unsafe-inline'"], // CRITICAL: Allow inline event handlers like onclick
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Allow Google Fonts
             fontSrc: ["'self'", "https://fonts.gstatic.com"], // Allow Font loading
             imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://*.cloudinary.com"], // Allow Cloudinary images & local previews
