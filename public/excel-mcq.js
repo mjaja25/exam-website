@@ -10,9 +10,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const questionArea = document.getElementById('question-area');
     const timerElement = document.getElementById('mcq-timer');
+    const timerDisplay = document.getElementById('timer-display');
     const progressBar = document.getElementById('mcq-progress');
     const nextBtn = document.getElementById('next-btn');
     const prevBtn = document.getElementById('prev-btn');
+    const questionMap = document.getElementById('question-map');
 
     // 1. Fetch the Unseen Curated Set
     async function fetchQuestions() {
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await res.json();
             questions = data.questions;
             localStorage.setItem('currentMCQSetId', data.setId);
+            renderQuestionMap();
             renderQuestion();
             startTimer();
         } catch (err) {
@@ -31,20 +34,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // 2. Render Question
+    // 2. Render Question Map
+    function renderQuestionMap() {
+        if (!questionMap) return;
+        questionMap.innerHTML = questions.map((q, i) => {
+            let cls = 'map-circle';
+            if (userAnswers[q._id] !== undefined) cls += ' answered';
+            if (i === currentIdx) cls += ' current';
+            return `<div class="${cls}" onclick="jumpToQuestion(${i})" title="Question ${i + 1}">${i + 1}</div>`;
+        }).join('');
+    }
+
+    // 3. Jump to question from map
+    window.jumpToQuestion = (idx) => {
+        currentIdx = idx;
+        renderQuestion();
+        renderQuestionMap();
+    };
+
+    // 4. Render Question
     function renderQuestion() {
         const q = questions[currentIdx];
 
-        // Safety check: if questions didn't load properly
         if (!q) {
             questionArea.innerHTML = `<div class="error">Error: Question data is missing.</div>`;
             return;
         }
 
-        // Check if progress-text exists before setting text
         const progressEl = document.getElementById('progress-text');
         if (progressEl) {
-            progressEl.innerText = `Question ${currentIdx + 1} of 10`;
+            progressEl.innerText = `Question ${currentIdx + 1} of ${questions.length}`;
         }
 
         questionArea.innerHTML = `
@@ -61,36 +80,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `;
 
-        // Only update buttons if they were found in the HTML
-        if (prevBtn) prevBtn.disabled = currentIdx === 0;
-        if (nextBtn) {
-            nextBtn.innerText = currentIdx === 9 ? 'Finish Exam' : 'Next Question';
-        }
-        // ADD THIS LINE AT THE END:
         updateButtons();
+        renderQuestionMap();
     }
 
-    // 3. Global selection handler (attached to window for onclick)
+    // 5. Global selection handler
     window.selectOption = (qId, idx) => {
         userAnswers[qId] = idx;
         renderQuestion();
     };
 
-    // 4. Navigation
+    // 6. Navigation
     nextBtn.addEventListener('click', () => {
-        // A. If we are on the LAST question, this button acts as "Submit"
+        // If on the LAST question, show confirmation dialog
         if (currentIdx === questions.length - 1) {
-            const hasAnswered = userAnswers[questions[currentIdx]._id] !== undefined;
-            if (!hasAnswered) {
-                if (typeof showToast === 'function') showToast('Please select an answer before submitting.', 'info');
-                return;
-            }
-            // >>> THIS CALLS THE API <<<
-            submitExam();
+            showConfirmModal();
             return;
         }
 
-        // B. Otherwise, it just goes to the next question
         currentIdx++;
         renderQuestion();
     });
@@ -103,20 +110,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     function updateButtons() {
-        // Disable Previous on first slide
         prevBtn.disabled = (currentIdx === 0);
 
-        // Change Next to "Finish" on last slide
         if (currentIdx === questions.length - 1) {
             nextBtn.innerText = "Finish & Submit";
-            nextBtn.style.backgroundColor = "#16a34a"; // Green color
+            nextBtn.style.backgroundColor = "#16a34a";
         } else {
             nextBtn.innerText = "Next";
-            nextBtn.style.backgroundColor = ""; // Reset color
+            nextBtn.style.backgroundColor = "";
         }
     }
 
-    // 5. Timer Logic
+    // 7. Timer Logic with warnings
     function startTimer() {
         timerInterval = setInterval(() => {
             timeLeft--;
@@ -124,6 +129,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const secs = timeLeft % 60;
             timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             progressBar.style.width = `${(timeLeft / 300) * 100}%`;
+
+            // Timer color warnings
+            if (timeLeft <= 60) {
+                progressBar.className = 'timer-progress danger';
+                timerDisplay.className = 'timer-display danger';
+            } else if (timeLeft <= 120) {
+                progressBar.className = 'timer-progress warning';
+                timerDisplay.className = 'timer-display warning';
+            }
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
@@ -133,7 +147,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 1000);
     }
 
-    // 6. Submit Results
+    // 8. Confirmation Modal
+    function showConfirmModal() {
+        const unansweredCount = questions.filter(q => userAnswers[q._id] === undefined).length;
+        const warnEl = document.getElementById('unanswered-warning');
+
+        if (unansweredCount > 0) {
+            warnEl.style.display = 'block';
+            warnEl.innerHTML = `⚠️ You have <strong>${unansweredCount}</strong> unanswered question${unansweredCount > 1 ? 's' : ''}!`;
+        } else {
+            warnEl.style.display = 'none';
+        }
+
+        document.getElementById('confirm-modal').classList.add('active');
+    }
+
+    window.closeConfirmModal = () => {
+        document.getElementById('confirm-modal').classList.remove('active');
+    };
+
+    window.confirmSubmit = () => {
+        document.getElementById('confirm-modal').classList.remove('active');
+        submitExam();
+    };
+
+    // 9. Submit Results
     async function submitExam() {
         clearInterval(timerInterval);
         nextBtn.disabled = true;

@@ -30,6 +30,7 @@ const ExcelQuestion = require('./models/ExcelQuestion');
 const Feedback = require('./models/Feedback');
 const MCQSet = require('./models/MCQSet');
 const MCQQuestion = require('./models/MCQQuestion');
+const PracticeResult = require('./models/PracticeResult');
 // -------------------
 //  INITIALIZATIONS & CONFIGURATIONS
 // -------------------
@@ -1334,29 +1335,57 @@ app.get('/api/exam/get-next-set', authMiddleware, async (req, res) => {
     }
 });
 
-// --- GET: Fetch all MCQ Questions for the bank ---
+// --- GET: Fetch all MCQ Questions for the bank (Paginated) ---
 app.get('/api/admin/mcq-questions', authMiddleware, adminMiddleware, async (req, res) => {
     try {
-        const questions = await MCQQuestion.find({}).sort({ createdAt: -1 });
-        res.json(questions);
+        const { page = 1, limit = 50, search, category, difficulty } = req.query;
+        const skip = (page - 1) * limit;
+
+        const filter = {};
+        if (search) filter.questionText = { $regex: search, $options: 'i' };
+        if (category) filter.category = category;
+        if (difficulty) filter.difficulty = difficulty;
+
+        const total = await MCQQuestion.countDocuments(filter);
+        const questions = await MCQQuestion.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(parseInt(skip))
+            .limit(parseInt(limit));
+
+        res.json({
+            questions,
+            total,
+            page: parseInt(page),
+            pages: Math.ceil(total / limit)
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching question bank.' });
     }
 });
 
 // --- POST: Create a single MCQ Question manually ---
-app.post('/api/admin/mcq-questions', authMiddleware, adminMiddleware, async (req, res) => {
+app.post('/api/admin/mcq-questions', authMiddleware, adminMiddleware, uploadToCloudinary.single('image'), async (req, res) => {
     try {
-        const { questionText, options, correctAnswerIndex, category } = req.body;
+        const { questionText, options, correctAnswerIndex, category, difficulty, correctExplanation } = req.body;
+
+        let imageUrl = '';
+        if (req.file) {
+            imageUrl = req.file.path;
+        }
+
         const newQuestion = new MCQQuestion({
             questionText,
-            options,
+            options, // If sending as FormData, ensure this is parsed correctly (e.g. JSON.parse if stringified)
             correctAnswerIndex,
-            category: category || 'General'
+            category: category || 'General',
+            difficulty,
+            correctExplanation,
+            imageUrl
         });
         await newQuestion.save();
-        res.status(201).json({ message: 'Question saved to bank!' });
+        res.status(201).json({ message: 'Question saved to bank!', question: newQuestion });
     } catch (error) {
+        console.error("Add MCQ Error:", error);
         res.status(500).json({ message: 'Error saving question.' });
     }
 });
@@ -1375,8 +1404,84 @@ app.post('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res
         await newSet.save();
         res.status(201).json({ success: true, message: 'Set created!' });
     } catch (error) {
-        // This will now show the specific error if validation still fails
         res.status(500).json({ message: error.message });
+    }
+});
+
+// --- GET: List all MCQ Sets ---
+app.get('/api/admin/mcq-sets', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const sets = await MCQSet.find({}).populate('questions', 'questionText category').sort({ createdAt: -1 });
+        res.json(sets);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching sets.' });
+    }
+});
+
+// --- PUT: Edit a single MCQ Question ---
+app.put('/api/admin/mcq-questions/:id', authMiddleware, adminMiddleware, uploadToCloudinary.single('image'), async (req, res) => {
+    try {
+        const { questionText, options, correctAnswerIndex, category, difficulty, correctExplanation } = req.body;
+
+        const updateData = {
+            questionText,
+            options,
+            correctAnswerIndex,
+            category,
+            difficulty,
+            correctExplanation
+        };
+
+        if (req.file) {
+            updateData.imageUrl = req.file.path;
+        }
+
+        const updated = await MCQQuestion.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+        if (!updated) return res.status(404).json({ message: 'Question not found.' });
+        res.json({ success: true, message: 'Question updated!', question: updated });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating question: ' + error.message });
+    }
+});
+
+// --- DELETE: Remove a single MCQ Question ---
+app.delete('/api/admin/mcq-questions/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const deleted = await MCQQuestion.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ message: 'Question not found.' });
+        // Also remove this question from any sets that reference it
+        await MCQSet.updateMany({}, { $pull: { questions: req.params.id } });
+        res.json({ success: true, message: 'Question deleted!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting question.' });
+    }
+});
+
+// --- DELETE: Remove a MCQ Set ---
+app.delete('/api/admin/mcq-sets/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const deleted = await MCQSet.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ message: 'Set not found.' });
+        res.json({ success: true, message: 'Set deleted!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting set.' });
+    }
+});
+
+// --- PATCH: Toggle active/inactive on a MCQ Set ---
+app.patch('/api/admin/mcq-sets/:id/toggle', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const set = await MCQSet.findById(req.params.id);
+        if (!set) return res.status(404).json({ message: 'Set not found.' });
+        set.isActive = !set.isActive;
+        await set.save();
+        res.json({ success: true, isActive: set.isActive, message: `Set ${set.isActive ? 'activated' : 'deactivated'}.` });
+    } catch (error) {
+        res.status(500).json({ message: 'Error toggling set.' });
     }
 });
 
@@ -1453,14 +1558,58 @@ app.post('/api/submit/excel-mcq', authMiddleware, async (req, res) => {
 app.get('/api/mcqs/practice/:category', authMiddleware, async (req, res) => {
     try {
         const { category } = req.params;
-        // Fetch 10 random questions from that specific category
+        const { difficulty } = req.query;
+
+        // Build match filter
+        const matchFilter = {};
+        if (category !== 'All') matchFilter.category = category;
+        if (difficulty && difficulty !== 'All') matchFilter.difficulty = difficulty;
+
         const questions = await MCQQuestion.aggregate([
-            { $match: { category: category } },
+            { $match: matchFilter },
             { $sample: { size: 10 } }
         ]);
         res.json(questions);
     } catch (error) {
         res.status(500).json({ message: "Error loading practice questions" });
+    }
+});
+
+// --- Practice Results Routes ---
+app.post('/api/practice/results', authMiddleware, async (req, res) => {
+    try {
+        const { category, difficulty, score, totalQuestions } = req.body;
+        const newResult = new PracticeResult({
+            user: req.userId,
+            category,
+            difficulty,
+            score,
+            totalQuestions
+        });
+        await newResult.save();
+        res.status(201).json({ success: true, message: 'Practice result saved!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving practice result.' });
+    }
+});
+
+app.get('/api/practice/stats', authMiddleware, async (req, res) => {
+    try {
+        const stats = await PracticeResult.aggregate([
+            { $match: { user: new mongoose.Types.ObjectId(req.userId) } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$completedAt" } },
+                    totalScore: { $sum: "$score" },
+                    sessions: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } } // Sort by date ascending
+        ]);
+        res.json(stats);
+    } catch (error) {
+        console.error("Practice Stats Error:", error);
+        res.status(500).json({ message: 'Error fetching practice stats.' });
     }
 });
 

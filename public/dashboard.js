@@ -204,5 +204,79 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target == patternModal) window.closeModal();
     };
 
+    // --- 6. Practice Stats Chart ---
+    async function fetchPracticeStats() {
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/practice/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            renderPracticeChart(data);
+        } catch (err) {
+            console.error("Error fetching practice stats:", err);
+        }
+    }
+
+    function renderPracticeChart(data) {
+        const ctx = document.getElementById('practice-chart');
+        if (!ctx || !data || data.length === 0) {
+            if (ctx) ctx.parentElement.innerHTML = '<p style="text-align:center;color:#666;margin-top:2rem;">No practice sessions recorded yet.</p>';
+            return;
+        }
+
+        const labels = data.map(d => new Date(d._id).toLocaleDateString());
+        const scores = data.map(d => d.totalScore);
+        const sessions = data.map(d => d.sessions);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total Score',
+                        data: scores,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Sessions',
+                        data: sessions,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Score Points' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Sessions Count' }
+                    }
+                }
+            }
+        });
+    }
+
     fetchDashboardData();
+    fetchPracticeStats();
 });

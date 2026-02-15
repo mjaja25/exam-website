@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: labels,
                         datasets: [
                             { label: 'You', data: userScores, backgroundColor: '#fbbf24', borderRadius: 4 },
-                            { label: 'Avg', data: avgScores, backgroundColor: '#9ca3af', borderRadius: 4, hidden: true },
+                            { label: 'Avg', data: avgScores, backgroundColor: '#9ca3af', borderRadius: 4 },
                             { label: 'Top', data: topScores, backgroundColor: '#10b981', borderRadius: 4 }
                         ]
                     },

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,13 +8,269 @@
     <link rel="stylesheet" href="style.css" />
     <script src="/admin-auth.js" defer></script>
     <style>
-        /* New styles for the MCQ Selection Bank */
-        .mcq-bank { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 8px; background: #fafafa; margin: 15px 0; }
-        .q-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .counter-pill { background: #3b82f6; color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold; font-size: 0.8rem; }
-        .badge-mcq { font-size: 0.7rem; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px; display: inline-block; }
+        /* MCQ Selection Bank */
+        .mcq-bank {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fafafa;
+            margin: 15px 0;
+        }
+
+        .q-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .counter-pill {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .badge-mcq {
+            font-size: 0.7rem;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+
+        /* Search & Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* Category Counts */
+        .category-counts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cat-count {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+
+        .cat-count strong {
+            color: #1e293b;
+        }
+
+        /* MCQ Bank Item with actions */
+        .q-item {
+            position: relative;
+        }
+
+        .q-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .q-actions button {
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            background: white;
+        }
+
+        .q-actions .btn-edit {
+            color: #3b82f6;
+            border-color: #93c5fd;
+        }
+
+        .q-actions .btn-edit:hover {
+            background: #eff6ff;
+        }
+
+        .q-actions .btn-del {
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+
+        .q-actions .btn-del:hover {
+            background: #fef2f2;
+        }
+
+        /* Set Management */
+        .set-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .set-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            font-size: 0.85rem;
+        }
+
+        .set-item .set-name {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .set-item .set-meta {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .set-item .badge-active {
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .set-item .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .set-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .set-actions button {
+            padding: 4px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            background: white;
+        }
+
+        /* Edit Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 550px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-box h3 {
+            margin: 0 0 1rem 0;
+        }
+
+        .modal-box label {
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .modal-box input,
+        .modal-box select,
+        .modal-box textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 4px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+
+        .modal-box textarea {
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+        }
+
+        .modal-actions .btn-save {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .modal-actions .btn-cancel {
+            background: #e2e8f0;
+            color: #475569;
+        }
     </style>
 </head>
+
 <body class="admin-page">
     <header class="dashboard-header">
         <div class="logo-area">
@@ -49,7 +306,8 @@
             <div class="card">
                 <h3>Add New Typing Passage</h3>
                 <form id="add-passage-form">
-                    <textarea id="passage-content" name="content" rows="4" placeholder="Enter new passage text..."></textarea>
+                    <textarea id="passage-content" name="content" rows="4"
+                        placeholder="Enter new passage text..."></textarea>
                     <select id="difficulty" name="difficulty">
                         <option value="easy">Easy</option>
                         <option value="medium" selected>Medium</option>
@@ -62,7 +320,8 @@
             <div class="card">
                 <h3>Add New Letter Question</h3>
                 <form id="add-question-form">
-                    <textarea id="question-text" name="questionText" rows="4" placeholder="Enter new letter question..."></textarea>
+                    <textarea id="question-text" name="questionText" rows="4"
+                        placeholder="Enter new letter question..."></textarea>
                     <select id="question-category" name="category">
                         <option value="formal" selected>Formal</option>
                         <option value="business">Business</option>
@@ -99,7 +358,23 @@
                         <option value="Formulas">Formulas</option>
                         <option value="Shortcuts">Shortcuts</option>
                         <option value="Basic Operations">Basic Operations</option>
+                        <option value="Cell Referencing">Cell Referencing</option>
+                        <option value="Formatting">Formatting</option>
+                        <option value="Charts">Charts</option>
+                        <option value="Pivot Tables">Pivot Tables</option>
+                        <option value="Data Validation">Data Validation</option>
+                        <option value="Conditional Formatting">Conditional Formatting</option>
                     </select>
+                    <select id="mcq-difficulty" style="margin-top:5px;">
+                        <option value="Easy">Easy</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                    <textarea id="mcq-explanation" placeholder="Explanation (why this answer is correct)..." rows="2"
+                        style="margin-top:5px;"></textarea>
+                    <label style="margin-top:5px; display:block; font-size:0.8rem; font-weight:600;">Question Image
+                        (Optional)</label>
+                    <input type="file" id="mcq-image" accept="image/*" style="margin-top:2px;">
                     <button type="submit">Save MCQ</button>
                 </form>
             </div>
@@ -110,10 +385,49 @@
                     <span id="mcq-counter" class="counter-pill">Selected: 0/10</span>
                 </div>
                 <input type="text" id="mcq-set-name" placeholder="Set Name (e.g., Mock Set #01)">
+
+                <!-- Search & Filter -->
+                <div class="filter-bar">
+                    <input type="text" id="bank-search" placeholder="🔍 Search questions...">
+                    <select id="bank-filter-category">
+                        <option value="">All Categories</option>
+                        <option value="Formulas">Formulas</option>
+                        <option value="Shortcuts">Shortcuts</option>
+                        <option value="Basic Operations">Basic Operations</option>
+                        <option value="Cell Referencing">Cell Referencing</option>
+                        <option value="Formatting">Formatting</option>
+                        <option value="Charts">Charts</option>
+                        <option value="Pivot Tables">Pivot Tables</option>
+                        <option value="Data Validation">Data Validation</option>
+                        <option value="Conditional Formatting">Conditional Formatting</option>
+                    </select>
+                    <select id="bank-filter-difficulty">
+                        <option value="">All Difficulties</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <!-- Category Counts -->
+                <div id="category-counts" class="category-counts"></div>
+
                 <div id="mcq-selection-bank" class="mcq-bank">
                     <p style="color:#666; font-size:0.8rem;">Loading question bank...</p>
                 </div>
-                <button id="create-set-btn" class="primary">Finalize Set</button>
+
+                <!-- Pagination Controls -->
+                <div class="pagination-controls"
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <button id="prev-page-btn" class="secondary" disabled>Previous</button>
+                    <span id="page-info" style="font-size:0.9rem; color:#64748b;">Page 1</span>
+                    <button id="next-page-btn" class="secondary" disabled>Next</button>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button id="preview-set-btn" class="secondary" style="flex:1;">👁️ Preview Selected</button>
+                    <button id="create-set-btn" class="primary" style="flex:2;">Finalize Set</button>
+                </div>
             </div>
 
             <div class="card">
@@ -126,9 +440,76 @@
                     <button type="submit" class="secondary" style="margin-top: 10px;">Upload Question Bank</button>
                 </form>
             </div>
+
+            <!-- Set Management -->
+            <div class="card">
+                <h3>📋 Manage Mock Sets</h3>
+                <div id="sets-list" class="set-list">
+                    <p style="color:#666; font-size:0.8rem;">Loading sets...</p>
+                </div>
+            </div>
         </div>
     </main>
 
+    <!-- Edit MCQ Modal -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Edit MCQ Question</h3>
+            <input type="hidden" id="edit-id">
+            <label>Question Text</label>
+            <textarea id="edit-text" rows="3"></textarea>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px;">
+                <div><label>Option A</label><input type="text" id="edit-opt-0"></div>
+                <div><label>Option B</label><input type="text" id="edit-opt-1"></div>
+                <div><label>Option C</label><input type="text" id="edit-opt-2"></div>
+                <div><label>Option D</label><input type="text" id="edit-opt-3"></div>
+            </div>
+            <label>Correct Index (0-3)</label>
+            <input type="number" id="edit-correct" min="0" max="3">
+            <label>Category</label>
+            <select id="edit-category">
+                <option value="Formulas">Formulas</option>
+                <option value="Shortcuts">Shortcuts</option>
+                <option value="Basic Operations">Basic Operations</option>
+                <option value="Cell Referencing">Cell Referencing</option>
+                <option value="Formatting">Formatting</option>
+                <option value="Charts">Charts</option>
+                <option value="Pivot Tables">Pivot Tables</option>
+                <option value="Data Validation">Data Validation</option>
+                <option value="Conditional Formatting">Conditional Formatting</option>
+            </select>
+            <label>Difficulty</label>
+            <select id="edit-difficulty">
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+            <label>Explanation</label>
+            <textarea id="edit-explanation" rows="2"></textarea>
+            <label>Update Image (Optional)</label>
+            <input type="file" id="edit-image" accept="image/*">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-save" onclick="saveEditMCQ()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Set Modal -->
+    <div id="preview-modal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 700px;">
+            <h3>Preview Selected Questions</h3>
+            <div id="preview-content"
+                style="max-height: 60vh; overflow-y: auto; background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid #e2e8f0;">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closePreviewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="admin.js"></script>
 </body>
+
 </html>

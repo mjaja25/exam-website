@@ -37,6 +37,56 @@
             background: #eff6ff;
         }
 
+        .category-card.all-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);
+            border-color: #93c5fd;
+        }
+
+        .category-card.all-card:hover {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        /* Difficulty Selector */
+        .difficulty-selector {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 0.75rem;
+        }
+
+        .diff-btn {
+            padding: 4px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            background: white;
+            transition: 0.2s;
+        }
+
+        .diff-btn:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        .diff-btn.easy {
+            color: #16a34a;
+        }
+
+        .diff-btn.medium {
+            color: #f59e0b;
+        }
+
+        .diff-btn.hard {
+            color: #ef4444;
+        }
+
+        .diff-btn.all-diff {
+            color: #3b82f6;
+        }
+
         .options-grid {
             display: grid;
             gap: 1rem;
@@ -81,6 +131,55 @@
         .hidden {
             display: none;
         }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 1rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #166534;
+            display: none;
+        }
+
+        .explanation-box.active {
+            display: block;
+        }
+
+        .explanation-box::before {
+            content: '💡 ';
+        }
+
+        /* Streak Counter */
+        .streak-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 8px 12px;
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #854d0e;
+        }
+
+        .streak-bar.hot {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            color: #9a3412;
+        }
+
+        .streak-bar .streak-icon {
+            font-size: 1.2rem;
+        }
+
+        .streak-bar .streak-count {
+            font-weight: 700;
+            font-size: 1rem;
+        }
     </style>
 </head>
 
@@ -95,26 +194,137 @@
             <div id="selection-view">
                 <h2>Choose a Topic to Practice</h2>
                 <div class="category-grid">
-                    <div class="category-card" onclick="startPractice('Formulas')">
+                    <div class="category-card" id="card-Formulas">
                         <h3>Formulas</h3>
                         <p>VLOOKUP, IF, SUMIF, etc.</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff" onclick="startPractice('Formulas', 'All')">All</button>
+                            <button class="diff-btn easy" onclick="startPractice('Formulas', 'Easy')">Easy</button>
+                            <button class="diff-btn medium" onclick="startPractice('Formulas', 'Medium')">Med</button>
+                            <button class="diff-btn hard" onclick="startPractice('Formulas', 'Hard')">Hard</button>
+                        </div>
                     </div>
-                    <div class="category-card" onclick="startPractice('Shortcuts')">
+                    <div class="category-card" id="card-Shortcuts">
                         <h3>Shortcuts</h3>
                         <p>Keyboard combinations</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff" onclick="startPractice('Shortcuts', 'All')">All</button>
+                            <button class="diff-btn easy" onclick="startPractice('Shortcuts', 'Easy')">Easy</button>
+                            <button class="diff-btn medium" onclick="startPractice('Shortcuts', 'Medium')">Med</button>
+                            <button class="diff-btn hard" onclick="startPractice('Shortcuts', 'Hard')">Hard</button>
+                        </div>
                     </div>
-                    <div class="category-card" onclick="startPractice('Cell Referencing')">
+                    <div class="category-card" id="card-CellRef">
                         <h3>Referencing</h3>
                         <p>Absolute ($) vs Relative</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff"
+                                onclick="startPractice('Cell Referencing', 'All')">All</button>
+                            <button class="diff-btn easy"
+                                onclick="startPractice('Cell Referencing', 'Easy')">Easy</button>
+                            <button class="diff-btn medium"
+                                onclick="startPractice('Cell Referencing', 'Medium')">Med</button>
+                            <button class="diff-btn hard"
+                                onclick="startPractice('Cell Referencing', 'Hard')">Hard</button>
+                        </div>
                     </div>
-                    <div class="category-card" onclick="startPractice('Basic Operations')">
+                    <div class="category-card" id="card-BasicOps">
                         <h3>Basics</h3>
                         <p>Navigation and Formatting</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff"
+                                onclick="startPractice('Basic Operations', 'All')">All</button>
+                            <button class="diff-btn easy"
+                                onclick="startPractice('Basic Operations', 'Easy')">Easy</button>
+                            <button class="diff-btn medium"
+                                onclick="startPractice('Basic Operations', 'Medium')">Med</button>
+                            <button class="diff-btn hard"
+                                onclick="startPractice('Basic Operations', 'Hard')">Hard</button>
+                        </div>
+                    </div>
+                    <div class="category-card" id="card-Formatting">
+                        <h3>Formatting</h3>
+                        <p>Number formats, styles</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff" onclick="startPractice('Formatting', 'All')">All</button>
+                            <button class="diff-btn easy" onclick="startPractice('Formatting', 'Easy')">Easy</button>
+                            <button class="diff-btn medium" onclick="startPractice('Formatting', 'Medium')">Med</button>
+                            <button class="diff-btn hard" onclick="startPractice('Formatting', 'Hard')">Hard</button>
+                        </div>
+                    </div>
+                    <div class="category-card" id="card-Charts">
+                        <h3>Charts</h3>
+                        <p>Bar, Pie, Line charts</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff" onclick="startPractice('Charts', 'All')">All</button>
+                            <button class="diff-btn easy" onclick="startPractice('Charts', 'Easy')">Easy</button>
+                            <button class="diff-btn medium" onclick="startPractice('Charts', 'Medium')">Med</button>
+                            <button class="diff-btn hard" onclick="startPractice('Charts', 'Hard')">Hard</button>
+                        </div>
+                    </div>
+                    <div class="category-card" id="card-PivotTables">
+                        <h3>Pivot Tables</h3>
+                        <p>Summarize & analyze data</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff"
+                                onclick="startPractice('Pivot Tables', 'All')">All</button>
+                            <button class="diff-btn easy" onclick="startPractice('Pivot Tables', 'Easy')">Easy</button>
+                            <button class="diff-btn medium"
+                                onclick="startPractice('Pivot Tables', 'Medium')">Med</button>
+                            <button class="diff-btn hard" onclick="startPractice('Pivot Tables', 'Hard')">Hard</button>
+                        </div>
+                    </div>
+                    <div class="category-card" id="card-DataVal">
+                        <h3>Data Validation</h3>
+                        <p>Dropdowns, rules, limits</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff"
+                                onclick="startPractice('Data Validation', 'All')">All</button>
+                            <button class="diff-btn easy"
+                                onclick="startPractice('Data Validation', 'Easy')">Easy</button>
+                            <button class="diff-btn medium"
+                                onclick="startPractice('Data Validation', 'Medium')">Med</button>
+                            <button class="diff-btn hard"
+                                onclick="startPractice('Data Validation', 'Hard')">Hard</button>
+                        </div>
+                    </div>
+                    <div class="category-card" id="card-CondFormat">
+                        <h3>Conditional Formatting</h3>
+                        <p>Rules, color scales, icons</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff"
+                                onclick="startPractice('Conditional Formatting', 'All')">All</button>
+                            <button class="diff-btn easy"
+                                onclick="startPractice('Conditional Formatting', 'Easy')">Easy</button>
+                            <button class="diff-btn medium"
+                                onclick="startPractice('Conditional Formatting', 'Medium')">Med</button>
+                            <button class="diff-btn hard"
+                                onclick="startPractice('Conditional Formatting', 'Hard')">Hard</button>
+                        </div>
+                    </div>
+
+                    <!-- All Categories Mixed Mode -->
+                    <div class="category-card all-card">
+                        <h3>🎲 All Categories (Mixed)</h3>
+                        <p>Random questions from every topic</p>
+                        <div class="difficulty-selector">
+                            <button class="diff-btn all-diff" onclick="startPractice('All', 'All')">All</button>
+                            <button class="diff-btn easy" onclick="startPractice('All', 'Easy')">Easy</button>
+                            <button class="diff-btn medium" onclick="startPractice('All', 'Medium')">Med</button>
+                            <button class="diff-btn hard" onclick="startPractice('All', 'Hard')">Hard</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div id="question-view" class="hidden">
+                <!-- Streak Bar -->
+                <div id="streak-bar" class="streak-bar" style="display:none;">
+                    <span class="streak-icon">🔥</span>
+                    <span>Streak: <span id="streak-count" class="streak-count">0</span></span>
+                    <span id="streak-msg" style="margin-left:auto; font-size:0.8rem;"></span>
+                </div>
+
                 <div class="progress-info"
                     style="display:flex; justify-content: space-between; margin-bottom: 1rem; color: #64748b;">
                     <span id="progress-text">Question 1/10</span>
@@ -123,6 +333,7 @@
                 <h3 id="question-text">Question loading...</h3>
                 <div id="options-container" class="options-grid"></div>
                 <p id="feedback-msg" class="feedback-text"></p>
+                <div id="explanation-box" class="explanation-box"></div>
                 <div style="margin-top: 2rem; text-align: right;">
                     <button id="next-btn" class="primary hidden">Next Question</button>
                 </div>
@@ -131,6 +342,7 @@
             <div id="summary-view" class="hidden" style="text-align: center;">
                 <h2>Practice Session Complete!</h2>
                 <p style="font-size: 1.5rem; margin: 1rem 0;">Your Final Score: <span id="final-score">0</span></p>
+                <p id="best-streak-msg" style="color: #f59e0b; font-weight: 600; margin-bottom: 1rem;"></p>
                 <button onclick="location.reload()" class="primary">Try Another Topic</button>
             </div>
         </div>
