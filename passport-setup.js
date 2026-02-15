@@ -27,13 +27,20 @@ passport.use(new GoogleStrategy({
         return done(null, user); // Log them in.
       }
 
-      // Step 3: If no user is found by Google ID or email, create a new one.
-      const newUser = new User({
-          googleId: profile.id,
-          email: profile.emails[0].value,
-          username: profile.displayName, // Fetch username from Google profile
-          isVerified: true
-      });
+    // Step 3: If no user is found by Google ID or email, create a new one.
+    let baseUsername = profile.displayName || 'user';
+    let username = baseUsername;
+    let counter = 1;
+    while (await User.findOne({ username })) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+    }
+    const newUser = new User({
+        googleId: profile.id,
+        email: profile.emails[0].value,
+        username: username,
+        isVerified: true
+    });
       await newUser.save();
       return done(null, newUser);
 

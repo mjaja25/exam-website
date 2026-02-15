@@ -11,9 +11,19 @@ if (process.env.SENDGRID_API_KEY) {
 exports.register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'Username, email, and password are required.' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+        }
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
             return res.status(409).json({ message: 'Email is already registered.' });
+        }
+        const existingUsername = await User.findOne({ username });
+        if (existingUsername) {
+            return res.status(409).json({ message: 'Username is already taken. Please choose a different one.' });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' });

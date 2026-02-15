@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (res.ok) {
-                window.location.href = '/results-new.html';
+                window.location.href = `/results-new.html?sessionId=${sessionId}`;
             } else {
                 if (typeof showToast === 'function') showToast('Submission failed. Please contact admin.', 'error');
             }

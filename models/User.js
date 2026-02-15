@@ -5,14 +5,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true
+        trim: true,
+        index: true
     },
     email: {
         type: String,
         required: true,
         unique: true,
         lowercase: true,
-        match: [/\S+@\S+\.\S+/, 'is invalid']
+        match: [/\S+@\S+\.\S+/, 'is invalid'],
+        index: true
     },
     password: {
         type: String, // Not required for Google sign-in
@@ -20,12 +22,14 @@ const userSchema = new mongoose.Schema({
     googleId: {
         type: String,
         unique: true,
-        sparse: true // Allows multiple users to have a null value
+        sparse: true, // Allows multiple users to have a null value
+        index: true
     },
     role: {
         type: String,
         enum: ['user', 'admin'],
-        default: 'user'
+        default: 'user',
+        index: true
     },
     testCredits: {
         type: Number,
@@ -33,16 +37,20 @@ const userSchema = new mongoose.Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false
+        default: false,
+        index: true
     },
     verificationToken: {
-        type: String
+        type: String,
+        index: true
     },
     resetPasswordToken: {
-        type: String
+        type: String,
+        index: true
     },
     resetPasswordExpires: {
-        type: Date
+        type: Date,
+        index: true
     },
     avatar: {
         type: String, // Cloudinary URL or 'default-X' identifier
@@ -53,6 +61,9 @@ const userSchema = new mongoose.Schema({
         maxLength: 150
     },
     completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }]
-});
+}, { timestamps: true });
+
+// Add TTL index to automatically delete expired tokens after 24 hours
+userSchema.index({ resetPasswordExpires: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('User', userSchema);

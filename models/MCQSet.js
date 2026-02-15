@@ -6,7 +6,6 @@ const mcqSetSchema = new mongoose.Schema({
         required: true, 
         unique: true 
     },
-    // We move the validation OUTSIDE the array brackets []
     questions: {
         type: [{ 
             type: mongoose.Schema.Types.ObjectId, 
@@ -14,7 +13,7 @@ const mcqSetSchema = new mongoose.Schema({
         }],
         validate: {
             validator: function(val) {
-                return val.length === 10; // This now correctly checks the array length
+                return val.length === 10;
             },
             message: 'A set must contain exactly 10 questions'
         }

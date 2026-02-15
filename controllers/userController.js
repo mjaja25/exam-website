@@ -29,7 +29,7 @@ exports.getDashboard = async (req, res) => {
 
 exports.getAchievements = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         const results = await TestResult.find({ 
             user: userId, 
             attemptMode: 'exam', 
@@ -90,7 +90,7 @@ exports.getAchievements = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const { bio, avatarType, defaultAvatarId } = req.body;
-        const userId = req.user.id;
+        const userId = req.userId;
         
         const updateData = {};
         if (bio !== undefined) updateData.bio = bio;
