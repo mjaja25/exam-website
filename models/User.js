@@ -44,6 +44,14 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: {
         type: Date
     },
+    avatar: {
+        type: String, // Cloudinary URL or 'default-X' identifier
+        default: null
+    },
+    bio: {
+        type: String,
+        maxLength: 150
+    },
     completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }]
 });
 

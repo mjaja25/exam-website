@@ -198,9 +198,10 @@ function renderLeaderboard() {
                 <td>${rank}</td>
                 <td>
                     <div class="user-cell">
-                        <div class="avatar-placeholder">
-                            ${entry.user.username.substring(0, 2).toUpperCase()}
-                        </div>
+                        ${entry.user.avatar ? 
+                            `<img src="${entry.user.avatar}" class="avatar-img" alt="${entry.user.username}">` :
+                            `<div class="avatar-placeholder">${entry.user.username.substring(0, 2).toUpperCase()}</div>`
+                        }
                         <div>
                             <span class="winner-name" style="font-weight: 600; color: #0f172a;">
                                 ${entry.user.username} ${isMe ? '(You)' : ''}

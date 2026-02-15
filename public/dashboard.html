@@ -8,6 +8,16 @@
     <link rel="stylesheet" href="style.css" />
     <script src="/auth.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .user-profile-widget { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 10px; border-radius: 20px; transition: 0.2s; margin-right: 15px; }
+        .user-profile-widget:hover { background: rgba(0,0,0,0.05); }
+        .nav-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .nav-initials { width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; }
+        
+        .def-avatar-btn { font-size: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; transition: 0.2s; padding: 0; }
+        .def-avatar-btn:hover { background: #e2e8f0; transform: scale(1.1); }
+        .def-avatar-btn.selected { border-color: #3b82f6; background: #eff6ff; }
+    </style>
 </head>
 
 <body class="dashboard-page">
@@ -18,6 +28,10 @@
                 <h1 id="welcome-header">Welcome!</h1>
             </div>
             <nav class="dashboard-nav">
+                <div class="user-profile-widget" onclick="openProfileModal()" title="Edit Profile">
+                    <img src="" id="nav-avatar" class="nav-avatar" style="display:none;">
+                    <span id="nav-initials" class="nav-initials">--</span>
+                </div>
                 <a href="/admin.html" id="admin-btn" class="nav-button" style="display: none;">Admin Panel</a>
                 <button id="logout-btn" class="nav-button secondary">Logout</button>
             </nav>
@@ -160,6 +174,46 @@
             </div>
             <p style="font-size: 0.8rem; color: #64748b; text-align: center;">Note: Refreshing is disabled once the exam
                 starts.</p>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <header>
+                <h2>Edit Profile</h2>
+                <button onclick="closeProfileModal()" class="close-btn">&times;</button>
+            </header>
+            <div style="padding: 1rem 0;">
+                <div class="profile-edit-section">
+                    <label>Profile Picture</label>
+                    <div class="avatar-selection">
+                        <div class="current-avatar-preview">
+                            <img id="preview-avatar-img" src="" style="display:none; width:80px; height:80px; border-radius:50%; object-fit:cover;">
+                            <div id="preview-avatar-initials" style="width:80px; height:80px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.5rem; color:#64748b;">--</div>
+                        </div>
+                        <div class="upload-controls" style="margin-left: 1rem;">
+                            <input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
+                            <button onclick="document.getElementById('avatar-upload').click()" class="secondary small">Upload Photo</button>
+                            <p style="font-size:0.8rem; color:#64748b; margin-top:0.5rem;">Or choose a default:</p>
+                            <div class="default-avatars">
+                                <button class="def-avatar-btn" onclick="selectDefault(1)">🐶</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(2)">🐱</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(3)">🦊</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(4)">🦁</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-edit-section" style="margin-top: 1.5rem;">
+                    <label>Bio (Short description)</label>
+                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..." maxlength="150" style="width:100%; margin-top:0.5rem; padding:0.5rem; border-radius:8px; border:1px solid #e2e8f0;"></textarea>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: right;">
+                    <button onclick="saveProfile()" class="primary" id="save-profile-btn">Save Changes</button>
+                </div>
+            </div>
         </div>
     </div>
 

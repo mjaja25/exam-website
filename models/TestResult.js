@@ -58,4 +58,21 @@ const testResultSchema = new mongoose.Schema({
     totalScore: { type: Number, default: 0, index: true }
 });
 
+// --- Compound Indexes for Leaderboard Performance ---
+
+// 1. General Leaderboard Queries (Filter by Pattern/Mode/Status -> Sort by Score)
+testResultSchema.index({ testPattern: 1, attemptMode: 1, status: 1, totalScore: -1 });
+testResultSchema.index({ testPattern: 1, attemptMode: 1, status: 1, wpm: -1 });
+testResultSchema.index({ testPattern: 1, attemptMode: 1, status: 1, typingScore: -1 });
+testResultSchema.index({ testPattern: 1, attemptMode: 1, status: 1, letterScore: -1 });
+testResultSchema.index({ testPattern: 1, attemptMode: 1, status: 1, excelScore: -1 });
+testResultSchema.index({ testPattern: 1, attemptMode: 1, status: 1, mcqScore: -1 });
+
+// 2. User-Specific Queries (My Rank, Best Result lookup)
+// Helps find "My Best Score" quickly for a specific pattern
+testResultSchema.index({ user: 1, testPattern: 1, attemptMode: 1, status: 1, totalScore: -1 });
+
+// 3. Date-based filtering for Weekly/Monthly leaderboards
+testResultSchema.index({ attemptMode: 1, status: 1, submittedAt: -1 });
+
 module.exports = mongoose.model('TestResult', testResultSchema);

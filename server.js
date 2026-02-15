@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { createDownloadUrl } = require('./utils/helpers');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require('multer');
 const path = require('path');
@@ -39,54 +40,61 @@ const PORT = process.env.PORT || 3000;
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+
 // passport-setup is already required at top of file (line 5)
 
-// -------------------
-//  STORAGE & UPLOAD CONFIGURATION
-// -------------------
-
-// Configure Cloudinary Storage
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: (req, file) => {
-        // This function sets the destination folder dynamically
-        let folder;
-        if (req.path.includes('/admin/excel-questions')) {
-            folder = 'excel_templates'; // Admin uploads go here
-        } else {
-            folder = 'excel_submissions'; // User submissions go here
-        }
-        return {
-            folder: folder,
-            resource_type: 'raw',
-            public_id: `${path.parse(file.originalname).name}-${Date.now()}${path.extname(file.originalname)}`
-        };
-    },
-});
-
-// Create a single, powerful multer instance
-const upload = multer({ storage: storage });
-
-const cloudinaryStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: { folder: 'excel_submissions', resource_type: 'raw', public_id: (req, file) => 'submission-' + Date.now() }
-});
-const localDiskStorage = multer.diskStorage({
-    destination: (req, file, cb) => { cb(null, 'public/excel_files/') },
-    filename: (req, file, cb) => { cb(null, Date.now() + '-' + file.originalname) }
-});
-const uploadToCloudinary = multer({ storage: cloudinaryStorage });
-const uploadLocally = multer({ storage: localDiskStorage });
+const { upload, uploadToCloudinary, cloudinary } = require('./config/storage');
 
 // -------------------
 //  MIDDLEWARE SETUP
 // -------------------
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
 app.set('trust proxy', 1);
+
+// 1. HELMET SECURITY HEADERS
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://code.jquery.com"], // Allow Toast & JS libraries
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Allow Google Fonts
+            fontSrc: ["'self'", "https://fonts.gstatic.com"], // Allow Font loading
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com"], // Allow Cloudinary images
+            connectSrc: ["'self'", "https://api.sendgrid.com", "https://generativelanguage.googleapis.com"], // Allow external APIs
+            frameSrc: ["'self'"], // Prevent clickjacking
+        },
+    },
+}));
+
+// 2. RATE LIMITING
+// General API Limiter (100 reqs / 15 min)
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300, // Relaxed slightly for development/testing
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many requests, please try again later." }
+});
+app.use('/api/', apiLimiter);
+
+// Auth Limiter (Login/Register/Forgot Password) - Stricter (10 reqs / 15 min)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20, 
+    message: { message: "Too many login attempts, please try again later." }
+});
+app.use('/api/auth/', authLimiter);
+
+// Password Reset Limiter (3 reqs / hour)
+const passwordResetLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { message: "Too many password reset requests. Please check your email." }
+});
+app.use('/api/auth/forgot-password', passwordResetLimiter);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
@@ -98,38 +106,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// --- Authentication Middleware ---
-const authMiddleware = (req, res, next) => {
-    try {
-        const token = req.headers.authorization.split(' ')[1];
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        req.userId = decodedToken.userId;
-        next();
-    } catch (error) {
-        res.status(401).json({ message: 'Authentication failed. Please log in.' });
-    }
-};
-
-// --- Admin-Only Middleware ---
-const adminMiddleware = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.userId);
-        if (user && user.role === 'admin') {
-            next();
-        } else {
-            return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-        }
-    } catch (error) {
-        return res.status(500).json({ message: 'Server error.' });
-    }
-};
-
-// --- Helper Function ---
-function createDownloadUrl(url) {
-    if (!url || !url.includes('cloudinary')) return url;
-    const parts = url.split('/upload/');
-    return `${parts[0]}/upload/fl_attachment/${parts[1]}`;
-}
 
 // -------------------
 //  DATABASE CONNECTION
@@ -137,6 +113,12 @@ function createDownloadUrl(url) {
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Successfully connected to MongoDB Atlas!'))
     .catch(err => console.error('Error connecting to MongoDB:', err));
+
+// --- Imports ---
+const { authMiddleware, adminMiddleware } = require('./middleware/auth');
+const authRoutes = require('./routes/auth');
+const leaderboardRoutes = require('./routes/leaderboard');
+const userRoutes = require('./routes/user');
 
 // -------------------
 //  API ROUTES
@@ -146,193 +128,28 @@ mongoose.connect(process.env.MONGO_URI)
 app.get('/', (req, res) => { res.redirect('/login.html') });
 
 // --- Auth Routes ---
-app.post('/api/auth/register', async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({ message: 'Email is already registered.' });
-        }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const verificationToken = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        const newUser = new User({
-            username,
-            email,
-            password: hashedPassword,
-            verificationToken: verificationToken
-        });
-        await newUser.save();
-        const verificationUrl = `${process.env.BASE_URL}/api/auth/verify-email?token=${verificationToken}`;
-        const msg = {
-            to: email,
-            from: process.env.VERIFIED_SENDER_EMAIL,
-            subject: 'Please Verify Your Email Address',
-            html: `<p>Please click the link to verify your email: <a href="${verificationUrl}">Verify Email</a></p>`,
-        };
-        await sgMail.send(msg);
-        res.status(201).json({ message: 'User created successfully! Please check your email to verify your account.' });
-    } catch (error) {
-        res.status(500).json({ message: 'An error occurred while creating the user.' });
-    }
-});
+app.use('/api/auth', authRoutes);
 
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid credentials.' });
-        }
-        if (!user.password) {
-            return res.status(400).json({ message: 'You have previously signed in with Google. Please use the "Sign in with Google" button.' });
-        }
-        if (!user.isVerified) {
-            return res.status(403).json({ message: 'Please verify your email address before logging in.' });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials.' });
-        }
-        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        res.json({ token });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error during login.' });
-    }
-});
+// --- User Routes ---
+app.use('/api/user', userRoutes);
 
-app.get('/api/auth/verify-email', async (req, res) => {
-    try {
-        const { token } = req.query;
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findOne({ email: decoded.email, verificationToken: token });
-        if (!user) {
-            return res.status(400).send('<h1>Invalid or expired verification link.</h1>');
-        }
-        user.isVerified = true;
-        user.verificationToken = undefined;
-        await user.save();
-        const loginToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.redirect(`/auth-success.html?token=${loginToken}`);
-    } catch (error) {
-        res.status(400).send('<h1>Invalid or expired verification link.</h1>');
-    }
-});
+// --- Leaderboard Routes ---
+app.use('/api/leaderboard', leaderboardRoutes);
 
-app.get('/api/auth/verify-token', authMiddleware, (req, res) => { res.status(200).json({ message: 'Token is valid.' }) });
-app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/api/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login.html' }), (req, res) => {
-    const token = jwt.sign({ userId: req.user._id, role: req.user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.redirect(`/auth-success.html?token=${token}`);
-});
+/* 
+   LEGACY AUTH ROUTES REMOVED - NOW IN routes/auth.js 
+*/
 
 // --- Forgot / Reset Password Routes ---
-app.post('/api/auth/forgot-password', async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) return res.status(400).json({ message: 'Email is required.' });
-
-        const user = await User.findOne({ email: email.toLowerCase() });
-
-        // If no user found, still return 200 to prevent email enumeration
-        if (!user) {
-            return res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
-        }
-
-        // Google-only user (no password set)
-        if (!user.password && user.googleId) {
-            return res.json({ googleOnly: true, message: 'This account uses Google Sign-In. Please use the "Sign in with Google" button to access your account.' });
-        }
-
-        // Generate reset token (1 hour expiry)
-        const resetToken = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        user.resetPasswordToken = resetToken;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        await user.save();
-
-        const resetUrl = `${process.env.BASE_URL}/reset-password.html?token=${resetToken}`;
-        const msg = {
-            to: user.email,
-            from: process.env.VERIFIED_SENDER_EMAIL,
-            subject: 'Password Reset Request',
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 2rem;">
-                    <h2 style="color: #111827;">Password Reset</h2>
-                    <p>You requested a password reset for your Dream Centre account.</p>
-                    <p>Click the button below to set a new password. This link expires in <strong>1 hour</strong>.</p>
-                    <a href="${resetUrl}" style="display: inline-block; background: #f59e0b; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; margin: 1rem 0;">Reset Password</a>
-                    <p style="font-size: 0.85rem; color: #6b7280;">If you did not request this, you can safely ignore this email.</p>
-                </div>
-            `,
-        };
-        await sgMail.send(msg);
-
-        res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({ message: 'An error occurred. Please try again later.' });
-    }
-});
-
-app.post('/api/auth/reset-password', async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-        if (!token || !newPassword) return res.status(400).json({ message: 'Token and new password are required.' });
-        if (newPassword.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters.' });
-
-        let decoded;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
-        } catch (err) {
-            return res.status(400).json({ message: 'Invalid or expired reset link. Please request a new one.' });
-        }
-
-        const user = await User.findOne({
-            email: decoded.email,
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
-        });
-
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired reset link. Please request a new one.' });
-        }
-
-        user.password = await bcrypt.hash(newPassword, 10);
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save();
-
-        res.json({ message: 'Password has been reset successfully. You can now log in with your new password.' });
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({ message: 'An error occurred. Please try again later.' });
-    }
-});
+/* 
+   LEGACY RESET ROUTES REMOVED - NOW IN routes/auth.js 
+*/
 
 // --- User-Specific Routes ---
-app.get('/api/user/dashboard', authMiddleware, async (req, res) => {
-    try {
-        // Find the user making the request
-        const user = await User.findById(req.userId);
 
-        // Find the results for that user
-        let results = await TestResult.find({ user: req.userId }).sort({ submittedAt: -1 });
+// --- User-Specific Routes ---
 
-        // Modify the excelFilePath for any Excel results before sending
-        results = results.map(r => {
-            if (r.excelFilePath) {
-                r.excelFilePath = createDownloadUrl(r.excelFilePath);
-            }
-            return r;
-        });
-
-        // Send back both the user details and their modified results
-        res.json({ user: user, results: results });
-
-    } catch (error) {
-        res.status(500).json({ message: 'Server error fetching dashboard data.' });
-    }
-});
-
+// --- Passages Route ---
 app.get('/api/passages/random', authMiddleware, async (req, res) => {
     try {
         const requestedDiff = req.query.difficulty; // Gets 'easy', 'medium', or 'hard' from URL
@@ -1170,332 +987,17 @@ app.get('/api/stats/all-tests', authMiddleware, async (req, res) => {
         res.status(500).json({ message: 'Server error fetching stats.' });
     }
 });
-// LEADERBOARD
-app.get('/api/leaderboard', async (req, res) => {
-    try {
-        const requestedPattern = req.query.pattern || 'standard'; // Default to standard
 
-        const topScores = await TestResult.find({
-            testPattern: requestedPattern,
-            attemptMode: 'exam', // Robustness: Ignore practice sessions
-            status: 'completed'   // Only show finished exams
-        })
-            .sort({ totalScore: -1 }) // Sort by highest total marks
-            .limit(10)
-            .populate('user', 'username'); // Get names from the User collection
 
-        res.json(topScores);
-    } catch (error) {
-        console.error("LEADERBOARD ERROR:", error);
-        res.status(500).json({ message: "Error fetching rankings." });
-    }
-});
 
-let leaderboardCache = {
-    all: null,
-    week: null,
-    month: null
-};
-let lastCacheTime = {
-    all: 0,
-    week: 0,
-    month: 0
-};
 
-app.get('/api/leaderboard/all', async (req, res) => {
-    const timeframe = req.query.timeframe || 'all'; // 'all', 'week', 'month'
-    const now = Date.now();
 
-    // 1. Serve from cache if fresh (within 60 seconds)
-    if (leaderboardCache[timeframe] && (now - lastCacheTime[timeframe] < 60000)) {
-        return res.json(leaderboardCache[timeframe]);
-    }
 
-    try {
-        const limit = 25; // Increased from 10 to 25
-        
-        // Date Filtering
-        let dateFilter = {};
-        if (timeframe === 'week') {
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
-            dateFilter = { submittedAt: { $gte: lastWeek } };
-        } else if (timeframe === 'month') {
-            const lastMonth = new Date();
-            lastMonth.setMonth(lastMonth.getMonth() - 1);
-            dateFilter = { submittedAt: { $gte: lastMonth } };
-        }
 
-        const baseQuery = { attemptMode: 'exam', status: 'completed', ...dateFilter };
 
-        const [
-            std_overall,
-            std_typing,
-            std_letter,
-            std_excel,
-            new_overall,
-            new_typing,
-            new_mcq
-        ] = await Promise.all([
-            // 1. Standard Pattern - Overall
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ totalScore: -1 }).limit(limit).populate('user', 'username'),
 
-            // 2. Standard Pattern - Typing
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ wpm: -1 }).limit(limit).populate('user', 'username'),
 
-            // 3. Standard Pattern - Letter
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ letterScore: -1 }).limit(limit).populate('user', 'username'),
 
-            // 4. Standard Pattern - Excel
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ excelScore: -1 }).limit(limit).populate('user', 'username'),
-
-            // 5. New Pattern - Overall
-            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
-                .sort({ totalScore: -1 }).limit(limit).populate('user', 'username'),
-
-            // 6. New Pattern - Typing
-            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
-                .sort({ typingScore: -1, wpm: -1, accuracy: -1 }).limit(limit).populate('user', 'username'),
-
-            // 7. New Pattern - Excel MCQ
-            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
-                .sort({ mcqScore: -1 }).limit(limit).populate('user', 'username')
-        ]);
-
-        const results = {
-            std_overall,
-            std_typing,
-            std_letter,
-            std_excel,
-            new_overall,
-            new_typing,
-            new_mcq
-        };
-        
-        leaderboardCache[timeframe] = results;
-        lastCacheTime[timeframe] = now;
-        res.json(results);
-
-    } catch (error) {
-        console.error("Leaderboard Fetch Error:", error);
-        res.status(500).json({ message: "Failed to load rankings." });
-    }
-});
-
-// --- NEW LEADERBOARD ROUTES ---
-
-// 1. Get User's Rank & Percentile
-app.get('/api/leaderboard/my-rank', authMiddleware, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        
-        const patterns = ['standard', 'new_pattern'];
-        const response = {};
-
-        for (const pattern of patterns) {
-            // Find user's best score for this pattern
-            const userBest = await TestResult.findOne({ 
-                user: userId, 
-                testPattern: pattern, 
-                attemptMode: 'exam', 
-                status: 'completed' 
-            }).sort({ totalScore: -1 });
-
-            if (!userBest) {
-                response[pattern] = null;
-                continue;
-            }
-
-            // Count users with higher scores
-            const betterCount = await TestResult.countDocuments({
-                testPattern: pattern,
-                attemptMode: 'exam',
-                status: 'completed',
-                totalScore: { $gt: userBest.totalScore }
-            });
-
-            // Count total unique users for this pattern
-            const totalUsersList = await TestResult.distinct('user', {
-                testPattern: pattern,
-                attemptMode: 'exam',
-                status: 'completed'
-            });
-            const totalUsers = totalUsersList.length;
-
-            // Calculate Rank and Percentile
-            const rank = betterCount + 1; // 1-based rank
-            const percentile = totalUsers > 1 
-                ? Math.round(((totalUsers - rank) / totalUsers) * 100) 
-                : 100;
-
-            // Trend: Compare latest vs previous
-            const latestTwo = await TestResult.find({
-                user: userId,
-                testPattern: pattern,
-                attemptMode: 'exam',
-                status: 'completed'
-            }).sort({ submittedAt: -1 }).limit(2);
-
-            let trend = null;
-            if (latestTwo.length === 2) {
-                const latest = latestTwo[0];
-                const prev = latestTwo[1];
-                trend = {
-                    latestScore: latest.totalScore,
-                    previousScore: prev.totalScore,
-                    delta: latest.totalScore - prev.totalScore,
-                    direction: latest.totalScore >= prev.totalScore ? 'up' : 'down'
-                };
-            }
-
-            response[pattern] = {
-                rank,
-                totalUsers,
-                percentile,
-                bestResult: userBest,
-                trend
-            };
-        }
-
-        res.json(response);
-    } catch (error) {
-        console.error("My Rank Error:", error);
-        res.status(500).json({ message: "Failed to fetch rank." });
-    }
-});
-
-// 2. Compare with another result
-app.get('/api/leaderboard/compare/:resultId', authMiddleware, async (req, res) => {
-    try {
-        const targetResultId = req.params.resultId;
-        const userId = req.user.id;
-
-        // Fetch the target result (Them)
-        const them = await TestResult.findById(targetResultId).populate('user', 'username');
-        if (!them) return res.status(404).json({ message: "Result not found" });
-
-        // Fetch current user's BEST result for the same pattern (You)
-        const you = await TestResult.findOne({
-            user: userId,
-            testPattern: them.testPattern,
-            attemptMode: 'exam',
-            status: 'completed'
-        }).sort({ totalScore: -1 });
-
-        if (!you) {
-            return res.json({ 
-                them, 
-                you: null, 
-                message: "You haven't completed a test in this pattern yet." 
-            });
-        }
-
-        // Calculate Gaps
-        const gaps = [];
-        
-        // Helper to push gaps
-        const addGap = (label, youVal, themVal, tipGood, tipBad) => {
-            const diff = youVal - themVal;
-            const isBetter = diff >= 0;
-            gaps.push({
-                category: label,
-                you: youVal,
-                them: themVal,
-                diff,
-                isBetter,
-                tip: isBetter ? tipGood : tipBad
-            });
-        };
-
-        if (them.testPattern === 'standard') {
-            addGap('Typing Speed (WPM)', you.wpm || 0, them.wpm || 0, 
-                "You're faster! Keep maintaining accuracy.", "Focus on rhythm to boost speed.");
-            addGap('Letter Writing', you.letterScore || 0, them.letterScore || 0, 
-                "Great formatting skills!", "Check formatting and salutations.");
-            addGap('Excel', you.excelScore || 0, them.excelScore || 0, 
-                "Excel-lent work!", "Review formulas and cell formatting.");
-        } else {
-            addGap('Typing Score', you.typingScore || 0, them.typingScore || 0,
-                "Strong typing performance!", "Practice touch typing to improve.");
-            addGap('Excel MCQ', you.mcqScore || 0, them.mcqScore || 0,
-                "Solid theoretical knowledge.", "Review Excel shortcuts and functions.");
-        }
-
-        addGap('Total Score', you.totalScore, them.totalScore, 
-            "You're ahead overall!", "Keep practicing to close the gap!");
-
-        res.json({ them, you, gaps });
-
-    } catch (error) {
-        console.error("Compare Error:", error);
-        res.status(500).json({ message: "Comparison failed" });
-    }
-});
-
-// 3. Get User Achievements (Computed on fly)
-app.get('/api/user/achievements', authMiddleware, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const results = await TestResult.find({ 
-            user: userId, 
-            attemptMode: 'exam', 
-            status: 'completed' 
-        }).sort({ submittedAt: 1 }); // Oldest first for "First Steps" check
-
-        const stats = {
-            totalExams: results.length,
-            maxWpm: 0,
-            maxAccuracy: 0,
-            maxMcq: 0,
-            maxLetter: 0,
-            hasImprovement: false
-        };
-
-        // Compute aggregations
-        if (results.length > 0) {
-            stats.maxWpm = Math.max(...results.map(r => r.wpm || 0));
-            stats.maxAccuracy = Math.max(...results.map(r => r.accuracy || 0));
-            stats.maxMcq = Math.max(...results.map(r => r.mcqScore || 0));
-            stats.maxLetter = Math.max(...results.map(r => r.letterScore || 0));
-            
-            // Check for simple improvement (current > previous at least once)
-            for (let i = 1; i < results.length; i++) {
-                if (results[i].totalScore > results[i-1].totalScore + 5) {
-                    stats.hasImprovement = true;
-                    break;
-                }
-            }
-        }
-
-        // Define Badges
-        const allBadges = [
-            { id: 'first_steps', name: 'First Steps', icon: '🐣', desc: 'Completed your first exam', condition: stats.totalExams >= 1 },
-            { id: 'consistent', name: 'Consistent', icon: '📅', desc: 'Completed 5+ exams', condition: stats.totalExams >= 5 },
-            { id: 'veteran', name: 'Veteran', icon: '🎖️', desc: 'Completed 10+ exams', condition: stats.totalExams >= 10 },
-            { id: 'speed_demon', name: 'Speed Demon', icon: '⚡', desc: 'Reached 40+ WPM', condition: stats.maxWpm >= 40 },
-            { id: 'sharpshooter', name: 'Sharpshooter', icon: '🎯', desc: '95%+ Accuracy in a test', condition: stats.maxAccuracy >= 95 },
-            { id: 'perfect_mcq', name: 'Trivia Master', icon: '🧠', desc: 'Scored 20/20 in MCQ', condition: stats.maxMcq >= 20 },
-            { id: 'letter_master', name: 'Scribe', icon: '✍️', desc: 'Perfect 10/10 in Letter', condition: stats.maxLetter >= 10 },
-            { id: 'rising_star', name: 'Rising Star', icon: '🚀', desc: 'Improved score by 5+ points', condition: stats.hasImprovement }
-        ];
-
-        // Filter to earned status
-        const response = allBadges.map(b => ({
-            ...b,
-            earned: b.condition
-        }));
-
-        res.json(response);
-
-    } catch (error) {
-        console.error("Achievements Error:", error);
-        res.status(500).json({ message: "Failed to fetch achievements" });
-    }
-});
 
 // --- server.js ---
 app.get('/api/stats/global', authMiddleware, async (req, res) => {
