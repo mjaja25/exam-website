@@ -38,9 +38,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPassage = '';
     let errorMap = {};
     let errorTrackedPositions = new Set();
-
-    // WPM timeline data: [{time: seconds, wpm: number}]
     let wpmTimeline = [];
+
+    // --- Drill State ---
+    const PRESET_DRILLS = {
+        home: { name: 'Home Row', text: 'asdf jkl; fdsa ;lkj asdf jkl; fdsa ;lkj', reps: 10 },
+        top: { name: 'Top Row', text: 'qwert yuiop poiuy trewq qwert yuiop', reps: 10 },
+        bottom: { name: 'Bottom Row', text: 'zxcvb nm,./ /.,mn bvcxz zxcvb nm,./', reps: 10 },
+        numbers: { name: 'Number Row', text: '12345 67890 09876 54321 12345 67890', reps: 10 },
+        words: { name: 'Common Words', text: 'the and for with that have from this will your', reps: 15 }
+    };
+    let selectedDrillType = null;
+    let drillText = '';
+    let drillReps = 10;
+    let drillCurrentRep = 0;
+    let drillTotalCorrect = 0;
+    let drillTotalTyped = 0;
+    let drillTotalErrors = 0;
 
     // --- JWT Helper ---
     function parseJwt(t) {
@@ -62,6 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDiff = d;
         btn.parentElement.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+    };
+
+    // --- Text Size Control (sim passage only) ---
+    let passageFontSize = 1.1; // rem
+    window.changePassageSize = (dir) => {
+        passageFontSize = Math.max(0.8, Math.min(2, passageFontSize + dir * 0.1));
+        const el = document.getElementById('sim-passage');
+        if (el) el.style.fontSize = passageFontSize.toFixed(1) + 'rem';
     };
 
     // ========================================================
@@ -486,11 +508,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4>Finger Drill Exercises</h4>
                 </div>`;
             a.drills.forEach((d, i) => {
+                const safeText = d.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 html += `
                 <div class="drill-card">
                     <div class="drill-name">${i + 1}. ${d.name}</div>
                     <div class="drill-text">${d.text}</div>
                     <div class="drill-meta">× ${d.reps} reps · ${d.target}</div>
+                    <button class="drill-practice-btn" onclick="launchDrillFromAI('${safeText}', ${d.reps || 10}, '${d.name.replace(/'/g, "\\'")}')">🏋️ Practice This</button>
                 </div>`;
             });
             html += `</div>`;
@@ -524,4 +548,163 @@ document.addEventListener('DOMContentLoaded', () => {
 
         coachContent.innerHTML = html;
     }
+
+    // ========================================================
+    // DRILL MODE — Preset selection
+    // ========================================================
+    window.selectDrill = (type, btn) => {
+        selectedDrillType = type;
+        document.querySelectorAll('.drill-pick-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const customInput = document.getElementById('drill-custom-text');
+        if (type === 'custom') {
+            customInput.classList.add('visible');
+            customInput.focus();
+        } else {
+            customInput.classList.remove('visible');
+        }
+    };
+
+    window.launchDrill = () => {
+        if (selectedDrillType === 'custom') {
+            const customText = document.getElementById('drill-custom-text').value.trim();
+            if (!customText) { if (typeof showToast === 'function') showToast('Enter custom drill text.', 'error'); return; }
+            drillText = customText;
+            drillReps = 10;
+            startDrillEngine('Custom Drill');
+        } else if (selectedDrillType && PRESET_DRILLS[selectedDrillType]) {
+            const p = PRESET_DRILLS[selectedDrillType];
+            drillText = p.text;
+            drillReps = p.reps;
+            startDrillEngine(p.name);
+        } else {
+            if (typeof showToast === 'function') showToast('Select a drill first.', 'error');
+        }
+    };
+
+    // Called from AI drill cards "Practice This" button
+    window.launchDrillFromAI = (text, reps, name) => {
+        drillText = text;
+        drillReps = reps || 10;
+        // Hide results view, show drill engine
+        resultsView.classList.remove('active');
+        startDrillEngine(name || 'AI Drill');
+    };
+
+    // ========================================================
+    // DRILL ENGINE
+    // ========================================================
+    const drillEngineEl = document.getElementById('drill-engine');
+    const drillTitleEl = document.getElementById('drill-title');
+    const drillProgressEl = document.getElementById('drill-progress');
+    const drillPassageEl = document.getElementById('drill-passage-display');
+    const drillInputEl = document.getElementById('drill-input');
+    const drillAccFill = document.getElementById('drill-accuracy-fill');
+    const drillAccText = document.getElementById('drill-acc-text');
+    const drillErrText = document.getElementById('drill-err-text');
+    const drillCompleteEl = document.getElementById('drill-complete');
+    const drillCompleteMsg = document.getElementById('drill-complete-msg');
+
+    function startDrillEngine(name) {
+        configView.classList.add('hidden');
+        drillEngineEl.classList.remove('hidden');
+        drillCompleteEl.classList.add('hidden');
+        drillTitleEl.textContent = `🏋️ ${name}`;
+        drillCurrentRep = 0;
+        drillTotalCorrect = 0;
+        drillTotalTyped = 0;
+        drillTotalErrors = 0;
+        loadDrillRep();
+    }
+
+    function loadDrillRep() {
+        drillCurrentRep++;
+        drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}`;
+
+        drillPassageEl.innerHTML = '';
+        drillText.split('').forEach(ch => {
+            const span = document.createElement('span');
+            span.innerText = ch;
+            drillPassageEl.appendChild(span);
+        });
+        drillPassageEl.querySelector('span').classList.add('current');
+
+        drillInputEl.value = '';
+        drillInputEl.disabled = false;
+        drillInputEl.focus();
+
+        // Remove old listener, add fresh
+        drillInputEl.removeEventListener('input', handleDrillInput);
+        drillInputEl.addEventListener('input', handleDrillInput);
+        lockdownInput(drillInputEl);
+    }
+
+    function handleDrillInput() {
+        const spans = drillPassageEl.querySelectorAll('span');
+        const chars = drillInputEl.value.split('');
+        let correct = 0;
+
+        spans.forEach((span, i) => {
+            const uc = chars[i];
+            span.classList.remove('current');
+            if (uc == null) {
+                span.classList.remove('correct', 'incorrect');
+            } else if (uc === span.innerText) {
+                span.classList.add('correct');
+                span.classList.remove('incorrect');
+                correct++;
+            } else {
+                span.classList.add('incorrect');
+                span.classList.remove('correct');
+            }
+        });
+
+        // Update accuracy bar
+        const acc = chars.length > 0 ? Math.round((correct / chars.length) * 100) : 100;
+        drillAccFill.style.width = acc + '%';
+        drillAccText.textContent = acc + '%';
+        drillErrText.textContent = chars.length - correct;
+
+        // Scroll current character
+        if (chars.length < spans.length) {
+            spans[chars.length].classList.add('current');
+        }
+
+        // Rep complete
+        if (chars.length >= spans.length) {
+            drillTotalCorrect += correct;
+            drillTotalTyped += chars.length;
+            drillTotalErrors += (chars.length - correct);
+
+            if (drillCurrentRep >= drillReps) {
+                completeDrill();
+            } else {
+                // Small delay then next rep
+                drillInputEl.disabled = true;
+                setTimeout(() => loadDrillRep(), 400);
+            }
+        }
+    }
+
+    function completeDrill() {
+        drillInputEl.disabled = true;
+        drillCompleteEl.classList.remove('hidden');
+        const finalAcc = drillTotalTyped > 0 ? Math.round((drillTotalCorrect / drillTotalTyped) * 100) : 100;
+        drillCompleteMsg.textContent = `${drillReps} reps completed! Accuracy: ${finalAcc}% · Errors: ${drillTotalErrors}`;
+    }
+
+    window.restartDrill = () => {
+        drillCompleteEl.classList.add('hidden');
+        drillCurrentRep = 0;
+        drillTotalCorrect = 0;
+        drillTotalTyped = 0;
+        drillTotalErrors = 0;
+        loadDrillRep();
+    };
+
+    window.exitDrill = () => {
+        drillEngineEl.classList.add('hidden');
+        drillInputEl.removeEventListener('input', handleDrillInput);
+        configView.classList.remove('hidden');
+    };
 });

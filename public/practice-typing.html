@@ -115,7 +115,7 @@
             align-items: center;
             padding: 1rem;
             margin-bottom: 1rem;
-            font-family: 'Courier New', monospace;
+            font-family: Calibri, 'Segoe UI', sans-serif;
             font-size: 1rem;
         }
 
@@ -125,7 +125,7 @@
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1rem;
-            font-family: 'Courier New', monospace;
+            font-family: Calibri, 'Segoe UI', sans-serif;
             font-size: 1.1rem;
             line-height: 2;
             min-height: 200px;
@@ -133,25 +133,21 @@
             overflow-y: auto;
         }
 
-        .sim-engine .sim-passage span.correct {
-            color: #16a34a;
-        }
-
-        .sim-engine .sim-passage span.incorrect {
-            color: #dc2626;
-            text-decoration: underline;
-        }
-
+        /* True sim: NO visual feedback — blind typing mode */
+        .sim-engine .sim-passage span.correct,
+        .sim-engine .sim-passage span.incorrect,
         .sim-engine .sim-passage span.current {
-            border-bottom: 2px solid var(--primary-yellow, #f59e0b);
-            font-weight: 700;
+            color: inherit;
+            text-decoration: none;
+            border-bottom: none;
+            font-weight: inherit;
         }
 
         .sim-engine .sim-textarea {
             width: 100%;
             min-height: 220px;
             padding: 1.5rem;
-            font-family: 'Courier New', monospace;
+            font-family: Calibri, 'Segoe UI', sans-serif;
             font-size: 1.15rem;
             line-height: 1.8;
             border: 2px solid var(--border-color, #e2e8f0);
@@ -166,12 +162,46 @@
             border-color: var(--primary-yellow, #f59e0b);
         }
 
-        /* --- Decorated textarea override (bigger) --- */
+        /* --- Text Size Controls --- */
+        .text-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .text-size-controls span {
+            font-size: 0.8rem;
+            color: var(--text-muted, #64748b);
+        }
+
+        .text-size-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 6px;
+            background: var(--card-background, #fff);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+        }
+
+        .text-size-btn:hover {
+            border-color: var(--primary-yellow, #f59e0b);
+            color: var(--primary-yellow, #f59e0b);
+        }
+
+        /* --- Decorated textarea override (match sim dimensions) --- */
         .typing-wrapper textarea {
-            min-height: 200px !important;
-            font-size: 1.1rem !important;
+            min-height: 220px !important;
+            font-size: 1.15rem !important;
             line-height: 1.8 !important;
-            padding: 1.25rem !important;
+            padding: 1.5rem !important;
         }
 
         /* --- Admin Bypass --- */
@@ -519,6 +549,196 @@
             color: #475569;
             font-size: 0.85rem;
         }
+
+        /* --- Drill Practice This Button --- */
+        .drill-card .drill-practice-btn {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .drill-card .drill-practice-btn:hover {
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+        }
+
+        /* --- Drill Config Section --- */
+        .drill-picker {
+            margin-bottom: 1.5rem;
+        }
+
+        .drill-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .drill-pick-btn {
+            padding: 0.6rem 0.5rem;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            background: var(--card-background, white);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.2s;
+            text-align: center;
+        }
+
+        .drill-pick-btn:hover {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .drill-pick-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .drill-pick-btn .pick-icon {
+            display: block;
+            font-size: 1.3rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .drill-custom-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            resize: none;
+            display: none;
+        }
+
+        .drill-custom-input.visible {
+            display: block;
+        }
+
+        /* --- Drill Engine --- */
+        .drill-engine {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .drill-engine .drill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .drill-engine .drill-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .drill-engine .drill-header .drill-back-btn {
+            padding: 0.4rem 1rem;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .drill-engine .drill-progress {
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b);
+            margin-bottom: 0.75rem;
+        }
+
+        .drill-engine .drill-passage-display {
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            padding: 1.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            line-height: 2.2;
+            min-height: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .drill-engine .drill-passage-display span.correct {
+            color: #16a34a;
+        }
+
+        .drill-engine .drill-passage-display span.incorrect {
+            color: #dc2626;
+            text-decoration: underline;
+        }
+
+        .drill-engine .drill-passage-display span.current {
+            border-bottom: 2px solid var(--primary-yellow, #f59e0b);
+            font-weight: 700;
+        }
+
+        .drill-engine .drill-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            resize: none;
+            outline: none;
+        }
+
+        .drill-engine .drill-input:focus {
+            border-color: #10b981;
+        }
+
+        .drill-engine .drill-accuracy-bar {
+            margin-top: 1rem;
+            background: var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .drill-engine .drill-accuracy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 8px;
+            transition: width 0.3s;
+        }
+
+        .drill-engine .drill-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b);
+        }
+
+        .drill-complete-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--card-background, #fff);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .drill-complete-card h3 {
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 
@@ -560,6 +780,37 @@
             </div>
 
             <button class="primary start-btn" onclick="launchPractice()">Launch Practice Session</button>
+
+            <hr style="margin: 2rem 0; border-color: var(--border-color, #e2e8f0);">
+
+            <!-- Finger Drill Section -->
+            <h3 style="margin-bottom: 1rem;">🏋️ Finger Drill Practice</h3>
+            <div class="drill-picker">
+                <div class="drill-picker-grid">
+                    <button class="drill-pick-btn" onclick="selectDrill('home', this)">
+                        <span class="pick-icon">🏠</span> Home Row
+                    </button>
+                    <button class="drill-pick-btn" onclick="selectDrill('top', this)">
+                        <span class="pick-icon">⬆️</span> Top Row
+                    </button>
+                    <button class="drill-pick-btn" onclick="selectDrill('bottom', this)">
+                        <span class="pick-icon">⬇️</span> Bottom Row
+                    </button>
+                    <button class="drill-pick-btn" onclick="selectDrill('numbers', this)">
+                        <span class="pick-icon">🔢</span> Numbers
+                    </button>
+                    <button class="drill-pick-btn" onclick="selectDrill('words', this)">
+                        <span class="pick-icon">📝</span> Common Words
+                    </button>
+                    <button class="drill-pick-btn" onclick="selectDrill('custom', this)">
+                        <span class="pick-icon">✏️</span> Custom
+                    </button>
+                </div>
+                <textarea id="drill-custom-text" class="drill-custom-input" rows="2"
+                    placeholder="Type your custom drill text here..."></textarea>
+                <button class="primary start-btn" style="background:#10b981;border-color:#10b981;"
+                    onclick="launchDrill()">Start Finger Drill</button>
+            </div>
         </div>
 
         <!-- DECORATED ENGINE (styled like standard test) -->
@@ -606,12 +857,48 @@
                 <span>WPM: <strong id="sim-wpm">0</strong></span>
                 <span>Accuracy: <strong id="sim-accuracy">100%</strong></span>
             </div>
+            <div class="text-size-controls">
+                <span>Text Size</span>
+                <button class="text-size-btn" onclick="changePassageSize(-1)">−</button>
+                <button class="text-size-btn" onclick="changePassageSize(1)">+</button>
+            </div>
             <div id="sim-passage" class="sim-passage">Loading passage...</div>
             <textarea id="sim-input" class="sim-textarea" placeholder="Start typing here..." autocomplete="off"
                 autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
 
             <div id="sim-admin-bypass" class="admin-bypass">
                 <button id="sim-quick-submit">⚡ Admin: Quick Submit</button>
+            </div>
+        </div>
+
+        <!-- DRILL ENGINE -->
+        <div id="drill-engine" class="drill-engine hidden">
+            <div class="drill-header">
+                <h3 id="drill-title">🏋️ Finger Drill</h3>
+                <button class="drill-back-btn" onclick="exitDrill()">← Back</button>
+            </div>
+            <div id="drill-progress" class="drill-progress">Rep 1 of 10</div>
+            <div id="drill-passage-display" class="drill-passage-display"></div>
+            <textarea id="drill-input" class="drill-input" placeholder="Type the text above..." autocomplete="off"
+                autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+            <div class="drill-accuracy-bar">
+                <div id="drill-accuracy-fill" class="drill-accuracy-fill" style="width:100%"></div>
+            </div>
+            <div class="drill-stats">
+                <span>Accuracy: <strong id="drill-acc-text">100%</strong></span>
+                <span>Errors: <strong id="drill-err-text">0</strong></span>
+            </div>
+            <div id="drill-complete" class="drill-complete-card hidden">
+                <h3>✅ Drill Complete!</h3>
+                <p id="drill-complete-msg"></p>
+                <div style="margin-top:1rem;display:flex;gap:0.75rem;justify-content:center;">
+                    <button onclick="restartDrill()"
+                        style="padding:0.5rem 1rem;border-radius:8px;border:2px solid #e2e8f0;background:none;cursor:pointer;font-weight:600;">🔄
+                        Repeat</button>
+                    <button onclick="exitDrill()"
+                        style="padding:0.5rem 1rem;border-radius:8px;border:2px solid #e2e8f0;background:none;cursor:pointer;font-weight:600;">←
+                        Back</button>
+                </div>
             </div>
         </div>
     </main>
