@@ -103,13 +103,15 @@
         }
 
         /* --- Minimal Simulation Engine (True Sim) --- */
-        .sim-engine {
+        .sim-engine,
+        .dec-engine {
             max-width: 900px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
 
-        .sim-engine .sim-stats {
+        .sim-engine .sim-stats,
+        .dec-engine .sim-stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -119,7 +121,8 @@
             font-size: 1rem;
         }
 
-        .sim-engine .sim-passage {
+        .sim-engine .sim-passage,
+        .dec-engine .sim-passage {
             background: var(--card-background, #fff);
             border: 1px solid var(--border-color, #e2e8f0);
             border-radius: 8px;
@@ -143,7 +146,23 @@
             font-weight: inherit;
         }
 
-        .sim-engine .sim-textarea {
+        /* Decorated: WITH visual feedback */
+        .dec-engine .sim-passage span.correct {
+            color: #16a34a;
+        }
+
+        .dec-engine .sim-passage span.incorrect {
+            color: #dc2626;
+            text-decoration: underline;
+        }
+
+        .dec-engine .sim-passage span.current {
+            border-bottom: 2px solid var(--primary-yellow, #f59e0b);
+            font-weight: 700;
+        }
+
+        .sim-engine .sim-textarea,
+        .dec-engine .sim-textarea {
             width: 100%;
             min-height: 220px;
             padding: 1.5rem;
@@ -158,7 +177,8 @@
             color: var(--text-color, #1e293b);
         }
 
-        .sim-engine .sim-textarea:focus {
+        .sim-engine .sim-textarea:focus,
+        .dec-engine .sim-textarea:focus {
             border-color: var(--primary-yellow, #f59e0b);
         }
 
@@ -194,14 +214,6 @@
         .text-size-btn:hover {
             border-color: var(--primary-yellow, #f59e0b);
             color: var(--primary-yellow, #f59e0b);
-        }
-
-        /* --- Decorated textarea override (match sim dimensions) --- */
-        .typing-wrapper textarea {
-            min-height: 220px !important;
-            font-size: 1.15rem !important;
-            line-height: 1.8 !important;
-            padding: 1.5rem !important;
         }
 
         /* --- Admin Bypass --- */
@@ -853,40 +865,19 @@
             </div>
         </div>
 
-        <!-- DECORATED ENGINE (styled like standard test) -->
-        <div id="decorated-engine" class="hidden">
-            <div class="test-container">
-                <header class="test-header desktop-only">
-                    <hgroup>
-                        <h2>Typing Practice</h2>
-                        <p>Practice at your own pace. This is unranked.</p>
-                    </hgroup>
-                </header>
+        <!-- DECORATED ENGINE (sim-style layout WITH visual feedback) -->
+        <div id="decorated-engine" class="dec-engine hidden">
+            <div class="sim-stats">
+                <span>Time: <strong id="dec-timer">02:00</strong></span>
+                <span>WPM: <strong id="dec-wpm">0</strong></span>
+                <span>Accuracy: <strong id="dec-accuracy">100%</strong></span>
+            </div>
+            <div id="dec-passage" class="sim-passage">Loading passage...</div>
+            <textarea id="dec-input" class="sim-textarea" placeholder="Start typing here..." autocomplete="off"
+                autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
 
-                <div class="stats-bar desktop-only">
-                    <div class="stat-item">
-                        <span>WPM</span>
-                        <p id="dec-wpm">0</p>
-                    </div>
-                    <div class="stat-item">
-                        <span>Accuracy</span>
-                        <p id="dec-accuracy">100%</p>
-                    </div>
-                    <div class="stat-item">
-                        <span>Time Left</span>
-                        <p id="dec-timer">02:00</p>
-                    </div>
-                </div>
-
-                <div class="typing-wrapper">
-                    <div id="dec-passage" class="passage-card">Loading passage...</div>
-                    <textarea id="dec-input" rows="8" placeholder="Start typing here..." autocomplete="off"
-                        autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-                </div>
-
-                <div id="dec-admin-bypass" class="admin-bypass">
-                    <button id="dec-quick-submit">⚡ Admin: Quick Submit</button>
-                </div>
+            <div id="dec-admin-bypass" class="admin-bypass">
+                <button id="dec-quick-submit">⚡ Admin: Quick Submit</button>
             </div>
         </div>
 
@@ -927,14 +918,19 @@
             <div class="drill-stats">
                 <span>Accuracy: <strong id="drill-acc-text">100%</strong></span>
                 <span>Errors: <strong id="drill-err-text">0</strong></span>
+                <span id="drill-wpm-stat" style="display:none">WPM: <strong id="drill-wpm-text">0</strong></span>
             </div>
             <div id="drill-complete" class="drill-complete-card hidden">
                 <h3>✅ Drill Complete!</h3>
                 <p id="drill-complete-msg"></p>
-                <div style="margin-top:1rem;display:flex;gap:0.75rem;justify-content:center;">
+                <p id="drill-record-msg" style="display:none;color:#f59e0b;font-weight:700;margin-top:0.5rem;"></p>
+                <div style="margin-top:1rem;display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
                     <button onclick="restartDrill()"
                         style="padding:0.5rem 1rem;border-radius:8px;border:2px solid #e2e8f0;background:none;cursor:pointer;font-weight:600;">🔄
                         Repeat</button>
+                    <button id="drill-back-to-results-btn" onclick="backToResults()"
+                        style="display:none;padding:0.5rem 1rem;border-radius:8px;border:2px solid #10b981;background:#10b981;color:white;cursor:pointer;font-weight:600;">←
+                        Back to Results</button>
                     <button onclick="exitDrill()"
                         style="padding:0.5rem 1rem;border-radius:8px;border:2px solid #e2e8f0;background:none;cursor:pointer;font-weight:600;">←
                         Back</button>

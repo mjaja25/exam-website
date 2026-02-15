@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let drillTotalCorrect = 0;
     let drillTotalTyped = 0;
     let drillTotalErrors = 0;
+    let drillSource = 'config'; // 'config' or 'ai'
+    let drillStartTime = null;
+    let completedAIDrills = new Set(); // track completed AI drill indices
 
     // --- Word Set State ---
     let selectedWordSet = '1k';
@@ -541,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="drill-name">${i + 1}. ${d.name}</div>
                     <div class="drill-text">${d.text}</div>
                     <div class="drill-meta">× ${d.reps} reps · ${d.target}</div>
-                    <button class="drill-practice-btn" onclick="launchDrillFromAI('${safeText}', ${d.reps || 10}, '${d.name.replace(/'/g, "\\'")}')">🏋️ Practice This</button>
+                    <button class="drill-practice-btn" onclick="launchDrillFromAI('${safeText}', ${d.reps || 10}, '${d.name.replace(/'/g, "\\'")}', ${i})">🏋️ Practice This</button>
                 </div>`;
             });
             html += `</div>`;
@@ -599,6 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.launchDrill = async () => {
+        drillSource = 'config';
         if (selectedDrillType === 'custom') {
             const customText = document.getElementById('drill-custom-text').value.trim();
             if (!customText) { if (typeof showToast === 'function') showToast('Enter custom drill text.', 'error'); return; }
@@ -621,12 +625,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Called from AI drill cards "Practice This" button
-    window.launchDrillFromAI = (text, reps, name) => {
+    window.launchDrillFromAI = (text, reps, name, drillIndex) => {
+        drillSource = 'ai';
         drillText = text;
         drillReps = reps || 10;
+        // Store current drill index for marking completion
+        drillEngineEl.dataset.aiDrillIndex = drillIndex != null ? drillIndex : '';
         // Hide results view, show drill engine
         resultsView.classList.remove('active');
         startDrillEngine(name || 'AI Drill');
+    };
+
+    // Back to results from drill
+    window.backToResults = () => {
+        drillEngineEl.classList.add('hidden');
+        drillInputEl.removeEventListener('input', handleDrillInput);
+        resultsView.classList.add('active');
+        // Update completed drill markers
+        updateCompletedDrillMarkers();
     };
 
     // ========================================================
@@ -652,7 +668,30 @@ document.addEventListener('DOMContentLoaded', () => {
         drillTotalCorrect = 0;
         drillTotalTyped = 0;
         drillTotalErrors = 0;
+        drillStartTime = Date.now();
+
+        // Show/hide WPM stat for word & AI drills
+        const wpmStat = document.getElementById('drill-wpm-stat');
+        if (selectedDrillType === 'words' || drillSource === 'ai') {
+            wpmStat.style.display = '';
+        } else {
+            wpmStat.style.display = 'none';
+        }
+
+        // Show/hide back-to-results button
+        const backBtn = document.getElementById('drill-back-to-results-btn');
+        backBtn.style.display = drillSource === 'ai' ? '' : 'none';
+
         loadDrillRep();
+    }
+
+    function jumbleText(text) {
+        const chars = text.split('');
+        for (let i = chars.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        return chars.join('');
     }
 
     function loadDrillRep() {
@@ -660,8 +699,12 @@ document.addEventListener('DOMContentLoaded', () => {
         drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}`;
 
         // Randomize words each rep for word drills
-        if (selectedDrillType === 'words' && wordSetCache[selectedWordSet]) {
+        if (drillSource === 'config' && selectedDrillType === 'words' && wordSetCache[selectedWordSet]) {
             drillText = pickRandomWords(wordSetCache[selectedWordSet], 10);
+        }
+        // Jumble row drills each rep
+        if (drillSource === 'config' && ['home', 'top', 'bottom', 'numbers'].includes(selectedDrillType)) {
+            drillText = jumbleText(PRESET_DRILLS[selectedDrillType].text);
         }
 
         drillPassageEl.innerHTML = '';
@@ -708,6 +751,14 @@ document.addEventListener('DOMContentLoaded', () => {
         drillAccText.textContent = acc + '%';
         drillErrText.textContent = chars.length - correct;
 
+        // Live WPM for word & AI drills
+        if (selectedDrillType === 'words' || drillSource === 'ai') {
+            const mins = (Date.now() - drillStartTime) / 60000;
+            const totalChars = drillTotalTyped + chars.length;
+            const wpm = mins > 0 ? Math.round((totalChars / 5) / mins) : 0;
+            document.getElementById('drill-wpm-text').textContent = wpm;
+        }
+
         // Scroll current character
         if (chars.length < spans.length) {
             spans[chars.length].classList.add('current');
@@ -733,7 +784,73 @@ document.addEventListener('DOMContentLoaded', () => {
         drillInputEl.disabled = true;
         drillCompleteEl.classList.remove('hidden');
         const finalAcc = drillTotalTyped > 0 ? Math.round((drillTotalCorrect / drillTotalTyped) * 100) : 100;
-        drillCompleteMsg.textContent = `${drillReps} reps completed! Accuracy: ${finalAcc}% · Errors: ${drillTotalErrors}`;
+        const elapsed = (Date.now() - drillStartTime) / 60000;
+        const drillWpm = elapsed > 0 ? Math.round((drillTotalTyped / 5) / elapsed) : 0;
+
+        let msg = `${drillReps} reps completed! Accuracy: ${finalAcc}%`;
+        if (selectedDrillType === 'words' || drillSource === 'ai') {
+            msg += ` · WPM: ${drillWpm}`;
+        }
+        msg += ` · Errors: ${drillTotalErrors}`;
+        drillCompleteMsg.textContent = msg;
+
+        // Mark AI drill as completed
+        if (drillSource === 'ai' && drillEngineEl.dataset.aiDrillIndex !== '') {
+            completedAIDrills.add(parseInt(drillEngineEl.dataset.aiDrillIndex));
+        }
+
+        // Save personal record
+        checkAndSaveDrillRecord(finalAcc, drillWpm);
+    }
+
+    function checkAndSaveDrillRecord(acc, wpm) {
+        const key = drillSource === 'ai' ? 'ai_drill' : (selectedDrillType || 'custom');
+        const storageKey = `drill_record_${key}`;
+        const prev = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const recordMsg = document.getElementById('drill-record-msg');
+        let isNewRecord = false;
+
+        if (!prev.bestAcc || acc > prev.bestAcc) {
+            prev.bestAcc = acc;
+            isNewRecord = true;
+        }
+        if ((selectedDrillType === 'words' || drillSource === 'ai') && (!prev.bestWpm || wpm > prev.bestWpm)) {
+            prev.bestWpm = wpm;
+            isNewRecord = true;
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(prev));
+
+        if (isNewRecord) {
+            let recText = '🎉 New Personal Record!';
+            if (prev.bestWpm) recText += ` Best WPM: ${prev.bestWpm}`;
+            recText += ` Best Accuracy: ${prev.bestAcc}%`;
+            recordMsg.textContent = recText;
+            recordMsg.style.display = '';
+        } else {
+            recordMsg.style.display = 'none';
+        }
+    }
+
+    function updateCompletedDrillMarkers() {
+        document.querySelectorAll('.drill-card').forEach((card, i) => {
+            const btn = card.querySelector('.drill-practice-btn');
+            if (completedAIDrills.has(i)) {
+                if (!card.querySelector('.drill-done-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'drill-done-badge';
+                    badge.textContent = ' ✅ Done';
+                    badge.style.cssText = 'color:#16a34a;font-weight:700;font-size:0.85rem;margin-left:0.5rem;';
+                    card.querySelector('.drill-name').appendChild(badge);
+                }
+                if (btn) {
+                    btn.textContent = '✅ Completed';
+                    btn.style.background = '#d1fae5';
+                    btn.style.borderColor = '#16a34a';
+                    btn.style.color = '#16a34a';
+                }
+            }
+        });
     }
 
     window.restartDrill = () => {
@@ -742,6 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
         drillTotalCorrect = 0;
         drillTotalTyped = 0;
         drillTotalErrors = 0;
+        drillStartTime = Date.now();
         loadDrillRep();
     };
 
