@@ -1191,18 +1191,43 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-let leaderboardCache = null;
-let lastCacheTime = 0;
+let leaderboardCache = {
+    all: null,
+    week: null,
+    month: null
+};
+let lastCacheTime = {
+    all: 0,
+    week: 0,
+    month: 0
+};
 
 app.get('/api/leaderboard/all', async (req, res) => {
+    const timeframe = req.query.timeframe || 'all'; // 'all', 'week', 'month'
     const now = Date.now();
+
     // 1. Serve from cache if fresh (within 60 seconds)
-    if (leaderboardCache && (now - lastCacheTime < 60000)) {
-        return res.json(leaderboardCache);
+    if (leaderboardCache[timeframe] && (now - lastCacheTime[timeframe] < 60000)) {
+        return res.json(leaderboardCache[timeframe]);
     }
 
     try {
-        const limit = 10;
+        const limit = 25; // Increased from 10 to 25
+        
+        // Date Filtering
+        let dateFilter = {};
+        if (timeframe === 'week') {
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            dateFilter = { submittedAt: { $gte: lastWeek } };
+        } else if (timeframe === 'month') {
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            dateFilter = { submittedAt: { $gte: lastMonth } };
+        }
+
+        const baseQuery = { attemptMode: 'exam', status: 'completed', ...dateFilter };
+
         const [
             std_overall,
             std_typing,
@@ -1213,31 +1238,31 @@ app.get('/api/leaderboard/all', async (req, res) => {
             new_mcq
         ] = await Promise.all([
             // 1. Standard Pattern - Overall
-            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+            TestResult.find({ ...baseQuery, testPattern: 'standard' })
                 .sort({ totalScore: -1 }).limit(limit).populate('user', 'username'),
 
             // 2. Standard Pattern - Typing
-            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+            TestResult.find({ ...baseQuery, testPattern: 'standard' })
                 .sort({ wpm: -1 }).limit(limit).populate('user', 'username'),
 
             // 3. Standard Pattern - Letter
-            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+            TestResult.find({ ...baseQuery, testPattern: 'standard' })
                 .sort({ letterScore: -1 }).limit(limit).populate('user', 'username'),
 
             // 4. Standard Pattern - Excel
-            TestResult.find({ testPattern: 'standard', attemptMode: 'exam', status: 'completed' })
+            TestResult.find({ ...baseQuery, testPattern: 'standard' })
                 .sort({ excelScore: -1 }).limit(limit).populate('user', 'username'),
 
             // 5. New Pattern - Overall
-            TestResult.find({ testPattern: 'new_pattern', attemptMode: 'exam', status: 'completed' })
+            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
                 .sort({ totalScore: -1 }).limit(limit).populate('user', 'username'),
 
-            // 6. New Pattern - Typing (Fixed sort key from 'score' to 'typingScore')
-            TestResult.find({ testPattern: 'new_pattern', attemptMode: 'exam', status: 'completed' })
+            // 6. New Pattern - Typing
+            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
                 .sort({ typingScore: -1, wpm: -1, accuracy: -1 }).limit(limit).populate('user', 'username'),
 
             // 7. New Pattern - Excel MCQ
-            TestResult.find({ testPattern: 'new_pattern', attemptMode: 'exam', status: 'completed' })
+            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
                 .sort({ mcqScore: -1 }).limit(limit).populate('user', 'username')
         ]);
 
@@ -1250,13 +1275,225 @@ app.get('/api/leaderboard/all', async (req, res) => {
             new_typing,
             new_mcq
         };
-        leaderboardCache = results;
-        lastCacheTime = now;
+        
+        leaderboardCache[timeframe] = results;
+        lastCacheTime[timeframe] = now;
         res.json(results);
 
     } catch (error) {
         console.error("Leaderboard Fetch Error:", error);
         res.status(500).json({ message: "Failed to load rankings." });
+    }
+});
+
+// --- NEW LEADERBOARD ROUTES ---
+
+// 1. Get User's Rank & Percentile
+app.get('/api/leaderboard/my-rank', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        const patterns = ['standard', 'new_pattern'];
+        const response = {};
+
+        for (const pattern of patterns) {
+            // Find user's best score for this pattern
+            const userBest = await TestResult.findOne({ 
+                user: userId, 
+                testPattern: pattern, 
+                attemptMode: 'exam', 
+                status: 'completed' 
+            }).sort({ totalScore: -1 });
+
+            if (!userBest) {
+                response[pattern] = null;
+                continue;
+            }
+
+            // Count users with higher scores
+            const betterCount = await TestResult.countDocuments({
+                testPattern: pattern,
+                attemptMode: 'exam',
+                status: 'completed',
+                totalScore: { $gt: userBest.totalScore }
+            });
+
+            // Count total unique users for this pattern
+            const totalUsersList = await TestResult.distinct('user', {
+                testPattern: pattern,
+                attemptMode: 'exam',
+                status: 'completed'
+            });
+            const totalUsers = totalUsersList.length;
+
+            // Calculate Rank and Percentile
+            const rank = betterCount + 1; // 1-based rank
+            const percentile = totalUsers > 1 
+                ? Math.round(((totalUsers - rank) / totalUsers) * 100) 
+                : 100;
+
+            // Trend: Compare latest vs previous
+            const latestTwo = await TestResult.find({
+                user: userId,
+                testPattern: pattern,
+                attemptMode: 'exam',
+                status: 'completed'
+            }).sort({ submittedAt: -1 }).limit(2);
+
+            let trend = null;
+            if (latestTwo.length === 2) {
+                const latest = latestTwo[0];
+                const prev = latestTwo[1];
+                trend = {
+                    latestScore: latest.totalScore,
+                    previousScore: prev.totalScore,
+                    delta: latest.totalScore - prev.totalScore,
+                    direction: latest.totalScore >= prev.totalScore ? 'up' : 'down'
+                };
+            }
+
+            response[pattern] = {
+                rank,
+                totalUsers,
+                percentile,
+                bestResult: userBest,
+                trend
+            };
+        }
+
+        res.json(response);
+    } catch (error) {
+        console.error("My Rank Error:", error);
+        res.status(500).json({ message: "Failed to fetch rank." });
+    }
+});
+
+// 2. Compare with another result
+app.get('/api/leaderboard/compare/:resultId', authMiddleware, async (req, res) => {
+    try {
+        const targetResultId = req.params.resultId;
+        const userId = req.user.id;
+
+        // Fetch the target result (Them)
+        const them = await TestResult.findById(targetResultId).populate('user', 'username');
+        if (!them) return res.status(404).json({ message: "Result not found" });
+
+        // Fetch current user's BEST result for the same pattern (You)
+        const you = await TestResult.findOne({
+            user: userId,
+            testPattern: them.testPattern,
+            attemptMode: 'exam',
+            status: 'completed'
+        }).sort({ totalScore: -1 });
+
+        if (!you) {
+            return res.json({ 
+                them, 
+                you: null, 
+                message: "You haven't completed a test in this pattern yet." 
+            });
+        }
+
+        // Calculate Gaps
+        const gaps = [];
+        
+        // Helper to push gaps
+        const addGap = (label, youVal, themVal, tipGood, tipBad) => {
+            const diff = youVal - themVal;
+            const isBetter = diff >= 0;
+            gaps.push({
+                category: label,
+                you: youVal,
+                them: themVal,
+                diff,
+                isBetter,
+                tip: isBetter ? tipGood : tipBad
+            });
+        };
+
+        if (them.testPattern === 'standard') {
+            addGap('Typing Speed (WPM)', you.wpm || 0, them.wpm || 0, 
+                "You're faster! Keep maintaining accuracy.", "Focus on rhythm to boost speed.");
+            addGap('Letter Writing', you.letterScore || 0, them.letterScore || 0, 
+                "Great formatting skills!", "Check formatting and salutations.");
+            addGap('Excel', you.excelScore || 0, them.excelScore || 0, 
+                "Excel-lent work!", "Review formulas and cell formatting.");
+        } else {
+            addGap('Typing Score', you.typingScore || 0, them.typingScore || 0,
+                "Strong typing performance!", "Practice touch typing to improve.");
+            addGap('Excel MCQ', you.mcqScore || 0, them.mcqScore || 0,
+                "Solid theoretical knowledge.", "Review Excel shortcuts and functions.");
+        }
+
+        addGap('Total Score', you.totalScore, them.totalScore, 
+            "You're ahead overall!", "Keep practicing to close the gap!");
+
+        res.json({ them, you, gaps });
+
+    } catch (error) {
+        console.error("Compare Error:", error);
+        res.status(500).json({ message: "Comparison failed" });
+    }
+});
+
+// 3. Get User Achievements (Computed on fly)
+app.get('/api/user/achievements', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const results = await TestResult.find({ 
+            user: userId, 
+            attemptMode: 'exam', 
+            status: 'completed' 
+        }).sort({ submittedAt: 1 }); // Oldest first for "First Steps" check
+
+        const stats = {
+            totalExams: results.length,
+            maxWpm: 0,
+            maxAccuracy: 0,
+            maxMcq: 0,
+            maxLetter: 0,
+            hasImprovement: false
+        };
+
+        // Compute aggregations
+        if (results.length > 0) {
+            stats.maxWpm = Math.max(...results.map(r => r.wpm || 0));
+            stats.maxAccuracy = Math.max(...results.map(r => r.accuracy || 0));
+            stats.maxMcq = Math.max(...results.map(r => r.mcqScore || 0));
+            stats.maxLetter = Math.max(...results.map(r => r.letterScore || 0));
+            
+            // Check for simple improvement (current > previous at least once)
+            for (let i = 1; i < results.length; i++) {
+                if (results[i].totalScore > results[i-1].totalScore + 5) {
+                    stats.hasImprovement = true;
+                    break;
+                }
+            }
+        }
+
+        // Define Badges
+        const allBadges = [
+            { id: 'first_steps', name: 'First Steps', icon: '🐣', desc: 'Completed your first exam', condition: stats.totalExams >= 1 },
+            { id: 'consistent', name: 'Consistent', icon: '📅', desc: 'Completed 5+ exams', condition: stats.totalExams >= 5 },
+            { id: 'veteran', name: 'Veteran', icon: '🎖️', desc: 'Completed 10+ exams', condition: stats.totalExams >= 10 },
+            { id: 'speed_demon', name: 'Speed Demon', icon: '⚡', desc: 'Reached 40+ WPM', condition: stats.maxWpm >= 40 },
+            { id: 'sharpshooter', name: 'Sharpshooter', icon: '🎯', desc: '95%+ Accuracy in a test', condition: stats.maxAccuracy >= 95 },
+            { id: 'perfect_mcq', name: 'Trivia Master', icon: '🧠', desc: 'Scored 20/20 in MCQ', condition: stats.maxMcq >= 20 },
+            { id: 'letter_master', name: 'Scribe', icon: '✍️', desc: 'Perfect 10/10 in Letter', condition: stats.maxLetter >= 10 },
+            { id: 'rising_star', name: 'Rising Star', icon: '🚀', desc: 'Improved score by 5+ points', condition: stats.hasImprovement }
+        ];
+
+        // Filter to earned status
+        const response = allBadges.map(b => ({
+            ...b,
+            earned: b.condition
+        }));
+
+        res.json(response);
+
+    } catch (error) {
+        console.error("Achievements Error:", error);
+        res.status(500).json({ message: "Failed to fetch achievements" });
     }
 });
 

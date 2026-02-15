@@ -5,26 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Leaderboards | Dream Centre</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .leaderboard-wrapper { max-width: 900px; margin: 2rem auto; padding: 1rem; }
-        .filter-tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; }
-        .tab-btn { padding: 0.6rem 1.2rem; border-radius: 20px; border: 1px solid #e2e8f0; background: white; white-space: nowrap; cursor: pointer; transition: 0.3s; font-weight: 500; }
-        .tab-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        /* --- Leaderboard Specific Styles --- */
+        .leaderboard-wrapper { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
         
-        .rank-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        .rank-row { background: white; border-radius: 10px; transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .rank-row:hover { transform: scale(1.01); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .rank-row td { padding: 1.2rem; }
-        .rank-row td:first-child { border-radius: 10px 0 0 10px; font-weight: 800; width: 60px; text-align: center; }
-        .rank-row td:last-child { border-radius: 0 10px 10px 0; text-align: right; }
+        /* Hero Card */
+        .rank-hero {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .rank-hero::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 300px; height: 100%;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .my-rank-info h2 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #94a3b8; font-weight: 500; }
+        .my-rank-info .big-rank { font-size: 3.5rem; font-weight: 800; color: #fff; line-height: 1; }
+        .my-rank-info .percentile { color: #4ade80; font-weight: 600; margin-left: 10px; font-size: 1.1rem; }
+        .rank-trend { margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #cbd5e1; }
+        .trend-up { color: #4ade80; }
+        .trend-down { color: #f87171; }
 
-        /* Podium Decorations */
-        .row-1 { border-left: 5px solid #fbbf24; background: #fffdf5; } /* Gold */
-        .row-2 { border-left: 5px solid #94a3b8; background: #f8fafc; } /* Silver */
-        .row-3 { border-left: 5px solid #cd7f32; background: #fffaf5; } /* Bronze */
+        .achievements-mini { display: flex; flex-direction: column; gap: 0.5rem; justify-content: center; }
+        .achievements-preview { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+        .mini-badge { font-size: 1.5rem; background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; opacity: 0.5; filter: grayscale(1); transition: 0.3s; }
+        .mini-badge.earned { opacity: 1; filter: grayscale(0); background: rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .view-all-badges { color: #60a5fa; text-decoration: none; font-size: 0.85rem; margin-top: 1rem; display: inline-block; }
+
+        /* Controls */
+        .controls-bar { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; margin-bottom: 1.5rem; align-items: center; }
         
-        .medal-icon { font-size: 1.2rem; margin-right: 10px; }
-        .highlight-user { color: #3b82f6; font-weight: 600; }
+        .toggle-group { display: inline-flex; background: #f1f5f9; padding: 4px; border-radius: 12px; }
+        .toggle-btn { padding: 8px 16px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #64748b; transition: 0.2s; }
+        .toggle-btn.active { background: white; color: #0f172a; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .filter-select { padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; font-weight: 500; color: #475569; cursor: pointer; }
+
+        /* Category Tabs */
+        .category-tabs { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
+        .cat-tab { padding: 0.5rem 0; border: none; background: none; color: #64748b; font-weight: 500; cursor: pointer; position: relative; white-space: nowrap; font-size: 1rem; }
+        .cat-tab.active { color: #2563eb; }
+        .cat-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: #2563eb; }
+
+        /* Table */
+        .rank-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .rank-row { background: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-radius: 8px; }
+        .rank-row:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .rank-row td { padding: 1rem; vertical-align: middle; }
+        .rank-row td:first-child { border-radius: 8px 0 0 8px; font-weight: 700; color: #64748b; width: 60px; text-align: center; }
+        .rank-row td:last-child { border-radius: 0 8px 8px 0; text-align: right; }
+        
+        .rank-1 td:first-child { color: #d97706; background: #fffbeb; }
+        .rank-2 td:first-child { color: #475569; background: #f8fafc; }
+        .rank-3 td:first-child { color: #9a3412; background: #fff7ed; }
+
+        .user-cell { display: flex; align-items: center; gap: 0.8rem; }
+        .avatar-placeholder { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #64748b; font-size: 0.8rem; }
+        .is-me .avatar-placeholder { background: #dbeafe; color: #1e40af; }
+        .is-me td { background: #eff6ff !important; }
+
+        .score-pill { background: #f8fafc; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #0f172a; font-size: 0.9rem; border: 1px solid #e2e8f0; display: inline-block; min-width: 60px; text-align: center; }
+        .compare-btn { padding: 6px 12px; font-size: 0.8rem; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer; transition: 0.2s; color: #475569; margin-left: 10px; }
+        .compare-btn:hover { border-color: #94a3b8; color: #0f172a; background: #f1f5f9; }
+
+        /* Badges Grid */
+        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .badge-card { background: white; padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; opacity: 0.5; transition: 0.3s; position: relative; }
+        .badge-card.earned { opacity: 1; border-color: #fcd34d; background: linear-gradient(to bottom right, #ffffff, #fffbeb); box-shadow: 0 4px 15px rgba(251, 191, 36, 0.15); }
+        .badge-icon { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+        .badge-name { font-weight: 600; color: #1e293b; margin-bottom: 0.2rem; font-size: 1rem; }
+        .badge-desc { font-size: 0.8rem; color: #64748b; line-height: 1.4; }
+        .badge-check { position: absolute; top: 10px; right: 10px; color: #16a34a; font-size: 1.2rem; display: none; }
+        .badge-card.earned .badge-check { display: block; }
+
+        /* Comparison Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-card { background: white; width: 90%; max-width: 500px; border-radius: 16px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; max-height: 90vh; overflow-y: auto; }
+        .compare-header { text-align: center; margin-bottom: 2rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
+        .compare-header h3 { margin: 0; color: #0f172a; font-size: 1.5rem; }
+        .vs-row { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; }
+        .vs-badge { background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 800; font-size: 0.8rem; color: #64748b; letter-spacing: 1px; }
+        
+        .gap-row { display: grid; grid-template-columns: 60px 1fr 60px; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
+        .gap-bar-container { height: 10px; background: #f1f5f9; border-radius: 5px; overflow: hidden; position: relative; width: 100%; display: flex; }
+        .gap-bar { height: 100%; }
+        .bar-left { background: #3b82f6; border-radius: 5px 0 0 5px; } /* You */
+        .bar-right { background: #ef4444; border-radius: 0 5px 5px 0; } /* Them */
+        .gap-val { font-weight: 700; font-size: 0.9rem; text-align: center; color: #334155; }
+        .gap-label { grid-column: 1 / -1; text-align: center; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .tip-box { grid-column: 1 / -1; padding: 0.8rem; border-radius: 8px; font-size: 0.9rem; margin-top: -0.5rem; text-align: center; border: 1px solid transparent; }
+        .tip-box.good { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .tip-box.bad { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+        @media (max-width: 600px) {
+            .rank-hero { grid-template-columns: 1fr; gap: 1rem; text-align: center; }
+            .my-rank-info { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; }
+            .achievements-mini { align-items: center; }
+            .gap-row { grid-template-columns: 40px 1fr 40px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -34,25 +126,97 @@
     </header>
 
     <main class="leaderboard-wrapper">
-        <div class="filter-tabs" id="tabs-container">
-            <button class="tab-btn active" onclick="loadTab('new_overall', this)">New Pattern Overall</button>
-            <button class="tab-btn" onclick="loadTab('std_overall', this)">Standard Overall</button>
-            <button class="tab-btn" onclick="loadTab('top_typing', this)">Typing Speed</button>
-            <button class="tab-btn" onclick="loadTab('top_mcq', this)">Excel MCQ</button>
-            <button class="tab-btn" onclick="loadTab('top_letter', this)">Letter Writing</button>
+        
+        <!-- Hero Section: My Rank -->
+        <div class="rank-hero" id="my-rank-hero">
+            <div class="my-rank-info">
+                <h2>Your Global Rank</h2>
+                <div style="display: flex; align-items: baseline; gap: 10px; justify-content: inherit;">
+                    <span class="big-rank" id="hero-rank">--</span>
+                    <span class="percentile" id="hero-percentile">Top --%</span>
+                </div>
+                <div class="rank-trend" id="hero-trend">
+                    <span>Loading trend...</span>
+                </div>
+            </div>
+            <div class="achievements-mini">
+                <h2 style="font-size: 1rem; color: #cbd5e1;">Your Achievements</h2>
+                <div class="achievements-preview" id="hero-badges">
+                    <!-- Badges injected here -->
+                </div>
+                <a href="#badges-section" class="view-all-badges">View All Badges &rarr;</a>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-bar">
+            <div class="toggle-group">
+                <button class="toggle-btn active" id="btn-new" onclick="setPattern('new_pattern')">New Pattern</button>
+                <button class="toggle-btn" id="btn-std" onclick="setPattern('standard')">Standard</button>
+            </div>
+            
+            <select class="filter-select" id="timeframe-select" onchange="setTimeframe(this.value)">
+                <option value="all">All Time</option>
+                <option value="month">This Month</option>
+                <option value="week">This Week</option>
+            </select>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="category-tabs">
+            <!-- Tabs injected by JS based on Pattern -->
         </div>
 
         <div id="loading-state" style="text-align: center; padding: 3rem; display: none;">
             <div class="spinner"></div>
-            <p>Fetching the latest standings...</p>
+            <p>Updating standings...</p>
         </div>
 
         <table class="rank-table">
             <tbody id="leaderboard-body">
-                </tbody>
+                <!-- Rows injected by JS -->
+            </tbody>
         </table>
+
+        <!-- Badges Section -->
+        <div id="badges-section" style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+            <h2 style="margin-bottom: 1rem; color: #1e293b;">Achievements Gallery</h2>
+            <div class="badges-grid" id="badges-grid">
+                <!-- Badges injected by JS -->
+            </div>
+        </div>
+
     </main>
 
+    <!-- Comparison Modal -->
+    <div class="modal-overlay" id="compare-modal" onclick="closeModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <button onclick="closeModal(null)" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8;">&times;</button>
+            
+            <div class="compare-header">
+                <h3>Performance Comparison</h3>
+                <div class="vs-row">
+                    <div style="text-align: right;">
+                        <span id="comp-you-name" style="color: #3b82f6; font-weight: 700; display: block;">You</span>
+                    </div>
+                    <span class="vs-badge">VS</span>
+                    <div style="text-align: left;">
+                        <span id="comp-them-name" style="color: #ef4444; font-weight: 700; display: block;">Them</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="compare-content" style="margin-bottom: 2rem;">
+                <!-- Comparison bars injected here -->
+            </div>
+
+            <div style="text-align: center;">
+                <a href="/dashboard.html" class="nav-button primary" style="width: 100%; text-align: center; display: inline-block;">Start Practice to Improve</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="toast.js"></script>
     <script src="leaderboards.js"></script>
 </body>
 </html>
