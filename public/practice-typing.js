@@ -714,6 +714,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return chars.join('');
     }
 
+    function jumbleWords(text) {
+        const words = text.split(' ').filter(w => w.length > 0);
+        for (let i = words.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [words[i], words[j]] = [words[j], words[i]];
+        }
+        return words.join(' ');
+    }
+
     function loadDrillRep() {
         drillCurrentRep++;
         drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}`;
@@ -736,8 +745,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 tierText = p.hard;
                 drillProgressEl.textContent = `Rep ${drillCurrentRep} of ${drillReps}  ·  Hard`;
             }
-            // Only jumble hard tier — easy/medium have intentional patterns
-            drillText = (drillCurrentRep > 7) ? jumbleText(tierText) : tierText;
+            // Jumble: words for easy/medium (keeps groups), chars for hard
+            drillText = (drillCurrentRep > 7) ? jumbleText(tierText) : jumbleWords(tierText);
         }
 
         drillPassageEl.innerHTML = '';
