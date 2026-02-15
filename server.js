@@ -17,8 +17,6 @@ const passport = require('passport');
 const sgMail = require('@sendgrid/mail');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const axios = require('axios');
 const csv = require('csv-parser');
 
