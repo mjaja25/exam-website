@@ -12,6 +12,9 @@ const {
     createPassageBody,
     createLetterQuestionBody,
     createExcelQuestionBody,
+    getPassagesQuery,
+    getLetterQuestionsQuery,
+    getExcelQuestionsQuery,
     idParam
 } = require('../validation/schemas/admin');
 
@@ -25,15 +28,23 @@ router.delete('/users/:id', authMiddleware, adminMiddleware, validate({ params: 
 // Results
 router.get('/results', authMiddleware, adminMiddleware, adminController.getResults);
 
-// Content Management
+// Content Management - Passages
+router.get('/passages', authMiddleware, adminMiddleware, validate({ query: getPassagesQuery }), adminController.getPassages);
 router.post('/passages', authMiddleware, adminMiddleware, validate({ body: createPassageBody }), adminController.createPassage);
-router.post('/letter-questions', authMiddleware, adminMiddleware, validate({ body: createLetterQuestionBody }), adminController.createLetterQuestion);
+router.delete('/passages/:id', authMiddleware, adminMiddleware, validate({ params: idParam }), adminController.deletePassage);
 
-// Excel Questions (Multiple Files) — validation after multer
+// Content Management - Letter Questions
+router.get('/letter-questions', authMiddleware, adminMiddleware, validate({ query: getLetterQuestionsQuery }), adminController.getLetterQuestions);
+router.post('/letter-questions', authMiddleware, adminMiddleware, validate({ body: createLetterQuestionBody }), adminController.createLetterQuestion);
+router.delete('/letter-questions/:id', authMiddleware, adminMiddleware, validate({ params: idParam }), adminController.deleteLetterQuestion);
+
+// Content Management - Excel Questions (Multiple Files) — validation after multer
+router.get('/excel-questions', authMiddleware, adminMiddleware, validate({ query: getExcelQuestionsQuery }), adminController.getExcelQuestions);
 router.post('/excel-questions', authMiddleware, adminMiddleware, upload.fields([
     { name: 'questionFile', maxCount: 1 },
     { name: 'solutionFile', maxCount: 1 }
 ]), validate({ body: createExcelQuestionBody }), adminController.createExcelQuestion);
+router.delete('/excel-questions/:id', authMiddleware, adminMiddleware, validate({ params: idParam }), adminController.deleteExcelQuestion);
 
 // Debugging
 router.get('/debug-gemini', authMiddleware, adminMiddleware, adminController.debugGemini);

@@ -301,8 +301,22 @@
                     <div class="card-header">
                         <h2>Existing Passages</h2>
                     </div>
+                    <div class="filter-bar">
+                        <input type="text" id="passage-search" placeholder="Search passages...">
+                        <select id="passage-filter-difficulty">
+                            <option value="">All Difficulties</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
                     <div id="passages-list" class="content-list">
                         <p class="loading">Loading passages...</p>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="passages-prev-btn" class="btn-secondary" disabled>Previous</button>
+                        <span id="passages-page-info">Page 1</span>
+                        <button id="passages-next-btn" class="btn-secondary" disabled>Next</button>
                     </div>
                 </div>
             </div>
@@ -329,8 +343,21 @@
                     <div class="card-header">
                         <h2>Existing Letter Questions</h2>
                     </div>
+                    <div class="filter-bar">
+                        <input type="text" id="letter-search" placeholder="Search questions...">
+                        <select id="letter-filter-category">
+                            <option value="">All Categories</option>
+                            <option value="formal">Formal</option>
+                            <option value="business">Business</option>
+                        </select>
+                    </div>
                     <div id="letters-list" class="content-list">
                         <p class="loading">Loading questions...</p>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="letters-prev-btn" class="btn-secondary" disabled>Previous</button>
+                        <span id="letters-page-info">Page 1</span>
+                        <button id="letters-next-btn" class="btn-secondary" disabled>Next</button>
                     </div>
                 </div>
             </div>
@@ -363,8 +390,16 @@
                     <div class="card-header">
                         <h2>Existing Excel Questions</h2>
                     </div>
+                    <div class="filter-bar">
+                        <input type="text" id="excel-search" placeholder="Search questions...">
+                    </div>
                     <div id="excel-list" class="content-list">
                         <p class="loading">Loading questions...</p>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="excel-prev-btn" class="btn-secondary" disabled>Previous</button>
+                        <span id="excel-page-info">Page 1</span>
+                        <button id="excel-next-btn" class="btn-secondary" disabled>Next</button>
                     </div>
                 </div>
             </div>

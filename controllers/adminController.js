@@ -216,6 +216,149 @@ exports.createExcelQuestion = async (req, res) => {
     }
 };
 
+// GET passages with pagination, search, and filter
+exports.getPassages = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 1;
+        const search = req.query.search || '';
+        const difficulty = req.query.difficulty || '';
+
+        const filter = {};
+        if (search) {
+            filter.content = { $regex: search, $options: 'i' };
+        }
+        if (difficulty && ['easy', 'medium', 'hard'].includes(difficulty)) {
+            filter.difficulty = difficulty;
+        }
+
+        const total = await Passage.countDocuments(filter);
+        const passages = await Passage.find(filter)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            passages,
+            total,
+            page,
+            pages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        console.error('Admin fetch passages error:', error);
+        res.status(500).json({ message: 'Server error fetching passages.' });
+    }
+};
+
+// DELETE passage
+exports.deletePassage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const passage = await Passage.findByIdAndDelete(id);
+        if (!passage) {
+            return res.status(404).json({ message: 'Passage not found.' });
+        }
+        res.json({ message: 'Passage deleted successfully.' });
+    } catch (error) {
+        console.error('Admin delete passage error:', error);
+        res.status(500).json({ message: 'Server error deleting passage.' });
+    }
+};
+
+// GET letter questions with pagination, search, and filter
+exports.getLetterQuestions = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const search = req.query.search || '';
+        const category = req.query.category || '';
+
+        const filter = {};
+        if (search) {
+            filter.questionText = { $regex: search, $options: 'i' };
+        }
+        if (category && ['formal', 'business'].includes(category)) {
+            filter.category = category;
+        }
+
+        const total = await LetterQuestion.countDocuments(filter);
+        const questions = await LetterQuestion.find(filter)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            questions,
+            total,
+            page,
+            pages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        console.error('Admin fetch letter questions error:', error);
+        res.status(500).json({ message: 'Server error fetching letter questions.' });
+    }
+};
+
+// DELETE letter question
+exports.deleteLetterQuestion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const question = await LetterQuestion.findByIdAndDelete(id);
+        if (!question) {
+            return res.status(404).json({ message: 'Letter question not found.' });
+        }
+        res.json({ message: 'Letter question deleted successfully.' });
+    } catch (error) {
+        console.error('Admin delete letter question error:', error);
+        res.status(500).json({ message: 'Server error deleting letter question.' });
+    }
+};
+
+// GET excel questions with pagination and search
+exports.getExcelQuestions = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 4;
+        const search = req.query.search || '';
+
+        const filter = {};
+        if (search) {
+            filter.questionName = { $regex: search, $options: 'i' };
+        }
+
+        const total = await ExcelQuestion.countDocuments(filter);
+        const questions = await ExcelQuestion.find(filter)
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        res.json({
+            questions,
+            total,
+            page,
+            pages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        console.error('Admin fetch excel questions error:', error);
+        res.status(500).json({ message: 'Server error fetching excel questions.' });
+    }
+};
+
+// DELETE excel question
+exports.deleteExcelQuestion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const question = await ExcelQuestion.findByIdAndDelete(id);
+        if (!question) {
+            return res.status(404).json({ message: 'Excel question not found.' });
+        }
+        res.json({ message: 'Excel question deleted successfully.' });
+    } catch (error) {
+        console.error('Admin delete excel question error:', error);
+        res.status(500).json({ message: 'Server error deleting excel question.' });
+    }
+};
+
 exports.debugGemini = async (req, res) => {
     try {
         // We use the 'axios' instance you already have imported to call the Google Discovery API

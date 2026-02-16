@@ -19,17 +19,17 @@ export const adminApi = {
     getResults: () => client.get('/api/admin/results'),
 
     // Content - Passages
-    getPassages: () => client.get('/api/admin/passages'),
+    getPassages: (params) => client.get(`/api/admin/passages?${buildQueryParams(params)}`),
     createPassage: (data) => client.post('/api/admin/passages', data),
     deletePassage: (id) => client.delete(`/api/admin/passages/${id}`),
 
     // Content - Letter
-    getLetterQuestions: () => client.get('/api/admin/letter-questions'),
+    getLetterQuestions: (params) => client.get(`/api/admin/letter-questions?${buildQueryParams(params)}`),
     createLetterQuestion: (data) => client.post('/api/admin/letter-questions', data),
     deleteLetterQuestion: (id) => client.delete(`/api/admin/letter-questions/${id}`),
 
     // Content - Excel
-    getExcelQuestions: () => client.get('/api/admin/excel-questions'),
+    getExcelQuestions: (params) => client.get(`/api/admin/excel-questions?${buildQueryParams(params)}`),
     createExcelQuestion: (formData) => client.upload('/api/admin/excel-questions', formData),
     deleteExcelQuestion: (id) => client.delete(`/api/admin/excel-questions/${id}`),
 
