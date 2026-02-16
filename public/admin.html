@@ -5,265 +5,443 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Panel | Dream Centre</title>
-    <title>Admin Panel | Dream Centre</title>
     <link rel="stylesheet" href="css/main.css">
-    <script src="/admin-auth.js" defer></script>
     <script src="/admin-auth.js" defer></script>
 </head>
 
 <body class="admin-page">
-    <header class="dashboard-header">
-        <div class="logo-area">
-            <img src="/logo.png" alt="Logo" class="logo" />
-            <h1>Admin Panel</h1>
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="/logo.png" alt="Logo" />
+                <span>Admin</span>
+            </div>
+            <button class="sidebar-close" id="sidebar-close">&times;</button>
         </div>
-        <nav class="dashboard-nav">
-            <a href="/dashboard.html" class="nav-button">Back to Dashboard</a>
-            <button id="logout-btn" class="nav-button secondary">Logout</button>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-section="users">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Users</span>
+            </a>
+            <a href="#" class="nav-item" data-section="content">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Content</span>
+            </a>
+            <a href="#" class="nav-item" data-section="mcq">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>MCQ Bank</span>
+            </a>
+            <a href="#" class="nav-item" data-section="sets">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Mock Sets</span>
+            </a>
+            <a href="#" class="nav-item" data-section="results">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Results</span>
+            </a>
+            <a href="#" class="nav-item" data-section="settings">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>Settings</span>
+            </a>
         </nav>
-    </header>
-
-    <main class="admin-content">
-        <!-- User Management Section -->
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-                <h2>User Management</h2>
-                <button id="add-user-btn"
-                    style="background:#10b981; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600;">+
-                    Add User</button>
-            </div>
-            <div class="filter-bar" style="margin-top:1rem;">
-                <input type="text" id="user-search" placeholder="Search by username or email...">
-                <select id="user-role-filter">
-                    <option value="">All Roles</option>
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Verified</th>
-                            <th>Auth</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-tbody"></tbody>
-                </table>
-            </div>
-            <div class="pagination-controls"
-                style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
-                <button id="users-prev-btn" class="secondary" disabled>Previous</button>
-                <span id="users-page-info" style="font-size:0.9rem; color:#64748b;">Page 1</span>
-                <button id="users-next-btn" class="secondary" disabled>Next</button>
-            </div>
+        
+        <div class="sidebar-footer">
+            <a href="/dashboard.html" class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                </svg>
+                <span>Back to Dashboard</span>
+            </a>
+            <button id="logout-btn" class="nav-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Logout</span>
+            </button>
         </div>
+    </aside>
 
-        <!-- Add User Modal -->
-        <div id="add-user-modal" class="modal-overlay">
-            <div class="modal-box">
-                <h3>Add New User</h3>
-                <label>Username</label>
-                <input type="text" id="new-user-username" placeholder="Username" required>
-                <label>Email</label>
-                <input type="email" id="new-user-email" placeholder="Email" required>
-                <label>Password</label>
-                <input type="password" id="new-user-password" placeholder="Min 6 characters" required>
-                <label>Role</label>
-                <select id="new-user-role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <div class="modal-actions">
-                    <button class="btn-cancel"
-                        onclick="document.getElementById('add-user-modal').classList.remove('active')">Cancel</button>
-                    <button class="btn-save" id="save-new-user-btn">Create User</button>
-                </div>
+    <!-- Mobile Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebar-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <!-- Overview Section -->
+        <section id="section-overview" class="admin-section active">
+            <div class="section-header">
+                <h1>Dashboard Overview</h1>
+                <p>Welcome back! Here's what's happening with your exam platform.</p>
             </div>
-        </div>
-
-        <!-- Reset Password Modal -->
-        <div id="reset-pw-modal" class="modal-overlay">
-            <div class="modal-box">
-                <h3>Reset Password</h3>
-                <p id="reset-pw-user-info" style="font-size:0.9rem; color:#64748b;"></p>
-                <input type="hidden" id="reset-pw-user-id">
-                <label>New Password</label>
-                <input type="password" id="reset-pw-value" placeholder="Min 6 characters" required>
-                <div class="modal-actions">
-                    <button class="btn-cancel"
-                        onclick="document.getElementById('reset-pw-modal').classList.remove('active')">Cancel</button>
-                    <button class="btn-save" id="save-reset-pw-btn">Reset Password</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Section -->
-        <div class="card" style="margin-top: 2rem;">
-            <h2>Global Exam Settings</h2>
-            <p style="color:var(--text-muted); margin-bottom:1rem;">Adjust scoring thresholds and exam durations.</p>
-
-            <form id="settings-form">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-
-                    <!-- Typing Settings -->
-                    <div style="background:var(--bg-input); padding:1rem; border-radius:8px;">
-                        <h3 style="font-size:1rem; margin-bottom:1rem; color:var(--primary);">Typing Configuration</h3>
-
-                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">WPM Threshold (Full
-                            Marks)</label>
-                        <input type="number" id="set-wpm-threshold"
-                            style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
-
-                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Duration (Standard) -
-                            Seconds</label>
-                        <input type="number" id="set-dur-std"
-                            style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
-
-                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Duration (New Pattern) -
-                            Seconds</label>
-                        <input type="number" id="set-dur-new"
-                            style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px;">
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon users-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
                     </div>
-
-                    <!-- Exam Scoring -->
-                    <div style="background:var(--bg-input); padding:1rem; border-radius:8px;">
-                        <h3 style="font-size:1rem; margin-bottom:1rem; color:var(--primary);">Scoring Limits</h3>
-
-                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Max Marks (Standard
-                            Pattern)</label>
-                        <input type="number" id="set-max-std"
-                            style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
-
-                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Max Marks (New
-                            Pattern)</label>
-                        <input type="number" id="set-max-new"
-                            style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
-
-                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Excel MCQ Timer -
-                            Seconds</label>
-                        <input type="number" id="set-mcq-timer"
-                            style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px;">
+                    <div class="stat-content">
+                        <span class="stat-value" id="stat-users">--</span>
+                        <span class="stat-label">Total Users</span>
                     </div>
                 </div>
-
-                <div style="margin-top:1.5rem; text-align:right;">
-                    <button type="submit" class="btn-save"
-                        style="padding:10px 24px; font-size:1rem; background: var(--gradient-primary); color: white; border: none; border-radius: 6px; cursor: pointer;">Save
-                        Settings</button>
+                
+                <div class="stat-card">
+                    <div class="stat-icon content-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value" id="stat-passages">--</span>
+                        <span class="stat-label">Typing Passages</span>
+                    </div>
                 </div>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>All User Submissions</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Test Type</th>
-                            <th>Score / Details</th>
-                            <th>Submitted At</th>
-                            <th>Submission</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody"></tbody>
-                </table>
+                
+                <div class="stat-card">
+                    <div class="stat-icon mcq-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value" id="stat-mcqs">--</span>
+                        <span class="stat-label">MCQ Questions</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon results-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value" id="stat-results">--</span>
+                        <span class="stat-label">Submissions</span>
+                    </div>
+                </div>
             </div>
-        </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="action-btn primary" data-action="add-user">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Add User
+                    </button>
+                    <button class="action-btn" data-action="add-passage">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                        Add Passage
+                    </button>
+                    <button class="action-btn" data-action="add-mcq">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                        Add MCQ
+                    </button>
+                    <button class="action-btn" data-action="view-results">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                        View Results
+                    </button>
+                </div>
+            </div>
+        </section>
 
-        <div class="content-management">
+        <!-- Users Section -->
+        <section id="section-users" class="admin-section">
+            <div class="section-header">
+                <h1>User Management</h1>
+                <p>Manage user accounts, roles, and permissions.</p>
+            </div>
+            
             <div class="card">
-                <h3>Add New Typing Passage</h3>
-                <form id="add-passage-form">
-                    <textarea id="passage-content" name="content" rows="4"
-                        placeholder="Enter new passage text..."></textarea>
-                    <select id="difficulty" name="difficulty">
-                        <option value="easy">Easy</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="hard">Hard</option>
+                <div class="card-header">
+                    <h2>All Users</h2>
+                    <button id="add-user-btn" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add User
+                    </button>
+                </div>
+                <div class="filter-bar">
+                    <input type="text" id="user-search" placeholder="Search by username or email...">
+                    <select id="user-role-filter">
+                        <option value="">All Roles</option>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
                     </select>
-                    <button type="submit">Add Passage</button>
-                </form>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Verified</th>
+                                <th>Auth</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination-controls">
+                    <button id="users-prev-btn" class="btn-secondary" disabled>Previous</button>
+                    <span id="users-page-info">Page 1</span>
+                    <button id="users-next-btn" class="btn-secondary" disabled>Next</button>
+                </div>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>Add New Letter Question</h3>
-                <form id="add-question-form">
-                    <textarea id="question-text" name="questionText" rows="4"
-                        placeholder="Enter new letter question..."></textarea>
-                    <select id="question-category" name="category">
-                        <option value="formal" selected>Formal</option>
-                        <option value="business">Business</option>
-                    </select>
-                    <button type="submit">Add Question</button>
-                </form>
+        <!-- Content Section -->
+        <section id="section-content" class="admin-section">
+            <div class="section-header">
+                <h1>Content Management</h1>
+                <p>Manage typing passages, letter questions, and Excel questions.</p>
             </div>
-
-            <div class="card">
-                <h3>Add New Excel Question (Practical)</h3>
-                <form id="add-excel-form" enctype="multipart/form-data">
-                    <input type="text" id="question-name" name="questionName" placeholder="Question Name" required>
-                    <label>Question File (Blank)</label>
-                    <input type="file" id="question-file" name="questionFile" required>
-                    <label>Solution File (Completed)</label>
-                    <input type="file" id="solution-file" name="solutionFile" required>
-                    <button type="submit">Add Excel Question</button>
-                </form>
+            
+            <!-- Content Tabs -->
+            <div class="content-tabs">
+                <button class="tab-btn active" data-tab="passages">Typing Passages</button>
+                <button class="tab-btn" data-tab="letters">Letter Questions</button>
+                <button class="tab-btn" data-tab="excel">Excel Questions</button>
             </div>
+            
+            <!-- Passages Tab -->
+            <div class="tab-content active" id="tab-passages">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Add New Passage</h2>
+                    </div>
+                    <form id="add-passage-form">
+                        <textarea id="passage-content" placeholder="Enter passage text..." rows="6"></textarea>
+                        <div class="form-row">
+                            <select id="difficulty">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                            <button type="submit" class="btn-primary">Add Passage</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Existing Passages</h2>
+                    </div>
+                    <div id="passages-list" class="content-list">
+                        <p class="loading">Loading passages...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Letters Tab -->
+            <div class="tab-content" id="tab-letters">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Add New Letter Question</h2>
+                    </div>
+                    <form id="add-question-form">
+                        <textarea id="question-text" placeholder="Enter letter question..." rows="4"></textarea>
+                        <div class="form-row">
+                            <select id="question-category">
+                                <option value="formal" selected>Formal</option>
+                                <option value="business">Business</option>
+                            </select>
+                            <button type="submit" class="btn-primary">Add Question</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Existing Letter Questions</h2>
+                    </div>
+                    <div id="letters-list" class="content-list">
+                        <p class="loading">Loading questions...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Excel Tab -->
+            <div class="tab-content" id="tab-excel">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Add New Excel Question</h2>
+                    </div>
+                    <form id="add-excel-form" enctype="multipart/form-data">
+                        <div class="form-row">
+                            <input type="text" id="question-name" placeholder="Question Name" required>
+                        </div>
+                        <div class="file-inputs">
+                            <div class="file-input-group">
+                                <label>Question File (Blank)</label>
+                                <input type="file" id="question-file" required>
+                            </div>
+                            <div class="file-input-group">
+                                <label>Solution File (Completed)</label>
+                                <input type="file" id="solution-file" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">Add Excel Question</button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Existing Excel Questions</h2>
+                    </div>
+                    <div id="excel-list" class="content-list">
+                        <p class="loading">Loading questions...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        <!-- MCQ Bank Section -->
+        <section id="section-mcq" class="admin-section">
+            <div class="section-header">
+                <h1>MCQ Question Bank</h1>
+                <p>Create and manage multiple-choice questions for Excel tests.</p>
+            </div>
+            
             <div class="card">
-                <h3>Add New Excel MCQ</h3>
+                <div class="card-header">
+                    <h2>Add New MCQ</h2>
+                </div>
                 <form id="add-mcq-form">
                     <textarea id="mcq-text" placeholder="Question Text..." required></textarea>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 10px 0;">
-                        <input type="text" id="mcq-opt-0" placeholder="A" required>
-                        <input type="text" id="mcq-opt-1" placeholder="B" required>
-                        <input type="text" id="mcq-opt-2" placeholder="C" required>
-                        <input type="text" id="mcq-opt-3" placeholder="D" required>
+                    <div class="mcq-options">
+                        <input type="text" id="mcq-opt-0" placeholder="Option A" required>
+                        <input type="text" id="mcq-opt-1" placeholder="Option B" required>
+                        <input type="text" id="mcq-opt-2" placeholder="Option C" required>
+                        <input type="text" id="mcq-opt-3" placeholder="Option D" required>
                     </div>
-                    <label>Correct Index (0-3)</label>
-                    <input type="number" id="mcq-correct" min="0" max="3" value="0">
-                    <select id="mcq-category">
-                        <option value="Formulas">Formulas</option>
-                        <option value="Shortcuts">Shortcuts</option>
-                        <option value="Basic Operations">Basic Operations</option>
-                        <option value="Cell Referencing">Cell Referencing</option>
-                        <option value="Formatting">Formatting</option>
-                        <option value="Charts">Charts</option>
-                        <option value="Pivot Tables">Pivot Tables</option>
-                        <option value="Data Validation">Data Validation</option>
-                        <option value="Conditional Formatting">Conditional Formatting</option>
-                    </select>
-                    <select id="mcq-difficulty" style="margin-top:5px;">
-                        <option value="Easy">Easy</option>
-                        <option value="Medium" selected>Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                    <textarea id="mcq-explanation" placeholder="Explanation (why this answer is correct)..." rows="2"
-                        style="margin-top:5px;"></textarea>
-                    <label style="margin-top:5px; display:block; font-size:0.8rem; font-weight:600;">Question Image
-                        (Optional)</label>
-                    <input type="file" id="mcq-image" accept="image/*" style="margin-top:2px;">
-                    <button type="submit">Save MCQ</button>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Correct Answer</label>
+                            <select id="mcq-correct">
+                                <option value="0">A</option>
+                                <option value="1">B</option>
+                                <option value="2">C</option>
+                                <option value="3">D</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="mcq-category">
+                                <option value="Formulas">Formulas</option>
+                                <option value="Shortcuts">Shortcuts</option>
+                                <option value="Basic Operations">Basic Operations</option>
+                                <option value="Cell Referencing">Cell Referencing</option>
+                                <option value="Formatting">Formatting</option>
+                                <option value="Charts">Charts</option>
+                                <option value="Pivot Tables">Pivot Tables</option>
+                                <option value="Data Validation">Data Validation</option>
+                                <option value="Conditional Formatting">Conditional Formatting</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Difficulty</label>
+                            <select id="mcq-difficulty">
+                                <option value="Easy">Easy</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea id="mcq-explanation" placeholder="Explanation (why this answer is correct)..." rows="2"></textarea>
+                    <div class="form-row">
+                        <div class="file-input-group" style="flex:1;">
+                            <label>Question Image (Optional)</label>
+                            <input type="file" id="mcq-image" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn-primary" style="align-self:flex-end;">Save MCQ</button>
+                    </div>
                 </form>
             </div>
-
+            
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>Create 10-Question Mock Set</h3>
-                    <span id="mcq-counter" class="counter-pill">Selected: 0/10</span>
+                <div class="card-header">
+                    <h2>Question Bank</h2>
+                    <div class="header-actions">
+                        <button id="bulk-upload-btn" class="btn-secondary">Bulk Upload CSV</button>
+                    </div>
                 </div>
-                <input type="text" id="mcq-set-name" placeholder="Set Name (e.g., Mock Set #01)">
-
-                <!-- Search & Filter -->
                 <div class="filter-bar">
-                    <input type="text" id="bank-search" placeholder="🔍 Search questions...">
+                    <input type="text" id="bank-search" placeholder="Search questions...">
                     <select id="bank-filter-category">
                         <option value="">All Categories</option>
                         <option value="Formulas">Formulas</option>
@@ -283,48 +461,236 @@
                         <option value="Hard">Hard</option>
                     </select>
                 </div>
-
-                <!-- Category Counts -->
-                <div id="category-counts" class="category-counts"></div>
-
                 <div id="mcq-selection-bank" class="mcq-bank">
-                    <p style="color:#666; font-size:0.8rem;">Loading question bank...</p>
+                    <p class="loading">Loading questions...</p>
                 </div>
-
-                <!-- Pagination Controls -->
-                <div class="pagination-controls"
-                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                    <button id="prev-page-btn" class="secondary" disabled>Previous</button>
-                    <span id="page-info" style="font-size:0.9rem; color:#64748b;">Page 1</span>
-                    <button id="next-page-btn" class="secondary" disabled>Next</button>
-                </div>
-
-                <div style="display:flex; gap:10px;">
-                    <button id="preview-set-btn" class="secondary" style="flex:1;">👁️ Preview Selected</button>
-                    <button id="create-set-btn" class="primary" style="flex:2;">Finalize Set</button>
+                <div class="pagination-controls">
+                    <button id="prev-page-btn" class="btn-secondary" disabled>Previous</button>
+                    <span id="page-info">Page 1</span>
+                    <button id="next-page-btn" class="btn-secondary" disabled>Next</button>
                 </div>
             </div>
+            
+            <!-- Bulk Upload Modal -->
+            <div id="bulk-upload-modal" class="modal-overlay">
+                <div class="modal-box">
+                    <h3>Bulk Upload MCQs (CSV)</h3>
+                    <p class="modal-hint">Format: questionText, optionA, optionB, optionC, optionD, correctAnswerIndex, category</p>
+                    <form id="bulk-mcq-form">
+                        <input type="file" id="csv-file" accept=".csv" required>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancel" onclick="closeBulkModal()">Cancel</button>
+                            <button type="submit" class="btn-save">Upload</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
 
+        <!-- Mock Sets Section -->
+        <section id="section-sets" class="admin-section">
+            <div class="section-header">
+                <h1>Mock Sets</h1>
+                <p>Create and manage 10-question mock test sets.</p>
+            </div>
+            
+            <!-- Create Set Directly -->
             <div class="card">
-                <h3>Bulk Upload MCQs (CSV)</h3>
-                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 1rem;">
-                    Format: questionText, optionA, optionB, optionC, optionD, correctAnswerIndex, category
-                </p>
-                <form id="bulk-mcq-form">
-                    <input type="file" id="csv-file" accept=".csv" required>
-                    <button type="submit" class="secondary" style="margin-top: 10px;">Upload Question Bank</button>
+                <div class="card-header">
+                    <h2>Create New Mock Set</h2>
+                </div>
+                <form id="create-set-form">
+                    <div class="form-row">
+                        <input type="text" id="mcq-set-name" placeholder="Set Name (e.g., Mock Set #01)" required>
+                        <span id="mcq-counter" class="counter-pill">Questions: 0/10</span>
+                    </div>
+                    
+                    <div class="filter-bar">
+                        <input type="text" id="set-search" placeholder="Search questions...">
+                        <select id="set-filter-category">
+                            <option value="">All Categories</option>
+                            <option value="Formulas">Formulas</option>
+                            <option value="Shortcuts">Shortcuts</option>
+                            <option value="Basic Operations">Basic Operations</option>
+                            <option value="Cell Referencing">Cell Referencing</option>
+                            <option value="Formatting">Formatting</option>
+                            <option value="Charts">Charts</option>
+                            <option value="Pivot Tables">Pivot Tables</option>
+                            <option value="Data Validation">Data Validation</option>
+                            <option value="Conditional Formatting">Conditional Formatting</option>
+                        </select>
+                        <select id="set-filter-difficulty">
+                            <option value="">All Difficulties</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    
+                    <div id="category-counts" class="category-counts"></div>
+                    
+                    <div id="set-question-bank" class="set-bank">
+                        <p class="loading">Loading questions...</p>
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <button type="button" id="set-prev-btn" class="btn-secondary" disabled>Previous</button>
+                        <span id="set-page-info">Page 1</span>
+                        <button type="button" id="set-next-btn" class="btn-secondary" disabled>Next</button>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="preview-set-btn" class="btn-secondary">Preview Set</button>
+                        <button type="submit" id="create-set-btn" class="btn-primary">Create Set</button>
+                    </div>
                 </form>
             </div>
-
-            <!-- Set Management -->
+            
+            <!-- Existing Sets -->
             <div class="card">
-                <h3>📋 Manage Mock Sets</h3>
-                <div id="sets-list" class="set-list">
-                    <p style="color:#666; font-size:0.8rem;">Loading sets...</p>
+                <div class="card-header">
+                    <h2>Existing Sets</h2>
+                </div>
+                <div id="sets-list" class="sets-grid">
+                    <p class="loading">Loading sets...</p>
                 </div>
             </div>
-        </div>
+            
+            <!-- Preview Modal -->
+            <div id="preview-modal" class="modal-overlay">
+                <div class="modal-box" style="max-width: 700px;">
+                    <h3>Preview Selected Questions</h3>
+                    <div id="preview-content" class="preview-content"></div>
+                    <div class="modal-actions">
+                        <button class="btn-cancel" onclick="closePreviewModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="section-results" class="admin-section">
+            <div class="section-header">
+                <h1>Results & Submissions</h1>
+                <p>View all user test submissions and scores.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>All Submissions</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Test Type</th>
+                                <th>Score</th>
+                                <th>Submitted At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="section-settings" class="admin-section">
+            <div class="section-header">
+                <h1>System Settings</h1>
+                <p>Configure exam parameters and scoring thresholds.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Global Exam Settings</h2>
+                </div>
+                <form id="settings-form">
+                    <div class="settings-grid">
+                        <div class="settings-group">
+                            <h3>Typing Configuration</h3>
+                            
+                            <div class="form-group">
+                                <label>WPM Threshold (Full Marks)</label>
+                                <input type="number" id="set-wpm-threshold">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Duration (Standard) - Seconds</label>
+                                <input type="number" id="set-dur-std">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Duration (New Pattern) - Seconds</label>
+                                <input type="number" id="set-dur-new">
+                            </div>
+                        </div>
+                        
+                        <div class="settings-group">
+                            <h3>Scoring Limits</h3>
+                            
+                            <div class="form-group">
+                                <label>Max Marks (Standard Pattern)</label>
+                                <input type="number" id="set-max-std">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Max Marks (New Pattern)</label>
+                                <input type="number" id="set-max-new">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Excel MCQ Timer - Seconds</label>
+                                <input type="number" id="set-mcq-timer">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </section>
     </main>
+
+    <!-- Add User Modal -->
+    <div id="add-user-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Add New User</h3>
+            <label>Username</label>
+            <input type="text" id="new-user-username" placeholder="Username" required>
+            <label>Email</label>
+            <input type="email" id="new-user-email" placeholder="Email" required>
+            <label>Password</label>
+            <input type="password" id="new-user-password" placeholder="Min 6 characters" required>
+            <label>Role</label>
+            <select id="new-user-role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeAddUserModal()">Cancel</button>
+                <button class="btn-save" id="save-new-user-btn">Create User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="reset-pw-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Reset Password</h3>
+            <p id="reset-pw-user-info"></p>
+            <input type="hidden" id="reset-pw-user-id">
+            <label>New Password</label>
+            <input type="password" id="reset-pw-value" placeholder="Min 6 characters" required>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeResetPwModal()">Cancel</button>
+                <button class="btn-save" id="save-reset-pw-btn">Reset Password</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Edit MCQ Modal -->
     <div id="edit-modal" class="modal-overlay">
@@ -333,32 +699,40 @@
             <input type="hidden" id="edit-id">
             <label>Question Text</label>
             <textarea id="edit-text" rows="3"></textarea>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px;">
-                <div><label>Option A</label><input type="text" id="edit-opt-0"></div>
-                <div><label>Option B</label><input type="text" id="edit-opt-1"></div>
-                <div><label>Option C</label><input type="text" id="edit-opt-2"></div>
-                <div><label>Option D</label><input type="text" id="edit-opt-3"></div>
+            <div class="mcq-options">
+                <input type="text" id="edit-opt-0" placeholder="Option A">
+                <input type="text" id="edit-opt-1" placeholder="Option B">
+                <input type="text" id="edit-opt-2" placeholder="Option C">
+                <input type="text" id="edit-opt-3" placeholder="Option D">
             </div>
-            <label>Correct Index (0-3)</label>
-            <input type="number" id="edit-correct" min="0" max="3">
-            <label>Category</label>
-            <select id="edit-category">
-                <option value="Formulas">Formulas</option>
-                <option value="Shortcuts">Shortcuts</option>
-                <option value="Basic Operations">Basic Operations</option>
-                <option value="Cell Referencing">Cell Referencing</option>
-                <option value="Formatting">Formatting</option>
-                <option value="Charts">Charts</option>
-                <option value="Pivot Tables">Pivot Tables</option>
-                <option value="Data Validation">Data Validation</option>
-                <option value="Conditional Formatting">Conditional Formatting</option>
-            </select>
-            <label>Difficulty</label>
-            <select id="edit-difficulty">
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-            </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Correct Index (0-3)</label>
+                    <input type="number" id="edit-correct" min="0" max="3">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="edit-category">
+                        <option value="Formulas">Formulas</option>
+                        <option value="Shortcuts">Shortcuts</option>
+                        <option value="Basic Operations">Basic Operations</option>
+                        <option value="Cell Referencing">Cell Referencing</option>
+                        <option value="Formatting">Formatting</option>
+                        <option value="Charts">Charts</option>
+                        <option value="Pivot Tables">Pivot Tables</option>
+                        <option value="Data Validation">Data Validation</option>
+                        <option value="Conditional Formatting">Conditional Formatting</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty</label>
+                    <select id="edit-difficulty">
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+            </div>
             <label>Explanation</label>
             <textarea id="edit-explanation" rows="2"></textarea>
             <label>Update Image (Optional)</label>
@@ -370,22 +744,6 @@
         </div>
     </div>
 
-    <!-- Preview Set Modal -->
-    <div id="preview-modal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 700px;">
-            <h3>Preview Selected Questions</h3>
-            <div id="preview-content"
-                style="max-height: 60vh; overflow-y: auto; background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid #e2e8f0;">
-                <!-- Content injected via JS -->
-            </div>
-            <div class="modal-actions">
-                <button class="btn-cancel" onclick="closePreviewModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
     <script type="module" src="/js/pages/admin/main.js"></script>
     <script src="theme-toggle.js"></script>
-</body>
-
-</html>
+</body></html>
