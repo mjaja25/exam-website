@@ -78,14 +78,10 @@
         return toggle;
     };
 
-    // Add toggle button to header
+    // Add toggle button to dashboard header only
     const addToggleToHeader = () => {
-        // Try to find a nav container first, otherwise fallback to the header itself
-        const container = document.querySelector('.dashboard-nav') ||
-            document.querySelector('.test-header nav') ||
-            document.querySelector('.test-header') ||
-            document.querySelector('.admin-header nav') ||
-            document.querySelector('.admin-header');
+        // Only add toggle to dashboard page (not admin or other pages)
+        const container = document.querySelector('.dashboard-page .dashboard-nav');
 
         if (container) {
             // Check if one already exists
