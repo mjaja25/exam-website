@@ -3,43 +3,83 @@ const LetterQuestion = require('../models/LetterQuestion');
 const ExcelQuestion = require('../models/ExcelQuestion');
 const aiGradingService = require('../services/aiGradingService');
 
+const Settings = require('../models/Settings');
+
 exports.submitTyping = async (req, res) => {
     try {
-        const { wpm, accuracy, sessionId, testPattern, typingDuration, totalChars, correctChars, errorCount, typingErrorDetails } = req.body;
+        // Extract raw data, ignoring client-calculated wpm/accuracy
+        const { sessionId, testPattern, typingDuration, totalChars, correctChars, errorCount, typingErrorDetails } = req.body;
         const userId = req.userId;
 
-        if (!wpm || !accuracy || !sessionId) {
-            return res.status(400).json({ message: 'WPM, accuracy, and session ID are required.' });
+        if (!sessionId) {
+            return res.status(400).json({ message: 'Session ID is required.' });
         }
 
-        // Calculate marks: New Pattern = 30 max, Standard = 20 max
+        // --- SERVER SIDE GRADING LOGIC ---
+        
+        // 1. Fetch Dynamic Settings
+        let settings = await Settings.findOne({ key: 'global_exam_config' });
+        if (!settings) settings = new Settings(); // Use defaults if not found
+
+        const MAX_WPM_THRESHOLD = settings.typing.wpmThreshold;
+        const MAX_MARKS_STANDARD = settings.exam.maxTypingMarksStandard;
+        const MAX_MARKS_NEW = settings.exam.maxTypingMarksNew;
+
+        // 2. Sanitize Inputs
+        const safeTotalChars = parseInt(totalChars) || 0;
+        const safeCorrectChars = parseInt(correctChars) || 0;
+        // Ensure duration is at least 1 second to avoid Infinity, default to 300s if missing
+        const safeDuration = Math.max(1, parseFloat(typingDuration) || 300);
+
+        // 3. Calculate WPM
+        // Formula: (Correct Characters / 5) / (Time in Minutes)
+        const calculatedWPM = Math.round((safeCorrectChars / 5) / (safeDuration / 60));
+
+        // 4. Calculate Accuracy
+        // Formula: (Correct / Total) * 100
+        let calculatedAccuracy = 0;
+        if (safeTotalChars > 0) {
+            calculatedAccuracy = Math.round((safeCorrectChars / safeTotalChars) * 100);
+        }
+
+        // 5. Calculate Marks
         let typingScore = 0;
+
         if (testPattern === 'new_pattern') {
-            typingScore = Math.min(30, Math.round((wpm / 35) * 30));
+            // New Pattern
+            typingScore = Math.min(MAX_MARKS_NEW, Math.round((calculatedWPM / MAX_WPM_THRESHOLD) * MAX_MARKS_NEW));
         } else {
-            typingScore = Math.min(20, Math.round((wpm / 35) * 20));
+            // Standard Pattern
+            typingScore = Math.min(MAX_MARKS_STANDARD, Math.round((calculatedWPM / MAX_WPM_THRESHOLD) * MAX_MARKS_STANDARD));
         }
 
         // Create or Update the TestResult
         const result = await TestResult.findOneAndUpdate(
             { sessionId: sessionId, user: userId },
             {
-                wpm,
-                accuracy,
+                wpm: calculatedWPM,
+                accuracy: calculatedAccuracy,
                 typingScore,
                 testPattern,
                 // Save detailed metrics for AI Analysis
-                typingDuration,
-                totalChars,
-                correctChars,
-                errorCount,
+                typingDuration: safeDuration,
+                totalChars: safeTotalChars,
+                correctChars: safeCorrectChars,
+                errorCount: parseInt(errorCount) || 0,
                 typingErrorDetails,
                 status: 'in-progress' // Still waiting for MCQ or Letter
             },
             { upsert: true, new: true }
         );
 
-        res.json({ success: true, typingScore: typingScore });
+        res.json({ 
+            success: true, 
+            typingScore: typingScore,
+            serverCalculated: {
+                wpm: calculatedWPM,
+                accuracy: calculatedAccuracy
+            }
+        });
     } catch (error) {
         console.error("Typing Submit Error:", error);
         res.status(500).json({ message: "Error saving typing results." });

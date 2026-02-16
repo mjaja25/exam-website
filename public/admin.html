@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Panel | Dream Centre</title>
-    <link rel="stylesheet" href="gamified-theme.css">
+    <link rel="stylesheet" href="theme.css">
     <script src="/admin-auth.js" defer></script>
 </head>
 
@@ -98,6 +98,49 @@
                     <button class="btn-save" id="save-reset-pw-btn">Reset Password</button>
                 </div>
             </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="card" style="margin-top: 2rem;">
+            <h2>Global Exam Settings</h2>
+            <p style="color:var(--text-muted); margin-bottom:1rem;">Adjust scoring thresholds and exam durations.</p>
+            
+            <form id="settings-form">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    
+                    <!-- Typing Settings -->
+                    <div style="background:var(--bg-input); padding:1rem; border-radius:8px;">
+                        <h3 style="font-size:1rem; margin-bottom:1rem; color:var(--primary);">Typing Configuration</h3>
+                        
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">WPM Threshold (Full Marks)</label>
+                        <input type="number" id="set-wpm-threshold" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
+                        
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Duration (Standard) - Seconds</label>
+                        <input type="number" id="set-dur-std" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
+                        
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Duration (New Pattern) - Seconds</label>
+                        <input type="number" id="set-dur-new" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px;">
+                    </div>
+
+                    <!-- Exam Scoring -->
+                    <div style="background:var(--bg-input); padding:1rem; border-radius:8px;">
+                        <h3 style="font-size:1rem; margin-bottom:1rem; color:var(--primary);">Scoring Limits</h3>
+                        
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Max Marks (Standard Pattern)</label>
+                        <input type="number" id="set-max-std" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
+                        
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Max Marks (New Pattern)</label>
+                        <input type="number" id="set-max-new" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:1rem;">
+
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Excel MCQ Timer - Seconds</label>
+                        <input type="number" id="set-mcq-timer" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px;">
+                    </div>
+                </div>
+                
+                <div style="margin-top:1.5rem; text-align:right;">
+                    <button type="submit" class="btn-save" style="padding:10px 24px; font-size:1rem; background: var(--gradient-primary); color: white; border: none; border-radius: 6px; cursor: pointer;">Save Settings</button>
+                </div>
+            </form>
         </div>
 
         <div class="card">

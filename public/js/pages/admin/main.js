@@ -23,9 +23,60 @@ document.addEventListener('DOMContentLoaded', () => {
     mcqManager.fetchMCQs();
     mcqManager.fetchSets();
 
-    // 4. Results (Simple Logic kept here or moved to own module if it grows)
+    // Expose MCQ methods for HTML onclick handlers
+    window.closeEditModal = () => mcqManager.closeEditModal();
+    window.saveEditMCQ = () => mcqManager.saveEditMCQ();
+    window.closePreviewModal = () => mcqManager.closePreviewModal();
+
+    // 4. Settings
+    initSettings();
+
+    // 5. Results (Simple Logic kept here or moved to own module if it grows)
     fetchResults();
 });
+
+async function initSettings() {
+    const form = document.getElementById('settings-form');
+    if (!form) return;
+
+    try {
+        const settings = await adminApi.getSettings();
+        
+        // Populate Form
+        document.getElementById('set-wpm-threshold').value = settings.typing.wpmThreshold;
+        document.getElementById('set-dur-std').value = settings.typing.durationSeconds;
+        document.getElementById('set-dur-new').value = settings.typing.durationSecondsNewPattern;
+        document.getElementById('set-max-std').value = settings.exam.maxTypingMarksStandard;
+        document.getElementById('set-max-new').value = settings.exam.maxTypingMarksNew;
+        document.getElementById('set-mcq-timer').value = settings.exam.excelMcqTimerSeconds;
+
+    } catch (err) {
+        ui.showToast('Failed to load settings', 'error');
+    }
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const payload = {
+            typing: {
+                wpmThreshold: parseInt(document.getElementById('set-wpm-threshold').value),
+                durationSeconds: parseInt(document.getElementById('set-dur-std').value),
+                durationSecondsNewPattern: parseInt(document.getElementById('set-dur-new').value)
+            },
+            exam: {
+                maxTypingMarksStandard: parseInt(document.getElementById('set-max-std').value),
+                maxTypingMarksNew: parseInt(document.getElementById('set-max-new').value),
+                excelMcqTimerSeconds: parseInt(document.getElementById('set-mcq-timer').value)
+            }
+        };
+
+        try {
+            await adminApi.updateSettings(payload);
+            ui.showToast('Settings saved successfully!', 'success');
+        } catch (err) {
+            ui.showToast('Failed to save settings', 'error');
+        }
+    };
+}
 
 async function fetchResults() {
     try {

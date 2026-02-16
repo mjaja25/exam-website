@@ -25,26 +25,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentPattern = localStorage.getItem('currentExamPattern');
     const attemptMode = localStorage.getItem('currentAttemptMode'); // 'exam' or 'practice'
 
-    // Determine Duration
-    let duration = 300; // 5 mins default
-    if (currentPattern === 'new_pattern') duration = 600; // 10 mins
+    // 4. Load Config & Initialize
+    initExam();
 
-    // 4. Initialize Engine
-    const engine = new TypingEngine({
-        displayElement: elements.passageDisplayElement,
-        inputElement: elements.userInputElement,
-        timerElement: elements.timerElement,
-        progressBar: elements.progressBar,
-        wpmElement: elements.wpmElement,
-        accuracyElement: elements.accuracyElement,
-        duration: duration,
-        onComplete: (stats) => submitExam(stats)
-    });
+    async function initExam() {
+        let duration = 300; // Fallback
 
-    // 5. Load Passage
-    loadPassage();
+        try {
+            const config = await client.get('/api/settings/public');
+            if (currentPattern === 'new_pattern') {
+                duration = config.typingDurationNew;
+            } else {
+                duration = config.typingDuration;
+            }
+        } catch (err) {
+            console.warn("Using default duration due to config error");
+        }
 
-    async function loadPassage() {
+        const engine = new TypingEngine({
+            displayElement: elements.passageDisplayElement,
+            inputElement: elements.userInputElement,
+            timerElement: elements.timerElement,
+            progressBar: elements.progressBar,
+            wpmElement: elements.wpmElement,
+            accuracyElement: elements.accuracyElement,
+            duration: duration,
+            onComplete: (stats) => submitExam(stats)
+        });
+
+        loadPassage(engine);
+    }
+
+    async function loadPassage(engine) {
         try {
             const data = await client.get('/api/passages/random');
             engine.loadPassage(data.content);

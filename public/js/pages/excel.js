@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config.js';
+import { client } from '../api/client.js';
 import { auth } from '../utils/auth.js';
 import { ui } from '../utils/ui.js';
 
@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionNameElement = document.getElementById('question-name');
 
     const token = auth.getToken();
+    if (!token) {
+        window.location.href = '/login.html';
+        return;
+    }
     let currentQuestionId = null;
     let timerInterval;
     let testInProgress = false;
@@ -24,12 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadRandomExcelQuestion() {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/excel-questions/random`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Could not fetch question.');
+            const question = await client.get('/api/excel-questions/random');
 
-            const question = await response.json();
             if (questionNameElement) questionNameElement.textContent = question.questionName;
             if (downloadBtn) downloadBtn.href = question.questionFilePath;
             currentQuestionId = question._id;
@@ -103,11 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('questionId', currentQuestionId);
 
             try {
-                await fetch(`${API_BASE_URL}/api/submit/excel`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData,
-                });
+                await client.upload('/api/submit/excel', formData);
                 window.location.href = '/results.html';
             } catch (error) {
                 if (loadingOverlay) loadingOverlay.style.display = 'none';

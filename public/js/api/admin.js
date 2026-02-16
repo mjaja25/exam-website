@@ -32,4 +32,8 @@ export const adminApi = {
     createMCQSet: (data) => client.post('/api/admin/mcq-sets', data),
     toggleMCQSet: (id) => client.patch(`/api/admin/mcq-sets/${id}/toggle`),
     deleteMCQSet: (id) => client.delete(`/api/admin/mcq-sets/${id}`),
+
+    // Settings
+    getSettings: () => client.get('/api/settings'),
+    updateSettings: (data) => client.put('/api/settings', data),
 };

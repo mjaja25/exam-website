@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
         practiceCtx: document.getElementById('practice-chart')
     };
 
+    // Bio character count listener
+    const bioEl = document.getElementById('profile-bio');
+    if (bioEl) {
+        bioEl.addEventListener('input', updateBioCount);
+    }
+
     // Mobile Warning
     if (window.innerWidth <= 768 && dom.mobileWarning) {
         dom.mobileWarning.style.display = 'block';
@@ -315,8 +321,17 @@ function openProfileModal() {
     if (m) m.style.display = 'flex';
 
     if (window.currentUserData) {
-        document.getElementById('profile-bio').value = window.currentUserData.bio || '';
-        // UI logic for preview is same as original...
+        const bioEl = document.getElementById('profile-bio');
+        bioEl.value = window.currentUserData.bio || '';
+        updateBioCount();
+    }
+}
+
+function updateBioCount() {
+    const bioEl = document.getElementById('profile-bio');
+    const countEl = document.getElementById('bio-count');
+    if (bioEl && countEl) {
+        countEl.textContent = bioEl.value.length;
     }
 }
 

@@ -9,10 +9,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     let questions = [];
     let currentIdx = 0;
     let userAnswers = {};
-    let timeLeft = 300;
+    let timeLeft = 300; // Default fallback
+    let totalTime = 300; // Used for progress bar
     let timerInterval;
 
     const questionArea = document.getElementById('question-area');
+    
+    // --- Fetch Config First ---
+    try {
+        const configRes = await fetch('/api/settings/public', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (configRes.ok) {
+            const config = await configRes.json();
+            if (config.excelMcqDuration) {
+                timeLeft = config.excelMcqDuration;
+                totalTime = config.excelMcqDuration;
+            }
+        }
+    } catch (e) {
+        console.warn("Using default timer");
+    }
+
     const timerElement = document.getElementById('mcq-timer');
     const timerDisplay = document.getElementById('timer-display');
     const progressBar = document.getElementById('mcq-progress');
@@ -129,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
             if (timerElement) timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            if (progressBar) progressBar.style.width = `${(timeLeft / 300) * 100}%`;
+            if (progressBar) progressBar.style.width = `${(timeLeft / totalTime) * 100}%`;
 
             if (timeLeft <= 60) {
                 if (progressBar) progressBar.className = 'timer-progress danger';

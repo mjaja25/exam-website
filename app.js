@@ -85,6 +85,7 @@ const contentRoutes = require('./routes/content');
 const resultRoutes = require('./routes/result');
 const statsRoutes = require('./routes/stats');
 const feedbackRoutes = require('./routes/feedback');
+const settingsRoutes = require('./routes/settings');
 
 // -------------------
 //  API ROUTES
@@ -103,6 +104,7 @@ app.use('/api', examRoutes);
 app.use('/api', mcqRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // New Modular Routes
 app.use('/api', contentRoutes);

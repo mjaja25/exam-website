@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard | Dream Centre</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="theme.css">
     <script src="/auth.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -151,46 +151,45 @@
 
     <!-- Profile Modal -->
     <div id="profile-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <header>
+        <div class="modal-content profile-modal-content">
+            <header class="profile-modal-header">
                 <h2>Edit Profile</h2>
                 <button onclick="closeProfileModal()" class="close-btn">&times;</button>
             </header>
-            <div>
+            <div class="profile-modal-body">
                 <div class="profile-edit-section">
                     <label>Profile Picture</label>
                     <div class="avatar-selection">
                         <div class="current-avatar-preview">
-                            <img id="preview-avatar-img" src=""
-                                style="display:none; width:80px; height:80px; border-radius:50%; object-fit:cover;">
-                            <div id="preview-avatar-initials"
-                                style="width:80px; height:80px; border-radius:50%; background:var(--bg-input); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.5rem; color:var(--text-muted);">
-                                --</div>
+                            <img id="preview-avatar-img" src="" class="avatar-preview-img" style="display:none;">
+                            <div id="preview-avatar-initials" class="avatar-preview-initials">--</div>
                         </div>
                         <div class="upload-controls">
                             <input type="file" id="avatar-upload" accept="image/*" style="display:none;"
                                 onchange="handleFileSelect(this)">
-                            <button onclick="document.getElementById('avatar-upload').click()">Upload Photo</button>
-                            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Or choose a
-                                default:</p>
+                            <button onclick="document.getElementById('avatar-upload').click()" class="btn btn-secondary btn-sm">
+                                📤 Upload Photo
+                            </button>
+                            <p class="upload-hint">Or choose a default:</p>
                             <div class="default-avatars">
-                                <button class="def-avatar-btn" onclick="selectDefault(1)">🐶</button>
-                                <button class="def-avatar-btn" onclick="selectDefault(2)">🐱</button>
-                                <button class="def-avatar-btn" onclick="selectDefault(3)">🦊</button>
-                                <button class="def-avatar-btn" onclick="selectDefault(4)">🦁</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(1)" title="Dog">🐶</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(2)" title="Cat">🐱</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(3)" title="Fox">🦊</button>
+                                <button class="def-avatar-btn" onclick="selectDefault(4)" title="Lion">🦁</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="profile-edit-section" style="margin-top: 1.5rem;">
-                    <label>Bio (Short description)</label>
-                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..."
-                        maxlength="150"></textarea>
+                <div class="profile-edit-section">
+                    <label>Bio <span class="label-hint">(optional)</span></label>
+                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..." maxlength="150" class="bio-textarea"></textarea>
+                    <div class="char-count"><span id="bio-count">0</span>/150</div>
                 </div>
 
-                <div style="margin-top: 2rem; text-align: right;">
-                    <button onclick="saveProfile()" class="btn btn-primary" id="save-profile-btn">Save Changes</button>
+                <div class="profile-modal-actions">
+                    <button onclick="closeProfileModal()" class="btn btn-ghost">Cancel</button>
+                    <button onclick="saveProfile()" class="btn btn-primary" id="save-profile-btn">💾 Save Changes</button>
                 </div>
             </div>
         </div>

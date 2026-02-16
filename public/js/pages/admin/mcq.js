@@ -50,6 +50,10 @@ export class MCQManager {
         const previewBtn = document.getElementById('preview-set-btn');
         if (previewBtn) previewBtn.onclick = () => this.showPreview();
 
+        // Bank List Actions (Delegate)
+        const bank = document.getElementById('mcq-selection-bank');
+        if (bank) bank.onclick = (e) => this.handleBankAction(e);
+
         // Sets List Actions (Delegate)
         const setList = document.getElementById('sets-list');
         if (setList) setList.onclick = (e) => this.handleSetAction(e);
@@ -114,14 +118,17 @@ export class MCQManager {
         }
 
         bank.innerHTML = questions.map(q => `
-            <div class="q-item">
+            <div class="q-item" data-id="${q._id}">
                 <input type="checkbox" value="${q._id}" class="mcq-select" 
                     ${this.selectedIds.has(q._id) ? 'checked' : ''}>
                 <div style="flex:1; margin-left: 10px;">
                     <span class="badge-mcq">${q.category} · ${q.difficulty}</span>
-                    <div>${q.questionText}</div>
+                    <div style="font-weight:500;">${q.questionText}</div>
                 </div>
-                <!-- Add edit/delete buttons later if needed, kept simple for selection -->
+                <div class="q-actions">
+                    <button class="btn-edit">Edit</button>
+                    <button class="btn-del">Delete</button>
+                </div>
             </div>
         `).join('');
 
@@ -133,6 +140,99 @@ export class MCQManager {
                 this.updateCounter();
             };
         });
+    }
+
+    async handleBankAction(e) {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const div = btn.closest('.q-item');
+        const id = div.dataset.id;
+
+        if (btn.classList.contains('btn-edit')) {
+            this.openEditModal(id);
+        }
+        if (btn.classList.contains('btn-del')) {
+            if (confirm('Delete this MCQ?')) {
+                try {
+                    await adminApi.deleteMCQ(id);
+                    ui.showToast('MCQ Deleted', 'success');
+                    this.fetchMCQs(this.page);
+                } catch (err) { ui.showToast(err.message, 'error'); }
+            }
+        }
+    }
+
+    // --- Edit Modal ---
+    openEditModal(id) {
+        const q = this.knownQuestions.get(id);
+        if (!q) return;
+
+        document.getElementById('edit-id').value = q._id;
+        document.getElementById('edit-text').value = q.questionText;
+        q.options.forEach((opt, i) => {
+            document.getElementById(`edit-opt-${i}`).value = opt;
+        });
+        document.getElementById('edit-correct').value = q.correctAnswerIndex;
+        document.getElementById('edit-category').value = q.category;
+        document.getElementById('edit-difficulty').value = q.difficulty;
+        document.getElementById('edit-explanation').value = q.correctExplanation || '';
+        document.getElementById('edit-image').value = ''; // Reset file input
+
+        document.getElementById('edit-modal').classList.add('active');
+    }
+
+    closeEditModal() {
+        document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    async saveEditMCQ() {
+        const id = document.getElementById('edit-id').value;
+        const formData = new FormData();
+        formData.append('questionText', document.getElementById('edit-text').value);
+        [0, 1, 2, 3].forEach(i => formData.append(`options[${i}]`, document.getElementById(`edit-opt-${i}`).value));
+        formData.append('correctAnswerIndex', document.getElementById('edit-correct').value);
+        formData.append('category', document.getElementById('edit-category').value);
+        formData.append('difficulty', document.getElementById('edit-difficulty').value);
+        formData.append('correctExplanation', document.getElementById('edit-explanation').value);
+
+        const file = document.getElementById('edit-image').files[0];
+        if (file) formData.append('image', file);
+
+        try {
+            await adminApi.updateMCQ(id, formData);
+            ui.showToast('MCQ Updated', 'success');
+            this.closeEditModal();
+            this.fetchMCQs(this.page);
+        } catch (err) { ui.showToast(err.message, 'error'); }
+    }
+
+    // --- Preview Modal ---
+    showPreview() {
+        if (this.selectedIds.size === 0) return ui.showToast('Select questions first', 'warning');
+        
+        const container = document.getElementById('preview-content');
+        container.innerHTML = Array.from(this.selectedIds).map((id, i) => {
+            const q = this.knownQuestions.get(id);
+            if (!q) return '';
+            return `
+                <div style="margin-bottom:1rem; border-bottom:1px solid #eee; padding-bottom:1rem;">
+                    <strong>${i + 1}. ${q.questionText}</strong>
+                    <ul style="margin-top:5px; padding-left:20px; color:#555;">
+                        ${q.options.map((opt, idx) => `
+                            <li style="${idx === q.correctAnswerIndex ? 'color:green; font-weight:bold;' : ''}">
+                                ${opt}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('preview-modal').classList.add('active');
+    }
+
+    closePreviewModal() {
+        document.getElementById('preview-modal').classList.remove('active');
     }
 
     updateCounter() {
