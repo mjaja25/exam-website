@@ -2,33 +2,38 @@ const express = require('express');
 const router = express.Router();
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 const adminController = require('../controllers/adminController');
-const { upload } = require('../config/storage'); // Using 'upload' from storage config for local/fields upload
-
-// Apply Auth and Admin middleware to all routes in this router
-// Or apply per route. The server.js used per-route.
-// But since this is entirely /api/admin/*, we can apply it globally if we mounted it at /api/admin.
-// However, I plan to mount it at /api/admin probably.
-// Let's stick to explicit per-route for clarity and safety matching server.js
+const { upload } = require('../config/storage');
+const { validate } = require('../validation/middleware');
+const {
+    getUsersQuery,
+    createUserBody,
+    updateUserRoleBody,
+    resetUserPasswordBody,
+    createPassageBody,
+    createLetterQuestionBody,
+    createExcelQuestionBody,
+    idParam
+} = require('../validation/schemas/admin');
 
 // User Management
-router.get('/users', authMiddleware, adminMiddleware, adminController.getUsers);
-router.post('/users', authMiddleware, adminMiddleware, adminController.createUser);
-router.patch('/users/:id/role', authMiddleware, adminMiddleware, adminController.updateUserRole);
-router.post('/users/:id/reset-password', authMiddleware, adminMiddleware, adminController.resetUserPassword);
-router.delete('/users/:id', authMiddleware, adminMiddleware, adminController.deleteUser);
+router.get('/users', authMiddleware, adminMiddleware, validate({ query: getUsersQuery }), adminController.getUsers);
+router.post('/users', authMiddleware, adminMiddleware, validate({ body: createUserBody }), adminController.createUser);
+router.patch('/users/:id/role', authMiddleware, adminMiddleware, validate({ params: idParam, body: updateUserRoleBody }), adminController.updateUserRole);
+router.post('/users/:id/reset-password', authMiddleware, adminMiddleware, validate({ params: idParam, body: resetUserPasswordBody }), adminController.resetUserPassword);
+router.delete('/users/:id', authMiddleware, adminMiddleware, validate({ params: idParam }), adminController.deleteUser);
 
 // Results
 router.get('/results', authMiddleware, adminMiddleware, adminController.getResults);
 
 // Content Management
-router.post('/passages', authMiddleware, adminMiddleware, adminController.createPassage);
-router.post('/letter-questions', authMiddleware, adminMiddleware, adminController.createLetterQuestion);
+router.post('/passages', authMiddleware, adminMiddleware, validate({ body: createPassageBody }), adminController.createPassage);
+router.post('/letter-questions', authMiddleware, adminMiddleware, validate({ body: createLetterQuestionBody }), adminController.createLetterQuestion);
 
-// Excel Questions (Multiple Files)
+// Excel Questions (Multiple Files) — validation after multer
 router.post('/excel-questions', authMiddleware, adminMiddleware, upload.fields([
     { name: 'questionFile', maxCount: 1 },
     { name: 'solutionFile', maxCount: 1 }
-]), adminController.createExcelQuestion);
+]), validate({ body: createExcelQuestionBody }), adminController.createExcelQuestion);
 
 // Debugging
 router.get('/debug-gemini', authMiddleware, adminMiddleware, adminController.debugGemini);
