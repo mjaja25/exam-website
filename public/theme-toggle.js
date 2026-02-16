@@ -1,24 +1,24 @@
 // Theme Toggle System - Light/Dark Mode
-(function() {
+(function () {
     'use strict';
-    
+
     // Get saved theme or default to system preference
     const getSavedTheme = () => {
         const saved = localStorage.getItem('theme');
         if (saved) return saved;
-        
+
         // Check system preference
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             return 'dark';
         }
         return 'light';
     };
-    
+
     // Apply theme
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-        
+
         // Update toggle button if it exists
         const toggle = document.querySelector('.theme-toggle');
         if (toggle) {
@@ -27,30 +27,30 @@
                 icon.textContent = theme === 'dark' ? '🌙' : '☀️';
             }
         }
-        
+
         // Dispatch event for other scripts
         window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
     };
-    
+
     // Toggle theme
     const toggleTheme = () => {
         const current = document.documentElement.getAttribute('data-theme') || 'light';
         const next = current === 'light' ? 'dark' : 'light';
         applyTheme(next);
-        
+
         // Add animation class
         document.body.classList.add('theme-transitioning');
         setTimeout(() => {
             document.body.classList.remove('theme-transitioning');
         }, 300);
     };
-    
+
     // Initialize theme on page load
     const initTheme = () => {
         const theme = getSavedTheme();
         applyTheme(theme);
     };
-    
+
     // Create theme toggle button
     const createToggleButton = () => {
         const toggle = document.createElement('button');
@@ -74,25 +74,39 @@
             </svg>
         `;
         toggle.addEventListener('click', toggleTheme);
-        
+
         return toggle;
     };
-    
+
     // Add toggle button to header
     const addToggleToHeader = () => {
-        const nav = document.querySelector('.dashboard-nav, .test-header nav, .admin-header nav');
-        if (nav) {
+        // Try to find a nav container first, otherwise fallback to the header itself
+        const container = document.querySelector('.dashboard-nav') ||
+            document.querySelector('.test-header nav') ||
+            document.querySelector('.test-header') ||
+            document.querySelector('.admin-header nav') ||
+            document.querySelector('.admin-header');
+
+        if (container) {
+            // Check if one already exists
+            if (container.querySelector('.theme-toggle')) return;
+
             const toggle = createToggleButton();
-            // Insert before logout button or at the end
-            const logoutBtn = nav.querySelector('#logout-btn');
+
+            // specific placement logic
+            const logoutBtn = container.querySelector('#logout-btn');
+            const userProfile = container.querySelector('.user-profile-widget');
+
             if (logoutBtn) {
-                nav.insertBefore(toggle, logoutBtn);
+                container.insertBefore(toggle, logoutBtn);
+            } else if (userProfile) {
+                container.insertBefore(toggle, userProfile);
             } else {
-                nav.appendChild(toggle);
+                container.appendChild(toggle);
             }
         }
     };
-    
+
     // Listen for system theme changes
     const watchSystemTheme = () => {
         if (window.matchMedia) {
@@ -105,14 +119,14 @@
             });
         }
     };
-    
+
     // Keyboard shortcut (Ctrl/Cmd + Shift + D)
     const addKeyboardShortcut = () => {
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
                 e.preventDefault();
                 toggleTheme();
-                
+
                 // Show toast notification
                 if (typeof showToast === 'function') {
                     const theme = document.documentElement.getAttribute('data-theme');
@@ -121,7 +135,7 @@
             }
         });
     };
-    
+
     // Initialize on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
@@ -136,12 +150,12 @@
         watchSystemTheme();
         addKeyboardShortcut();
     }
-    
+
     // Expose functions globally
     window.toggleTheme = toggleTheme;
     window.setTheme = applyTheme;
     window.getTheme = () => document.documentElement.getAttribute('data-theme') || 'light';
-    
+
 })();
 
 // Add smooth transition class
