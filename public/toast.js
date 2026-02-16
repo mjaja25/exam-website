@@ -3,16 +3,16 @@
     // Create container once
     const container = document.createElement('div');
     container.id = 'toast-container';
-    container.style.cssText = 'position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.75rem;pointer-events:none;';
+    container.style.cssText = 'position:fixed;bottom:5.5rem;left:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;max-width:320px;';
     document.body.appendChild(container);
 
     /**
      * Show a toast notification.
      * @param {string} message - The message to display.
      * @param {'success'|'error'|'info'} type - Toast variant.
-     * @param {number} duration - Auto-dismiss in ms (default 3000).
+     * @param {number} duration - Auto-dismiss in ms (default 2000).
      */
-    window.showToast = function (message, type = 'info', duration = 3000) {
+    window.showToast = function (message, type = 'info', duration = 2000) {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         const icons = { success: '✓', error: '✕', info: 'ℹ' };

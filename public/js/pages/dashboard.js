@@ -124,7 +124,7 @@ function displayResults(results) {
                 <td>${patternLabel}</td>
                 <td><strong>${total} / ${maxScore}</strong></td>
                 <td>
-                    <button class="view-results-btn" onclick="viewResult('${session.sessionId}', '${session.testPattern || 'standard'}')">
+                    <button class="view-btn" onclick="viewResult('${session.sessionId}', '${session.testPattern || 'standard'}')">
                         View
                     </button>
                 </td>

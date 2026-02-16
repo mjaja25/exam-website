@@ -82,25 +82,25 @@
         <div class="card practice-zone-card">
             <h2>Practice Zones</h2>
             <div class="practice-grid">
-                <div class="practice-item">
+                <div class="practice-item clickable" onclick="startPractice('typing')">
+                    <div class="practice-icon">⌨️</div>
                     <h3>Typing Practice</h3>
-                    <p>Improve your speed with random passages. (Unranked)</p>
-                    <button onclick="startPractice('typing')" class="secondary">Practice Typing</button>
+                    <p>Improve your speed with random passages.</p>
                 </div>
-                <div class="practice-item">
+                <div class="practice-item clickable" onclick="startPractice('mcq')">
+                    <div class="practice-icon">📊</div>
                     <h3>Excel MCQ Practice</h3>
-                    <p>Drill formulas and shortcuts by category. (Unranked)</p>
-                    <button onclick="startPractice('mcq')" class="secondary">Practice MCQs</button>
+                    <p>Drill formulas and shortcuts by category.</p>
                 </div>
-                <div class="practice-item">
+                <div class="practice-item clickable" onclick="startPractice('letter')">
+                    <div class="practice-icon">✉️</div>
                     <h3>Letter Writing Practice</h3>
-                    <p>Practice formal letters with AI grading & feedback. (Unranked)</p>
-                    <button onclick="startPractice('letter')" class="secondary">Practice Letters</button>
+                    <p>Practice formal letters with AI grading.</p>
                 </div>
-                <div class="practice-item">
+                <div class="practice-item clickable" onclick="startPractice('excel')">
+                    <div class="practice-icon">📈</div>
                     <h3>Excel Practical Practice</h3>
-                    <p>Download, solve & upload Excel tasks with AI grading. (Unranked)</p>
-                    <button onclick="startPractice('excel')" class="secondary">Practice Excel</button>
+                    <p>Download, solve & upload Excel tasks.</p>
                 </div>
             </div>
         </div>
@@ -108,11 +108,11 @@
         <div id="leaderboard-carousel" class="carousel-card" onclick="location.href='/leaderboards.html'">
             <div id="carousel-content">
                 <div class="carousel-header">
-                    <h4 id="carousel-title" style="margin:0;">Standard Top 3</h4>
-                    <div class="carousel-controls">
-                        <button class="icon-btn" onclick="event.stopPropagation(); toggleLeaderboard('standard')"
+                    <h4 id="carousel-title" style="margin:0; width: 100%; text-align: center;">Standard Top 3</h4>
+                    <div class="carousel-controls" onclick="event.stopPropagation()">
+                        <button class="icon-btn" onclick="toggleLeaderboard('standard')"
                             title="Standard Pattern">S</button>
-                        <button class="icon-btn" onclick="event.stopPropagation(); toggleLeaderboard('new')"
+                        <button class="icon-btn" onclick="toggleLeaderboard('new')"
                             title="New Pattern">N</button>
                     </div>
                 </div>
