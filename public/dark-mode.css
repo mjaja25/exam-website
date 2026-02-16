@@ -832,3 +832,122 @@ body {
         border-color: var(--border-light);
     }
 }
+
+/* ============================================
+   AUTH PAGES DARK MODE
+   ============================================ */
+
+[data-theme="dark"] body.auth-page {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .auth-page::before {
+    background: radial-gradient(circle, rgba(226, 183, 20, 0.06) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .auth-page::after {
+    background: radial-gradient(circle, rgba(100, 102, 105, 0.06) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .auth-card {
+    background: var(--bg-elevated);
+    border-color: var(--border-light);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .auth-card:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .auth-card .logo {
+    filter: drop-shadow(0 4px 8px rgba(226, 183, 20, 0.3));
+}
+
+[data-theme="dark"] .auth-card h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .auth-card .subtitle {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .auth-card .form-label {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .auth-card .form-input {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .auth-card .form-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .auth-card .form-input:focus {
+    background: var(--bg-elevated);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(226, 183, 20, 0.15);
+}
+
+[data-theme="dark"] .auth-card .peek-button {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .auth-card .peek-button:hover {
+    color: var(--primary);
+    background: rgba(226, 183, 20, 0.1);
+}
+
+[data-theme="dark"] .auth-card .error-text {
+    color: #f87171;
+}
+
+[data-theme="dark"] .auth-card .separator {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .auth-card .separator::before,
+[data-theme="dark"] .auth-card .separator::after {
+    background: var(--border-light);
+}
+
+[data-theme="dark"] .auth-card .social-button {
+    background: var(--bg-elevated);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .auth-card .social-button:hover {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .auth-card .social-button.google {
+    border-color: #EA4335;
+    color: #EA4335;
+}
+
+[data-theme="dark"] .auth-card .social-button.google:hover {
+    background: rgba(234, 67, 53, 0.1);
+    border-color: #EA4335;
+    color: #EA4335;
+}
+
+[data-theme="dark"] .auth-card .footer-link {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .auth-card .footer-link a {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .auth-card form + p a,
+[data-theme="dark"] .auth-card form > p a {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .auth-card form + p a:hover,
+[data-theme="dark"] .auth-card form > p a:hover {
+    color: var(--primary);
+}
