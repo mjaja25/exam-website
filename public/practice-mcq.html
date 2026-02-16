@@ -5,182 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel Practice Zone | Dream Centre</title>
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        .practice-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .category-card {
-            padding: 1.5rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: center;
-            transition: 0.3s;
-        }
-
-        .category-card:hover {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
-
-        .category-card.all-card {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);
-            border-color: #93c5fd;
-        }
-
-        .category-card.all-card:hover {
-            border-color: #3b82f6;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        }
-
-        /* Difficulty Selector */
-        .difficulty-selector {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 0.75rem;
-        }
-
-        .diff-btn {
-            padding: 4px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            background: white;
-            transition: 0.2s;
-        }
-
-        .diff-btn:hover {
-            background: #eff6ff;
-            border-color: #3b82f6;
-        }
-
-        .diff-btn.easy {
-            color: #16a34a;
-        }
-
-        .diff-btn.medium {
-            color: #f59e0b;
-        }
-
-        .diff-btn.hard {
-            color: #ef4444;
-        }
-
-        .diff-btn.all-diff {
-            color: #3b82f6;
-        }
-
-        .options-grid {
-            display: grid;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .option-btn {
-            padding: 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background: none;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 1rem;
-            position: relative;
-        }
-
-        /* Instant Feedback Styles */
-        .option-btn.correct {
-            border-color: #10b981;
-            background: #ecfdf5;
-            color: #065f46;
-        }
-
-        .option-btn.incorrect {
-            border-color: #ef4444;
-            background: #fef2f2;
-            color: #991b1b;
-        }
-
-        .option-btn:disabled {
-            cursor: default;
-        }
-
-        .feedback-text {
-            margin-top: 1rem;
-            font-weight: 600;
-            display: none;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Explanation Box */
-        .explanation-box {
-            margin-top: 1rem;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            color: #166534;
-            display: none;
-        }
-
-        .explanation-box.active {
-            display: block;
-        }
-
-        .explanation-box::before {
-            content: '💡 ';
-        }
-
-        /* Streak Counter */
-        .streak-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-            padding: 8px 12px;
-            background: #fefce8;
-            border: 1px solid #fde68a;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: #854d0e;
-        }
-
-        .streak-bar.hot {
-            background: #fff7ed;
-            border-color: #fed7aa;
-            color: #9a3412;
-        }
-
-        .streak-bar .streak-icon {
-            font-size: 1.2rem;
-        }
-
-        .streak-bar .streak-count {
-            font-weight: 700;
-            font-size: 1rem;
-        }
-    </style>
+    <link rel="stylesheet" href="css/main.css">
+    <script src="/auth.js" defer></script>
 </head>
 
 <body class="dashboard-page">
@@ -189,8 +15,8 @@
         <a href="/dashboard.html" class="nav-button secondary">Back to Dashboard</a>
     </header>
 
-    <main class="container">
-        <div class="practice-container">
+    <main class="practice-wrapper">
+        <div class="card">
             <div id="selection-view">
                 <h2>Choose a Topic to Practice</h2>
                 <div class="category-grid">
@@ -326,24 +152,27 @@
                 </div>
 
                 <div class="progress-info"
-                    style="display:flex; justify-content: space-between; margin-bottom: 1rem; color: #64748b;">
+                    style="display:flex; justify-content: space-between; margin-bottom: 1rem; color: var(--text-muted);">
                     <span id="progress-text">Question 1/10</span>
                     <span id="score-text">Score: 0</span>
                 </div>
                 <h3 id="question-text">Question loading...</h3>
-                <div id="options-container" class="options-grid"></div>
-                <p id="feedback-msg" class="feedback-text"></p>
-                <div id="explanation-box" class="explanation-box"></div>
+                <div id="options-container" class="options-grid" style="display: grid; gap: 1rem; margin-top: 1.5rem;">
+                </div>
+                <p id="feedback-msg" class="feedback-text" style="margin-top: 1rem; font-weight: 600; display: none;">
+                </p>
+                <div id="explanation-box" class="explanation-box coach-card coach-card-green" style="display:none;">
+                </div>
                 <div style="margin-top: 2rem; text-align: right;">
-                    <button id="next-btn" class="primary hidden">Next Question</button>
+                    <button id="next-btn" class="btn btn-primary hidden">Next Question</button>
                 </div>
             </div>
 
             <div id="summary-view" class="hidden" style="text-align: center;">
                 <h2>Practice Session Complete!</h2>
                 <p style="font-size: 1.5rem; margin: 1rem 0;">Your Final Score: <span id="final-score">0</span></p>
-                <p id="best-streak-msg" style="color: #f59e0b; font-weight: 600; margin-bottom: 1rem;"></p>
-                <button onclick="location.reload()" class="primary">Try Another Topic</button>
+                <p id="best-streak-msg" style="color: var(--accent); font-weight: 600; margin-bottom: 1rem;"></p>
+                <button onclick="location.reload()" class="btn btn-primary">Try Another Topic</button>
             </div>
         </div>
     </main>
@@ -351,6 +180,11 @@
     <script src="toast.js"></script>
     <script type="module" src="/js/pages/practice-mcq.js"></script>
     <script src="theme-toggle.js"></script>
+</body>
+
+<script src="toast.js"></script>
+<script type="module" src="/js/pages/practice-mcq.js"></script>
+<script src="theme-toggle.js"></script>
 </body>
 
 </html>

@@ -3,7 +3,8 @@
     // Create container once
     const container = document.createElement('div');
     container.id = 'toast-container';
-    container.style.cssText = 'position:fixed;bottom:5.5rem;left:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;max-width:320px;';
+    container.id = 'toast-container';
+    // Styles handled by main.css
     document.body.appendChild(container);
 
     /**

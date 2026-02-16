@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Authenticating...</title>
+    <link rel="stylesheet" href="css/main.css">
 </head>
-<body>
-    <p>Please wait, you are being redirected...</p>
+
+<body class="auth-page">
+    <main class="auth-container">
+        <div class="auth-card" style="text-align: center;">
+            <div class="spinner"></div>
+            <h3>Authenticating...</h3>
+            <p style="color: var(--text-muted);">Please wait, you are being redirected.</p>
+        </div>
+    </main>
     <script type="module" src="/js/pages/auth-success.js"></script>
 </body>
-</html>
 
+</html>

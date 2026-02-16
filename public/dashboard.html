@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard | Dream Centre</title>
-    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="css/main.css">
     <script src="/auth.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -112,8 +112,7 @@
                     <div class="carousel-controls" onclick="event.stopPropagation()">
                         <button class="icon-btn" onclick="toggleLeaderboard('standard')"
                             title="Standard Pattern">S</button>
-                        <button class="icon-btn" onclick="toggleLeaderboard('new')"
-                            title="New Pattern">N</button>
+                        <button class="icon-btn" onclick="toggleLeaderboard('new')" title="New Pattern">N</button>
                     </div>
                 </div>
                 <div id="carousel-winners" class="winners-flex">
@@ -167,7 +166,8 @@
                         <div class="upload-controls">
                             <input type="file" id="avatar-upload" accept="image/*" style="display:none;"
                                 onchange="handleFileSelect(this)">
-                            <button onclick="document.getElementById('avatar-upload').click()" class="btn btn-secondary btn-sm">
+                            <button onclick="document.getElementById('avatar-upload').click()"
+                                class="btn btn-secondary btn-sm">
                                 📤 Upload Photo
                             </button>
                             <p class="upload-hint">Or choose a default:</p>
@@ -183,13 +183,15 @@
 
                 <div class="profile-edit-section">
                     <label>Bio <span class="label-hint">(optional)</span></label>
-                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..." maxlength="150" class="bio-textarea"></textarea>
+                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..." maxlength="150"
+                        class="bio-textarea"></textarea>
                     <div class="char-count"><span id="bio-count">0</span>/150</div>
                 </div>
 
                 <div class="profile-modal-actions">
                     <button onclick="closeProfileModal()" class="btn btn-ghost">Cancel</button>
-                    <button onclick="saveProfile()" class="btn btn-primary" id="save-profile-btn">💾 Save Changes</button>
+                    <button onclick="saveProfile()" class="btn btn-primary" id="save-profile-btn">💾 Save
+                        Changes</button>
                 </div>
             </div>
         </div>
