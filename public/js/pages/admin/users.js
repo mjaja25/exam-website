@@ -7,6 +7,7 @@ export class UserManager {
         this.totalPages = 1;
         this.searchTimeout = null;
         this.bindEvents();
+        this.fetchUsers();
     }
 
     bindEvents() {

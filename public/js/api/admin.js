@@ -1,8 +1,15 @@
 import { client } from './client.js';
 
+function buildQueryParams(params) {
+    const filtered = Object.entries(params)
+        .filter(([key, value]) => value !== undefined && value !== '' && value !== null)
+        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+    return new URLSearchParams(filtered).toString();
+}
+
 export const adminApi = {
     // Users
-    getUsers: (params) => client.get(`/api/admin/users?${new URLSearchParams(params)}`),
+    getUsers: (params) => client.get(`/api/admin/users?${buildQueryParams(params)}`),
     createUser: (data) => client.post('/api/admin/users', data),
     updateUserRole: (id, role) => client.patch(`/api/admin/users/${id}/role`, { role }),
     resetPassword: (id, newPassword) => client.post(`/api/admin/users/${id}/reset-password`, { newPassword }),
@@ -27,7 +34,7 @@ export const adminApi = {
     deleteExcelQuestion: (id) => client.delete(`/api/admin/excel-questions/${id}`),
 
     // Content - MCQs
-    getMcKQuestions: (params) => client.get(`/api/admin/mcq-questions?${new URLSearchParams(params)}`),
+    getMcKQuestions: (params) => client.get(`/api/admin/mcq-questions?${buildQueryParams(params)}`),
     createMCQ: (formData) => client.upload('/api/admin/mcq-questions', formData),
     updateMCQ: (id, formData) => client.upload(`/api/admin/mcq-questions/${id}`, formData, 'PUT'),
     deleteMCQ: (id) => client.delete(`/api/admin/mcq-questions/${id}`),
