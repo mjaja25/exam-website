@@ -54,7 +54,7 @@ export class MCQManager {
         if (next) next.onclick = () => this.fetchMCQs(this.bankPage + 1);
 
         const bank = document.getElementById('mcq-selection-bank');
-        if (bank) bank.onclick = (e) => this.handleBankAction(e));
+        if (bank) bank.onclick = (e) => this.handleBankAction(e);
     }
 
     bindSetCreationEvents() {
