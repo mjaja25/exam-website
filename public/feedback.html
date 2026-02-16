@@ -5,9 +5,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Feedback</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.indigo.min.css" />
-    <link rel="stylesheet" href="modern-theme.css">`n    <link rel="stylesheet" href="dark-mode.css">`n    <link rel="stylesheet" href="enhanced-pages.css">`n    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="theme.css">
     <script src="/auth.js" defer></script>
+    <style>
+        body {
+            background: var(--gradient-bg);
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-md) var(--spacing-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: var(--font-size-xl);
+            color: var(--text-primary);
+        }
+
+        .dashboard-nav .nav-button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            background: var(--bg-input);
+            color: var(--text-secondary);
+        }
+
+        .dashboard-nav .nav-button:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: var(--spacing-xl) auto;
+            padding: 0 var(--spacing-lg);
+        }
+
+        article {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        article > p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: var(--spacing-md);
+            font-size: var(--font-size-base);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            margin-bottom: var(--spacing-lg);
+            transition: border-color var(--transition-fast);
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.15);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: var(--spacing-lg);
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-primary);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: var(--spacing-xl);
+            right: var(--spacing-xl);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--border-radius-full);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover { transform: scale(1.1); }
+        .theme-toggle .sun-icon { display: none; color: var(--warning); }
+        .theme-toggle .moon-icon { display: block; color: var(--text-secondary); }
+        [data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+        [data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+    </style>
 </head>
 
 <body class="dashboard-page">
@@ -29,15 +151,20 @@
                 </select>
 
                 <label for="feedback-message">Your Message</label>
-                <textarea id="feedback-message" rows="6" required></textarea>
+                <textarea id="feedback-message" rows="6" required placeholder="Tell us what you think..."></textarea>
 
                 <button type="submit">Submit Feedback</button>
             </form>
         </article>
     </main>
+
+    <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+
     <script src="toast.js"></script>
     <script src="feedback.js"></script>
-    <script src="theme-toggle.js"></script>`n</body>
-
+    <script src="theme-toggle.js"></script>
+</body>
 </html>
-

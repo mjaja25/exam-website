@@ -5,22 +5,247 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Results</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
-    <link rel="stylesheet" href="modern-theme.css">`n    <link rel="stylesheet" href="dark-mode.css">`n    <link rel="stylesheet" href="enhanced-pages.css">`n    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="theme.css">
     <link rel="stylesheet" href="results.css">
     <script src="/auth.js" defer></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            background: var(--gradient-bg);
+            min-height: 100vh;
+            font-family: var(--font-body);
+            margin: 0;
+            padding: var(--spacing-xl) 0;
+        }
 
-    <article id="preview-section" style="display:none;">
-        <h3>Submission Preview</h3>
-        <div id="excel-preview-table" style="overflow-x: auto;"></div>
-        <button onclick="generatePDF()" class="secondary">Download PDF Report</button>
-    </article>
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-lg);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .header h1 {
+            font-size: var(--font-size-4xl);
+            margin-bottom: var(--spacing-sm);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: var(--font-size-lg);
+        }
+
+        .score-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            font-size: var(--font-size-xl);
+            margin: 0 0 var(--spacing-lg) 0;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: var(--spacing-md) 0;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            box-shadow: var(--shadow-primary);
+        }
+
+        .score-circle span {
+            font-family: var(--font-heading);
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: white;
+        }
+
+        .score-section p {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .score-section strong {
+            color: var(--primary);
+        }
+
+        .skills-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        .chart-container {
+            height: 200px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .skills-text {
+            margin-top: var(--spacing-md);
+        }
+
+        .skill-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .skill-row:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-container {
+            margin-top: var(--spacing-xl);
+        }
+
+        .comparison-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .trophy-icon {
+            font-size: 2rem;
+        }
+
+        .comparison-header h3 {
+            margin: 0;
+            font-size: var(--font-size-lg);
+        }
+
+        .loading-text {
+            color: var(--text-muted);
+            text-align: center;
+            padding: var(--spacing-lg);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-top: var(--spacing-xl);
+        }
+
+        .action-btn {
+            padding: var(--spacing-md) var(--spacing-2xl);
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--transition-base);
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .action-btn.primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 107, 107, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: var(--spacing-xl);
+            right: var(--spacing-xl);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--border-radius-full);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover { transform: scale(1.1); }
+        .theme-toggle .sun-icon { display: none; color: var(--warning); }
+        .theme-toggle .moon-icon { display: block; color: var(--text-secondary); }
+        [data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+        [data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+
+        @media (max-width: 768px) {
+            .score-section {
+                grid-template-columns: 1fr;
+            }
+            .skills-layout {
+                grid-template-columns: 1fr;
+            }
+            .footer-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -47,8 +272,7 @@
                         <canvas id="skills-chart-canvas"></canvas>
                     </div>
                     <div id="chart-legend" class="chart-legend"></div>
-                    <div id="skills-text-breakdown" class="skills-text">
-                        </div>
+                    <div id="skills-text-breakdown" class="skills-text"></div>
                 </div>
             </div>
         </div>
@@ -61,15 +285,14 @@
             <div id="comparison-content">
                 <p class="loading-text">Analyzing your rank...</p>
             </div>
-            <button onclick="window.location.href='/leaderboards.html'" class="nav-button">
+            <button onclick="window.location.href='/leaderboards.html'" class="action-btn secondary" style="margin-top: var(--spacing-md);">
                 View Global Hall of Fame
             </button>
         </div>
 
         <div class="card" style="margin-top: 20px;">
             <h2>Detailed Report</h2>
-            <div id="test-details-container" class="card-body">
-                </div>
+            <div id="test-details-container" class="card-body"></div>
         </div>
         
         <div class="footer-actions">
@@ -77,7 +300,13 @@
             <a href="/feedback.html" class="action-btn primary">Give Feedback</a>
         </div>
     </div>
-    <script src="results.js"></script>
-    <script src="theme-toggle.js"></script>`n</body>
-</html>
 
+    <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+
+    <script src="results.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
+</html>

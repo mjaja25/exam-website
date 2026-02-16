@@ -1,29 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard | Dream Centre</title>
-    <link rel="stylesheet" href="modern-theme.css">
-    <link rel="stylesheet" href="dark-mode.css">
-    <link rel="stylesheet" href="enhanced-pages.css">
-    <link rel="stylesheet" href="premium-headers.css">
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="theme.css">
     <script src="/auth.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .user-profile-widget { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 10px; border-radius: 20px; transition: 0.2s; margin-right: 15px; }
-        .user-profile-widget:hover { background: rgba(0,0,0,0.05); }
-        .nav-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .nav-initials { width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; }
-        
-        .def-avatar-btn { font-size: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; transition: 0.2s; padding: 0; }
-        .def-avatar-btn:hover { background: #e2e8f0; transform: scale(1.1); }
-        .def-avatar-btn.selected { border-color: #3b82f6; background: #eff6ff; }
+        /* Dashboard specific styles */
+        .dashboard-page {
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-md) 0;
+            position: sticky;
+            top: 0;
+            z-index: var(--z-dropdown);
+            backdrop-filter: blur(10px);
+        }
+
+        .page-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+        }
+
+        .dashboard-header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .logo {
+            width: 45px;
+            height: 45px;
+            border-radius: var(--border-radius-md);
+            object-fit: cover;
+        }
+
+        #welcome-header {
+            font-size: var(--font-size-xl);
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .dashboard-nav {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .nav-button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            border: none;
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+        }
+
+        .nav-button.secondary {
+            background: var(--bg-input);
+            color: var(--text-secondary);
+        }
+
+        .nav-button.secondary:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .nav-button.primary {
+            background: var(--gradient-primary);
+            color: var(--text-inverse);
+        }
+
+        .user-profile-widget {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: var(--border-radius-md);
+            transition: 0.2s;
+            margin-right: var(--spacing-sm);
+        }
+
+        .user-profile-widget:hover {
+            background: var(--bg-input);
+        }
+
+        .nav-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .nav-initials {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-input);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .def-avatar-btn {
+            font-size: 1.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 0;
+        }
+
+        .def-avatar-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .def-avatar-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: var(--spacing-xl) var(--spacing-xl);
+            display: grid;
+            gap: var(--spacing-xl);
+        }
+
+        .start-test-card {
+            background: var(--gradient-primary);
+            color: white;
+            padding: var(--spacing-2xl);
+            text-align: center;
+            border: none;
+        }
+
+        .start-test-card h2 {
+            color: white;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .start-test-card p {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .start-test-card .primary {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: var(--spacing-md) var(--spacing-2xl);
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .start-test-card .primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        /* Results Table */
+        .results-table-wrapper {
+            overflow-x: auto;
+        }
+
+        #results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #results-table th,
+        #results-table td {
+            padding: var(--spacing-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #results-table th {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        #results-table tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        /* Practice Grid */
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .practice-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            transition: all var(--transition-base);
+        }
+
+        .practice-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .practice-item h3 {
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .practice-item p {
+            color: var(--text-muted);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .practice-item .secondary {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .practice-item .secondary:hover {
+            background: var(--secondary-hover);
+        }
+
+        /* Carousel Card */
+        .carousel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .carousel-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .carousel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .carousel-header h4 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .carousel-controls {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+
+        .icon-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .winners-flex {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-lg);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: var(--z-modal);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-xl);
+            padding: var(--spacing-2xl);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .modal-content header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .modal-content header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--error);
+        }
+
+        .modal-grid {
+            display: grid;
+            gap: var(--spacing-md);
+        }
+
+        .option-card {
+            border: 2px solid var(--border-color);
+            padding: var(--spacing-xl);
+            border-radius: var(--border-radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .option-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .option-card h4 {
+            color: var(--primary);
+            margin: 0 0 var(--spacing-sm) 0;
+        }
+
+        .option-card p {
+            margin: 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+        }
+
+        /* Profile Modal */
+        .profile-edit-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .avatar-selection {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .current-avatar-preview img,
+        .current-avatar-preview div {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .upload-controls {
+            margin-left: var(--spacing-md);
+        }
+
+        .upload-controls button {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .upload-controls button:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .default-avatars {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        textarea {
+            width: 100%;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            border: 2px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-input) 25%, var(--bg-card-hover) 50%, var(--bg-input) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--border-radius-sm);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: var(--spacing-xl);
+            right: var(--spacing-xl);
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-full);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-base);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle .sun-icon { display: none; color: var(--warning); }
+        .theme-toggle .moon-icon { display: block; color: var(--text-secondary); }
+        [data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+        [data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+
+        /* Mobile Warning */
+        .mobile-warning {
+            background: var(--warning);
+            color: white;
+            text-align: center;
+            padding: var(--spacing-sm);
+            font-size: var(--font-size-sm);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-warning {
+                display: block;
+            }
+
+            .practice-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-header-inner {
+                flex-direction: column;
+                gap: var(--spacing-md);
+            }
+
+            .dashboard-nav {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
     </style>
 </head>
 
 <body class="dashboard-page">
+    <div id="mobile-warning">
+        For best experience, please use a desktop or laptop.
+    </div>
+
     <header class="dashboard-header">
         <div class="page-wrap dashboard-header-inner">
             <div class="logo-area">
@@ -41,10 +557,6 @@
         </div>
     </header>
 
-    <div id="mobile-warning" class="mobile-warning">
-        ⚠️ For best experience, please use a desktop or laptop.
-    </div>
-
     <main class="page-wrap dashboard-content">
         <div class="card start-test-card">
             <h2>Complete Mock Examination</h2>
@@ -54,7 +566,6 @@
 
         <div class="card past-results-card">
             <h2>Your Past Sessions</h2>
-
             <div class="results-table-wrapper">
                 <table id="results-table">
                     <thead>
@@ -93,55 +604,39 @@
             </div>
         </div>
 
-
         <div class="card practice-zone-card">
             <h2>Practice Zones</h2>
-
             <div class="practice-grid">
                 <div class="practice-item">
                     <h3>Typing Practice</h3>
                     <p>Improve your speed with random passages. (Unranked)</p>
-                    <button onclick="startPractice('typing')" class="secondary">
-                        Practice Typing
-                    </button>
+                    <button onclick="startPractice('typing')" class="secondary">Practice Typing</button>
                 </div>
-
                 <div class="practice-item">
                     <h3>Excel MCQ Practice</h3>
                     <p>Drill formulas and shortcuts by category. (Unranked)</p>
-                    <button onclick="startPractice('mcq')" class="secondary">
-                        Practice MCQs
-                    </button>
+                    <button onclick="startPractice('mcq')" class="secondary">Practice MCQs</button>
                 </div>
-
                 <div class="practice-item">
                     <h3>Letter Writing Practice</h3>
                     <p>Practice formal letters with AI grading & feedback. (Unranked)</p>
-                    <button onclick="startPractice('letter')" class="secondary">
-                        Practice Letters
-                    </button>
+                    <button onclick="startPractice('letter')" class="secondary">Practice Letters</button>
                 </div>
-
                 <div class="practice-item">
                     <h3>Excel Practical Practice</h3>
                     <p>Download, solve & upload Excel tasks with AI grading. (Unranked)</p>
-                    <button onclick="startPractice('excel')" class="secondary">
-                        Practice Excel
-                    </button>
+                    <button onclick="startPractice('excel')" class="secondary">Practice Excel</button>
                 </div>
             </div>
         </div>
 
         <div id="leaderboard-carousel" class="carousel-card" onclick="location.href='/leaderboards.html'">
             <div id="carousel-content">
-                <div class="carousel-header"
-                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div class="carousel-header">
                     <h4 id="carousel-title" style="margin:0;">Standard Top 3</h4>
                     <div class="carousel-controls">
-                        <button class="icon-btn" onclick="event.stopPropagation(); toggleLeaderboard('standard')"
-                            title="Standard Pattern">S</button>
-                        <button class="icon-btn" onclick="event.stopPropagation(); toggleLeaderboard('new')"
-                            title="New Pattern">N</button>
+                        <button class="icon-btn" onclick="event.stopPropagation(); toggleLeaderboard('standard')" title="Standard Pattern">S</button>
+                        <button class="icon-btn" onclick="event.stopPropagation(); toggleLeaderboard('new')" title="New Pattern">N</button>
                     </div>
                 </div>
                 <div id="carousel-winners" class="winners-flex">
@@ -149,55 +644,51 @@
                     <div class="skeleton skeleton-text" style="width:60px;height:4rem"></div>
                     <div class="skeleton skeleton-text" style="width:60px;height:3rem"></div>
                 </div>
-                <p style="text-align:center; font-size:0.8rem; color:#666; margin-top:10px;">Click to view full Global
-                    Rankings &rarr;</p>
+                <p style="text-align:center; font-size:0.8rem; color:var(--text-muted); margin-top:10px;">Click to view full Global Rankings &rarr;</p>
             </div>
         </div>
     </main>
 
+    <!-- Exam Pattern Modal -->
     <div id="pattern-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content">
             <header>
                 <h2>Select Exam Pattern</h2>
                 <button onclick="closeModal()" class="close-btn">&times;</button>
             </header>
-            <div class="modal-grid" style="display: grid; gap: 1rem; padding: 1rem 0;">
-                <div class="option-card" onclick="handleExamSelection('new_pattern')"
-                    style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
-                    <h4 style="margin:0; color: #3b82f6;">New NSSB Pattern (10+5)</h4>
-                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">10m Typing + 5m Excel MCQ. Aligned with 2025
-                        guidelines.</p>
+            <div class="modal-grid">
+                <div class="option-card" onclick="handleExamSelection('new_pattern')">
+                    <h4>New NSSB Pattern (10+5)</h4>
+                    <p>10m Typing + 5m Excel MCQ. Aligned with 2025 guidelines.</p>
                 </div>
-                <div class="option-card" onclick="handleExamSelection('standard')"
-                    style="border: 2px solid #e2e8f0; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: 0.3s;">
-                    <h4 style="margin:0;">Standard CPT (3-Stage)</h4>
-                    <p style="font-size: 0.9rem; margin: 0.5rem 0;">Typing + Letter + Practical Excel. Comprehensive
-                        proficiency test.</p>
+                <div class="option-card" onclick="handleExamSelection('standard')">
+                    <h4>Standard CPT (3-Stage)</h4>
+                    <p>Typing + Letter + Practical Excel. Comprehensive proficiency test.</p>
                 </div>
             </div>
-            <p style="font-size: 0.8rem; color: #64748b; text-align: center;">Note: Refreshing is disabled once the exam
-                starts.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: var(--spacing-lg);">Note: Refreshing is disabled once the exam starts.</p>
         </div>
     </div>
 
+    <!-- Profile Modal -->
     <div id="profile-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content">
             <header>
                 <h2>Edit Profile</h2>
                 <button onclick="closeProfileModal()" class="close-btn">&times;</button>
             </header>
-            <div style="padding: 1rem 0;">
+            <div>
                 <div class="profile-edit-section">
                     <label>Profile Picture</label>
                     <div class="avatar-selection">
                         <div class="current-avatar-preview">
                             <img id="preview-avatar-img" src="" style="display:none; width:80px; height:80px; border-radius:50%; object-fit:cover;">
-                            <div id="preview-avatar-initials" style="width:80px; height:80px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.5rem; color:#64748b;">--</div>
+                            <div id="preview-avatar-initials" style="width:80px; height:80px; border-radius:50%; background:var(--bg-input); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.5rem; color:var(--text-muted);">--</div>
                         </div>
-                        <div class="upload-controls" style="margin-left: 1rem;">
+                        <div class="upload-controls">
                             <input type="file" id="avatar-upload" accept="image/*" style="display:none;" onchange="handleFileSelect(this)">
-                            <button onclick="document.getElementById('avatar-upload').click()" class="secondary small">Upload Photo</button>
-                            <p style="font-size:0.8rem; color:#64748b; margin-top:0.5rem;">Or choose a default:</p>
+                            <button onclick="document.getElementById('avatar-upload').click()">Upload Photo</button>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Or choose a default:</p>
                             <div class="default-avatars">
                                 <button class="def-avatar-btn" onclick="selectDefault(1)">🐶</button>
                                 <button class="def-avatar-btn" onclick="selectDefault(2)">🐱</button>
@@ -207,23 +698,28 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="profile-edit-section" style="margin-top: 1.5rem;">
                     <label>Bio (Short description)</label>
-                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..." maxlength="150" style="width:100%; margin-top:0.5rem; padding:0.5rem; border-radius:8px; border:1px solid #e2e8f0;"></textarea>
+                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..." maxlength="150"></textarea>
                 </div>
 
                 <div style="margin-top: 2rem; text-align: right;">
-                    <button onclick="saveProfile()" class="primary" id="save-profile-btn">Save Changes</button>
+                    <button onclick="saveProfile()" class="btn btn-primary" id="save-profile-btn">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- <footer class="site-footer">Built with ❤️ for <strong>Dream Centre</strong></footer> -->
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+
     <script src="toast.js"></script>
     <script src="theme-toggle.js"></script>
-    <script src="dashboard.js"></script>
+    <script type="module" src="/js/pages/dashboard.js"></script>
 </body>
 
 </html>

@@ -5,10 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Panel | Dream Centre</title>
-    <link rel="stylesheet" href="modern-theme.css">`n    <link rel="stylesheet" href="dark-mode.css">
-    <link rel="stylesheet" href="enhanced-pages.css">
-    <link rel="stylesheet" href="premium-headers.css">
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="theme.css">
     <script src="/admin-auth.js" defer></script>
     <style>
         /* MCQ Selection Bank */
@@ -291,7 +288,9 @@
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
                 <h2>User Management</h2>
-                <button id="add-user-btn" style="background:#10b981; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600;">+ Add User</button>
+                <button id="add-user-btn"
+                    style="background:#10b981; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:600;">+
+                    Add User</button>
             </div>
             <div class="filter-bar" style="margin-top:1rem;">
                 <input type="text" id="user-search" placeholder="Search by username or email...">
@@ -316,7 +315,8 @@
                     <tbody id="users-tbody"></tbody>
                 </table>
             </div>
-            <div class="pagination-controls" style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+            <div class="pagination-controls"
+                style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
                 <button id="users-prev-btn" class="secondary" disabled>Previous</button>
                 <span id="users-page-info" style="font-size:0.9rem; color:#64748b;">Page 1</span>
                 <button id="users-next-btn" class="secondary" disabled>Next</button>
@@ -339,7 +339,8 @@
                     <option value="admin">Admin</option>
                 </select>
                 <div class="modal-actions">
-                    <button class="btn-cancel" onclick="document.getElementById('add-user-modal').classList.remove('active')">Cancel</button>
+                    <button class="btn-cancel"
+                        onclick="document.getElementById('add-user-modal').classList.remove('active')">Cancel</button>
                     <button class="btn-save" id="save-new-user-btn">Create User</button>
                 </div>
             </div>
@@ -354,7 +355,8 @@
                 <label>New Password</label>
                 <input type="password" id="reset-pw-value" placeholder="Min 6 characters" required>
                 <div class="modal-actions">
-                    <button class="btn-cancel" onclick="document.getElementById('reset-pw-modal').classList.remove('active')">Cancel</button>
+                    <button class="btn-cancel"
+                        onclick="document.getElementById('reset-pw-modal').classList.remove('active')">Cancel</button>
                     <button class="btn-save" id="save-reset-pw-btn">Reset Password</button>
                 </div>
             </div>
@@ -585,7 +587,42 @@
         </div>
     </div>
 
-    <script src="admin.js"></script>
-    <script src="theme-toggle.js"></script>`n</body>
+    <button class="theme-toggle" aria-label="Toggle theme" style="position:fixed;bottom:20px;right:20px;width:44px;height:44px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border-color);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);z-index:100;">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;color:var(--warning);"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;color:var(--text-secondary);"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+
+    <script type="module" src="/js/pages/admin/main.js"></script>
+    <script src="theme-toggle.js"></script>
+    <script>
+        document.querySelector('.theme-toggle').addEventListener('click', function() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            const sunIcon = this.querySelector('.sun-icon');
+            const moonIcon = this.querySelector('.moon-icon');
+            if (next === 'dark') {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        });
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+                const toggle = document.querySelector('.theme-toggle');
+                if (toggle && saved === 'dark') {
+                    toggle.querySelector('.sun-icon').style.display = 'block';
+                    toggle.querySelector('.moon-icon').style.display = 'none';
+                }
+            }
+        })();
+    </script>
+</body>
 
 </html>

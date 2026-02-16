@@ -5,10 +5,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Excel Test</title>
-    <link rel="stylesheet" href="modern-theme.css">`n    <link rel="stylesheet" href="dark-mode.css">`n    <link rel="stylesheet" href="enhanced-pages.css">`n    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="theme.css">
     <script src="/auth.js" defer></script>
     <script src="/test-ui.js" defer></script>
     <script src="/disable-back.js" defer></script>
+    <style>
+        .test-page { min-height: 100vh; background: var(--gradient-bg); }
+        .mobile-header { display: none; background: var(--bg-card); padding: var(--spacing-md) var(--spacing-lg); justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .test-container { max-width: 900px; margin: 0 auto; padding: var(--spacing-xl); }
+        .test-header { background: var(--bg-card); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); margin-bottom: var(--spacing-xl); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
+        .test-header h2 { margin: 0 0 var(--spacing-xs) 0; color: var(--primary); }
+        .test-header p { margin: 0; color: var(--text-muted); font-size: var(--font-size-sm); }
+        .progress-container { margin-top: var(--spacing-md); height: 8px; background: var(--bg-input); border-radius: var(--border-radius-full); overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--gradient-primary); border-radius: var(--border-radius-full); transition: width 0.3s ease; width: 0%; }
+        .excel-content { display: grid; gap: var(--spacing-xl); }
+        .instructions-card, .upload-card { background: var(--bg-card); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); }
+        .instructions-card h3 { color: var(--primary); margin: 0 0 var(--spacing-lg) 0; }
+        .instructions-card p { color: var(--text-secondary); margin: var(--spacing-sm) 0; }
+        .instructions-card a { display: inline-block; margin-top: var(--spacing-lg); padding: var(--spacing-md) var(--spacing-xl); background: var(--gradient-secondary); color: white; text-decoration: none; border-radius: var(--border-radius-md); font-weight: 600; transition: all var(--transition-base); }
+        .instructions-card a:hover { transform: translateY(-2px); box-shadow: var(--shadow-secondary); }
+        .instructions-card a.disabled { background: var(--bg-input); color: var(--text-muted); pointer-events: none; }
+        .upload-card h3 { margin: 0 0 var(--spacing-lg) 0; }
+        .upload-card input[type="file"] { width: 100%; padding: var(--spacing-lg); border: 2px dashed var(--border-color); border-radius: var(--border-radius-md); background: var(--bg-input); margin-bottom: var(--spacing-lg); }
+        .upload-card input[type="file"]:focus { outline: none; border-color: var(--primary); }
+        .submit-btn-main { width: 100%; padding: var(--spacing-lg); background: var(--gradient-primary); color: white; border: none; border-radius: var(--border-radius-md); font-size: var(--font-size-lg); font-weight: 700; cursor: pointer; transition: all var(--transition-base); }
+        .submit-btn-main:hover { transform: translateY(-2px); box-shadow: var(--shadow-primary); }
+        .test-footer { margin-top: var(--spacing-xl); text-align: center; }
+        .timer-display { font-size: var(--font-size-lg); color: var(--text-secondary); }
+        .timer-display strong { color: var(--primary); font-size: var(--font-size-xl); }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-overlay); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: var(--z-modal); }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--border-color); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-overlay p { margin-top: var(--spacing-lg); color: var(--text-secondary); font-weight: 600; }
+        .theme-toggle { position: fixed; bottom: var(--spacing-xl); right: var(--spacing-xl); width: 44px; height: 44px; border-radius: var(--border-radius-full); background: var(--bg-card); border: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); transition: all var(--transition-base); z-index: 100; }
+        .theme-toggle:hover { transform: scale(1.1); }
+        .theme-toggle .sun-icon { display: none; color: var(--warning); }
+        .theme-toggle .moon-icon { display: block; color: var(--text-secondary); }
+        [data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+        [data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+        @media (max-width: 768px) { .mobile-header { display: flex; } .desktop-only { display: none; } }
+    </style>
 </head>
 
 <body class="test-page excel-page">
@@ -33,8 +69,7 @@
                 <p>1. Click the link below to download the Excel exercise file.</p>
                 <p>2. Complete all tasks described in the file's "Instructions" sheet.</p>
                 <p>3. Save your completed file and upload it below.</p>
-                <a href="#" id="download-btn" role="button" class="contrast" download disabled>Download Question
-                    File</a>
+                <a href="#" id="download-btn" role="button" download disabled>Download Question File</a>
             </div>
 
             <div class="upload-card">
@@ -54,13 +89,19 @@
         </footer>
     </main>
 
-    <script src="toast.js"></script>
-    <script src="excel.js"></script>
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="spinner"></div>
         <p>Calculating results, please wait...</p>
     </div>
-    <script src="theme-toggle.js"></script>`n</body>
+
+    <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+
+    <script src="toast.js"></script>
+    <script src="excel.js"></script>
+    <script src="theme-toggle.js"></script>
+</body>
 
 </html>
-

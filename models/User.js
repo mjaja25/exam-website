@@ -63,7 +63,4 @@ const userSchema = new mongoose.Schema({
     completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }]
 }, { timestamps: true });
 
-// Add TTL index to automatically delete expired tokens after 24 hours
-userSchema.index({ resetPasswordExpires: 1 }, { expireAfterSeconds: 0 });
-
 module.exports = mongoose.model('User', userSchema);
