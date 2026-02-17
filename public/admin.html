@@ -370,16 +370,16 @@
                     </div>
                     <form id="add-excel-form" enctype="multipart/form-data">
                         <div class="form-row">
-                            <input type="text" id="question-name" placeholder="Question Name" required>
+                            <input type="text" id="question-name" name="questionName" placeholder="Question Name" required>
                         </div>
                         <div class="file-inputs">
                             <div class="file-input-group">
                                 <label>Question File (Blank)</label>
-                                <input type="file" id="question-file" required>
+                                <input type="file" id="question-file" name="questionFile" required>
                             </div>
                             <div class="file-input-group">
                                 <label>Solution File (Completed)</label>
-                                <input type="file" id="solution-file" required>
+                                <input type="file" id="solution-file" name="solutionFile" required>
                             </div>
                         </div>
                         <button type="submit" class="btn-primary">Add Excel Question</button>
