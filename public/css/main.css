@@ -6707,10 +6707,10 @@ body.typing-page textarea:focus,
 }
 
 .download-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--neutral);
+    background: var(--bg-input);
+    border: 2px solid var(--border-color);
     color: var(--text-muted);
+    opacity: 1;
 }
 
 .upload-card input[type="file"] {
