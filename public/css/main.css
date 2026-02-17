@@ -6707,9 +6707,9 @@ body.typing-page textarea:focus,
 }
 
 .download-btn:disabled {
-    background: var(--bg-input);
-    border: 2px solid var(--border-color);
-    color: var(--text-muted);
+    background: rgba(59, 130, 246, 0.5);
+    border: 2px solid #3b82f6;
+    color: white;
     opacity: 1;
 }
 
