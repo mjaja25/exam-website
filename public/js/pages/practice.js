@@ -172,21 +172,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Map elements based on mode
         const elements = {
-            displayElement: engineContainer.querySelector(isSim ? '.sim-passage' : '.sim-passage'), // IDs might differ, using class
-            inputElement: engineContainer.querySelector('.sim-textarea'),
-            timerElement: engineContainer.querySelector('[id*="timer"]'), // flexible selector
-            progressBar: null, // No progress bar in practice UI yet, can add if needed
+            displayElement: engineContainer.querySelector('.passage-display'),
+            inputElement: engineContainer.querySelector('.engine-textarea'),
+            timerElement: engineContainer.querySelector('[id*="timer"]'),
+            progressBar: null,
             wpmElement: engineContainer.querySelector('[id*="wpm"]'),
             accuracyElement: engineContainer.querySelector('[id*="accuracy"]')
         };
 
-        // Fix specific IDs if classes are ambiguous
+        // Fix specific IDs for better reliability
         if (isSim) {
             elements.displayElement = document.getElementById('sim-passage');
             elements.inputElement = document.getElementById('sim-input');
             elements.timerElement = document.getElementById('sim-timer');
             elements.wpmElement = document.getElementById('sim-wpm');
-            elements.accuracyElement = document.getElementById('sim-accuracy');
+            elements.accuracyElement = null; // No accuracy display in minimal mode
         } else {
             elements.displayElement = document.getElementById('dec-passage');
             elements.inputElement = document.getElementById('dec-input');
@@ -337,8 +337,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Switch to Results View
         switchView('results');
         
-        // 2. Render Basic Stats
-        renderBasicStats(stats);
+        // 2. Check for personal record and render basic stats
+        const isNewRecord = await checkAndShowPersonalRecord(stats.wpm);
+        renderBasicStats(stats, isNewRecord);
         
         // 3. Render Visualizations
         if (state.heatmap) {
@@ -361,21 +362,97 @@ document.addEventListener('DOMContentLoaded', () => {
         loadHistoricalProgress();
     }
 
-    function renderBasicStats(stats) {
-        // WPM Ring
+    async function checkAndShowPersonalRecord(currentWpm) {
+        try {
+            const res = await client.get('/api/practice/typing-stats?timeframe=365');
+            const previousBest = res.stats?.bestWpm || 0;
+            
+            if (currentWpm > previousBest && previousBest > 0) {
+                // New personal record!
+                triggerConfetti();
+                const badge = document.getElementById('personal-record-badge');
+                if (badge) {
+                    badge.classList.remove('hidden');
+                    badge.innerHTML = '<span>New Personal Record!</span>';
+                }
+                return true;
+            }
+        } catch (err) {
+            console.error('Failed to check personal record:', err);
+        }
+        return false;
+    }
+
+    function triggerConfetti() {
+        const duration = 3000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+
+            confetti({
+                ...defaults,
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                colors: ['#58CC02', '#1CB0F6', '#FF9600', '#4ade80', '#fbbf24']
+            });
+            confetti({
+                ...defaults,
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                colors: ['#58CC02', '#1CB0F6', '#FF9600', '#4ade80', '#fbbf24']
+            });
+        }, 250);
+    }
+
+    function renderBasicStats(stats, isNewRecord = false) {
+        // WPM Ring with animation
         const wpm = stats.wpm;
-        dom.scoreWpm ? dom.scoreWpm.textContent = wpm : dom.wpmDisplay.textContent = wpm;
+        const scoreWpmEl = dom.scoreWpm || dom.wpmDisplay;
+        const scoreRing = dom.scoreRing;
+        
+        // Animate WPM counter
+        animateValue(scoreWpmEl, 0, wpm, 1000);
+        
+        // Animate score circle ring
+        if (scoreRing) {
+            const progress = Math.min((wpm / 100) * 360, 360);
+            scoreRing.style.setProperty('--progress', '0deg');
+            setTimeout(() => {
+                scoreRing.style.transition = 'background 1s ease-out';
+                scoreRing.style.background = `conic-gradient(var(--primary) ${progress}deg, var(--bg-input) 0deg)`;
+            }, 100);
+        }
         
         // Stats Grid
         if (dom.statAcc) dom.statAcc.textContent = stats.accuracy + '%';
         if (dom.statChars) dom.statChars.textContent = stats.totalChars;
         if (dom.statErrors) dom.statErrors.textContent = stats.errorCount;
-        
-        // Update Ring Gradient (Visual only)
-        if (dom.scoreRing) {
-            const hue = Math.min(120, (wpm / 60) * 120); // 0 (red) to 120 (green) at 60wpm
-            dom.scoreRing.style.background = `conic-gradient(hsl(${hue}, 70%, 45%) ${stats.accuracy}%, var(--bg-input) 0)`;
-        }
+    }
+
+    function animateValue(element, start, end, duration) {
+        if (!element) return;
+        const startTimestamp = performance.now();
+        const step = (timestamp) => {
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            element.textContent = Math.floor(easeProgress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
     }
 
     async function submitPracticeData(stats) {

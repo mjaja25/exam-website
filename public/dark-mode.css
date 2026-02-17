@@ -1269,6 +1269,199 @@ body {
     background: var(--bg-tertiary);
 }
 
+/* Practice Engine Dark Mode */
+[data-theme="dark"] .engine-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    box-shadow: 0 4px 0 var(--border-light);
+}
+
+[data-theme="dark"] .engine-card:hover {
+    box-shadow: 0 6px 0 var(--border-light);
+}
+
+[data-theme="dark"] .engine-stats-bar {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .engine-stat-value {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .passage-display {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .engine-textarea {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .engine-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.2);
+}
+
+[data-theme="dark"] .passage-display span.correct {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .passage-display span.incorrect {
+    color: var(--danger);
+}
+
+[data-theme="dark"] .passage-display span.current {
+    border-bottom-color: var(--primary);
+    background: rgba(88, 204, 2, 0.1);
+}
+
+/* Practice Results Dark Mode */
+[data-theme="dark"] .practice-results-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    box-shadow: 0 4px 0 var(--border-light);
+}
+
+[data-theme="dark"] .practice-results-card:hover {
+    box-shadow: 0 8px 0 var(--border-light);
+}
+
+[data-theme="dark"] .practice-results-card.heatmap-card {
+    background: rgba(88, 204, 2, 0.02);
+}
+
+[data-theme="dark"] .practice-results-card h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .practice-score-circle {
+    background: conic-gradient(var(--primary) var(--progress, 0deg), var(--bg-tertiary) var(--progress, 0deg));
+}
+
+[data-theme="dark"] .practice-score-circle::before {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .practice-score-circle .score-value {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .practice-stat span {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .personal-record-badge {
+    background: linear-gradient(135deg, rgba(88, 204, 2, 0.2), var(--bg-card));
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Drill Engine Dark Mode */
+[data-theme="dark"] .drill-header h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .drill-back-btn {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .drill-passage-display {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .drill-input {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .drill-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.2);
+}
+
+[data-theme="dark"] .drill-accuracy-bar {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .drill-stats strong {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .drill-complete-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .drill-complete-card h3 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .drill-record-msg {
+    background: rgba(88, 204, 2, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+[data-theme="dark"] .drill-action-btn {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .drill-action-btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Selector and Buttons Dark Mode */
+[data-theme="dark"] .select-btn {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .select-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .start-btn {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .drill-custom-input {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .drill-custom-input:focus {
+    border-color: var(--primary);
+}
+
+/* Keyboard Indicator Dark Mode */
+[data-theme="dark"] .key-indicator.error-high { 
+    background: #dc2626; 
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); 
+}
+[data-theme="dark"] .key-indicator.error-med { 
+    background: #fbbf24; 
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.5); 
+}
+[data-theme="dark"] .key-indicator.error-low { 
+    background: #4ade80; 
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); 
+}
+
 /* ============================================
    RESULTS PAGES DARK MODE
    ============================================ */

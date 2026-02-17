@@ -8,6 +8,9 @@ export class TypingEngine {
         this.accuracyElement = config.accuracyElement;
 
         this.duration = config.duration || 300;
+        this.allowBackspace = config.allowBackspace !== false; // Default true
+        this.minAccuracy = config.minAccuracy || 90;
+
         this.onComplete = config.onComplete || (() => { });
         this.onTick = config.onTick || (() => { });
 
@@ -52,10 +55,16 @@ export class TypingEngine {
         
         if (this.timerInterval) clearInterval(this.timerInterval);
 
-        if (this.timerElement) this.timerElement.textContent = this.formatTime(this.duration);
+        if (this.timerElement) {
+            this.timerElement.textContent = this.formatTime(this.duration);
+            this.timerElement.classList.remove('timer-danger');
+        }
         if (this.progressBar) this.progressBar.style.width = '0%';
         if (this.wpmElement) this.wpmElement.textContent = '0';
-        if (this.accuracyElement) this.accuracyElement.textContent = '100%';
+        if (this.accuracyElement) {
+            this.accuracyElement.textContent = '100%';
+            this.accuracyElement.classList.remove('text-danger');
+        }
 
         text.split('').forEach(char => {
             const span = document.createElement('span');
@@ -79,6 +88,11 @@ export class TypingEngine {
 
     handleKeydown(e) {
         if (e.key === 'Enter' || e.key === 'Escape') {
+            e.preventDefault();
+        }
+
+        // Block Backspace if disabled
+        if (!this.allowBackspace && e.key === 'Backspace') {
             e.preventDefault();
         }
     }
@@ -123,6 +137,7 @@ export class TypingEngine {
         this.startTime = Date.now();
 
         this.timerInterval = setInterval(() => {
+            if (!this.startTime) return; 
             const elapsed = (Date.now() - this.startTime) / 1000;
             const remaining = Math.max(0, this.duration - elapsed);
 
@@ -177,27 +192,53 @@ export class TypingEngine {
 
         if (chars.length < spans.length) {
             const next = spans[chars.length];
-            next.classList.add('current');
-            next.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (next) {
+                next.classList.add('current');
+                // Ensure the cursor stays in view
+                const containerHeight = this.displayElement.offsetHeight;
+                const spanTop = next.offsetTop;
+                const scrollTop = this.displayElement.scrollTop;
+                
+                if (spanTop > scrollTop + containerHeight - 50) {
+                    this.displayElement.scrollTop = spanTop - containerHeight / 2;
+                }
+            }
         } else {
             this.end();
         }
 
-        if (this.startTime) {
-            const elapsedMin = (Date.now() - this.startTime) / 60000;
-            if (elapsedMin > 0) {
-                const wpm = Math.round((correct / 5) / elapsedMin);
-                if (this.wpmElement) this.wpmElement.textContent = wpm;
+        this.updateStats(correct, chars.length);
+    }
 
-                const accuracy = Math.round((correct / chars.length) * 100);
-                if (this.accuracyElement) this.accuracyElement.textContent = `${accuracy}%`;
+    updateStats(correctCount, totalCount) {
+        if (!this.startTime) return;
+        const elapsedMin = (Date.now() - this.startTime) / 60000;
+        
+        if (elapsedMin > 0) {
+            // Net WPM: (Correct / 5) / Minutes
+            const netWpm = Math.round((correctCount / 5) / elapsedMin);
+            if (this.wpmElement) this.wpmElement.textContent = netWpm;
+
+            const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 100;
+            if (this.accuracyElement) {
+                this.accuracyElement.textContent = `${accuracy}%`;
+                
+                // Visual Warning for Disqualification
+                if (accuracy < this.minAccuracy) {
+                    this.accuracyElement.style.color = '#ef4444'; // Red
+                    this.accuracyElement.title = `Warning: Below Qualifying Accuracy (${this.minAccuracy}%)`;
+                } else {
+                    this.accuracyElement.style.color = ''; // Reset
+                    this.accuracyElement.title = '';
+                }
             }
         }
     }
 
     updateTimerDisplay(remainingSec, elapsedSec) {
         if (this.timerElement) {
-            this.timerElement.textContent = this.formatTime(remainingSec);
+            const formatted = this.formatTime(remainingSec);
+            this.timerElement.textContent = formatted;
             if (remainingSec < 30) this.timerElement.classList.add('timer-danger');
         }
 
@@ -218,7 +259,8 @@ export class TypingEngine {
         const totalChars = this.inputElement.value.length;
         const elapsedMin = (Date.now() - this.startTime) / 60000;
 
-        const wpm = elapsedMin > 0 ? Math.round((totalChars / 5) / elapsedMin) : 0;
+        // Net WPM for final submission
+        const wpm = elapsedMin > 0 ? Math.round((correctChars / 5) / elapsedMin) : 0;
         const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
         const errorCount = totalChars - correctChars;
 

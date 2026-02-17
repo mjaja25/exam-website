@@ -24,8 +24,7 @@ exports.getPublicConfig = async (req, res) => {
         if (!settings) settings = new Settings();
 
         res.json({
-            typingDuration: settings.typing.durationSeconds,
-            typingDurationNew: settings.typing.durationSecondsNewPattern,
+            typing: settings.typing,
             excelMcqDuration: settings.exam.excelMcqTimerSeconds
         });
     } catch (error) {

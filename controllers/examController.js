@@ -7,7 +7,7 @@ const Settings = require('../models/Settings');
 
 exports.submitTyping = async (req, res) => {
     try {
-        // Extract raw data, ignoring client-calculated wpm/accuracy
+        // Extract raw data
         const { sessionId, testPattern, typingDuration, totalChars, correctChars, errorCount, typingErrorDetails } = req.body;
         const userId = req.userId;
 
@@ -19,38 +19,57 @@ exports.submitTyping = async (req, res) => {
         
         // 1. Fetch Dynamic Settings
         let settings = await Settings.findOne({ key: 'global_exam_config' });
-        if (!settings) settings = new Settings(); // Use defaults if not found
+        if (!settings) settings = new Settings();
 
-        const MAX_WPM_THRESHOLD = settings.typing.wpmThreshold;
-        const MAX_MARKS_STANDARD = settings.exam.maxTypingMarksStandard;
-        const MAX_MARKS_NEW = settings.exam.maxTypingMarksNew;
+        // 2. Determine Pattern Config
+        const isNewPattern = testPattern === 'new_pattern';
+        const config = isNewPattern ? settings.typing.newPattern : settings.typing.standard;
+        
+        // Fallbacks if config is missing (backward compatibility)
+        const MAX_MARKS = config.maxMarks || (isNewPattern ? 30 : 20);
+        const TARGET_WPM = config.targetWPM || (isNewPattern ? 40 : 35);
+        const MIN_ACCURACY = config.minAccuracy || 90;
+        const PENALTY = config.penalty || 2;
+        const BONUS = config.bonus || 1;
 
-        // 2. Sanitize Inputs
+        // 3. Sanitize Inputs
         const safeTotalChars = parseInt(totalChars) || 0;
         const safeCorrectChars = parseInt(correctChars) || 0;
-        // Ensure duration is at least 1 second to avoid Infinity, default to 300s if missing
-        const safeDuration = Math.max(1, parseFloat(typingDuration) || 300);
+        const safeDuration = Math.max(1, parseFloat(typingDuration) || (config.duration || 300));
 
-        // 3. Calculate WPM
+        // 4. Calculate Net WPM
         // Formula: (Correct Characters / 5) / (Time in Minutes)
         const calculatedWPM = Math.round((safeCorrectChars / 5) / (safeDuration / 60));
 
-        // 4. Calculate Accuracy
-        // Formula: (Correct / Total) * 100
+        // 5. Calculate Accuracy
         let calculatedAccuracy = 0;
         if (safeTotalChars > 0) {
             calculatedAccuracy = Math.round((safeCorrectChars / safeTotalChars) * 100);
         }
 
-        // 5. Calculate Marks
+        // 6. Calculate Marks based on New Criteria
         let typingScore = 0;
 
-        if (testPattern === 'new_pattern') {
-            // New Pattern
-            typingScore = Math.min(MAX_MARKS_NEW, Math.round((calculatedWPM / MAX_WPM_THRESHOLD) * MAX_MARKS_NEW));
+        if (calculatedAccuracy < MIN_ACCURACY) {
+            // Disqualified
+            typingScore = 0;
         } else {
-            // Standard Pattern
-            typingScore = Math.min(MAX_MARKS_STANDARD, Math.round((calculatedWPM / MAX_WPM_THRESHOLD) * MAX_MARKS_STANDARD));
+            // Base Score based on Speed
+            // (Net WPM / Target WPM) * Max Marks
+            let rawScore = (calculatedWPM / TARGET_WPM) * MAX_MARKS;
+            
+            // Apply Penalty (90% <= Acc < 95%)
+            if (calculatedAccuracy < 95) {
+                rawScore -= PENALTY;
+            }
+
+            // Apply Bonus (100% Acc)
+            if (calculatedAccuracy === 100) {
+                rawScore += BONUS;
+            }
+
+            // Clamp Score (0 to Max Marks)
+            typingScore = Math.max(0, Math.min(MAX_MARKS, Math.round(rawScore)));
         }
 
         // Create or Update the TestResult
@@ -77,7 +96,8 @@ exports.submitTyping = async (req, res) => {
             typingScore: typingScore,
             serverCalculated: {
                 wpm: calculatedWPM,
-                accuracy: calculatedAccuracy
+                accuracy: calculatedAccuracy,
+                qualified: calculatedAccuracy >= MIN_ACCURACY
             }
         });
     } catch (error) {

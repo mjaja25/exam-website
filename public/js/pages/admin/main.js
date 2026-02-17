@@ -209,28 +209,58 @@ async function initSettings() {
     try {
         const settings = await adminApi.getSettings();
         
-        document.getElementById('set-wpm-threshold').value = settings.typing.wpmThreshold;
-        document.getElementById('set-dur-std').value = settings.typing.durationSeconds;
-        document.getElementById('set-dur-new').value = settings.typing.durationSecondsNewPattern;
-        document.getElementById('set-max-std').value = settings.exam.maxTypingMarksStandard;
-        document.getElementById('set-max-new').value = settings.exam.maxTypingMarksNew;
-        document.getElementById('set-mcq-timer').value = settings.exam.excelMcqTimerSeconds;
+        // Standard Pattern
+        const std = settings.typing.standard || {};
+        document.getElementById('std-duration').value = std.duration || 300;
+        document.getElementById('std-max-marks').value = std.maxMarks || 20;
+        document.getElementById('std-target-wpm').value = std.targetWPM || 35;
+        document.getElementById('std-min-acc').value = std.minAccuracy || 90;
+        document.getElementById('std-penalty').value = std.penalty || 2;
+        document.getElementById('std-bonus').value = std.bonus || 1;
+        document.getElementById('std-backspace').checked = std.allowBackspace !== false;
+
+        // New Pattern
+        const np = settings.typing.newPattern || {};
+        document.getElementById('new-duration').value = np.duration || 600;
+        document.getElementById('new-max-marks').value = np.maxMarks || 30;
+        document.getElementById('new-target-wpm').value = np.targetWPM || 40;
+        document.getElementById('new-min-acc').value = np.minAccuracy || 90;
+        document.getElementById('new-penalty').value = np.penalty || 2;
+        document.getElementById('new-bonus').value = np.bonus || 1;
+        document.getElementById('new-backspace').checked = np.allowBackspace !== false;
+
+        // Excel
+        document.getElementById('set-mcq-timer').value = settings.exam.excelMcqTimerSeconds || 300;
 
     } catch (err) {
         ui.showToast('Failed to load settings', 'error');
+        console.error(err);
     }
 
     form.onsubmit = async (e) => {
         e.preventDefault();
         const payload = {
             typing: {
-                wpmThreshold: parseInt(document.getElementById('set-wpm-threshold').value),
-                durationSeconds: parseInt(document.getElementById('set-dur-std').value),
-                durationSecondsNewPattern: parseInt(document.getElementById('set-dur-new').value)
+                standard: {
+                    duration: parseInt(document.getElementById('std-duration').value),
+                    maxMarks: parseInt(document.getElementById('std-max-marks').value),
+                    targetWPM: parseInt(document.getElementById('std-target-wpm').value),
+                    minAccuracy: parseInt(document.getElementById('std-min-acc').value),
+                    penalty: parseInt(document.getElementById('std-penalty').value),
+                    bonus: parseInt(document.getElementById('std-bonus').value),
+                    allowBackspace: document.getElementById('std-backspace').checked
+                },
+                newPattern: {
+                    duration: parseInt(document.getElementById('new-duration').value),
+                    maxMarks: parseInt(document.getElementById('new-max-marks').value),
+                    targetWPM: parseInt(document.getElementById('new-target-wpm').value),
+                    minAccuracy: parseInt(document.getElementById('new-min-acc').value),
+                    penalty: parseInt(document.getElementById('new-penalty').value),
+                    bonus: parseInt(document.getElementById('new-bonus').value),
+                    allowBackspace: document.getElementById('new-backspace').checked
+                }
             },
             exam: {
-                maxTypingMarksStandard: parseInt(document.getElementById('set-max-std').value),
-                maxTypingMarksNew: parseInt(document.getElementById('set-max-new').value),
                 excelMcqTimerSeconds: parseInt(document.getElementById('set-mcq-timer').value)
             }
         };

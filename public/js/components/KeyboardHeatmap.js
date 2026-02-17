@@ -16,28 +16,27 @@ export class KeyboardHeatmap {
         ];
     }
 
-    getKeyColor(key) {
+    getKeyIndicatorClass(key) {
         const keyLower = key.toLowerCase();
         const keyData = this.data[keyLower] || { count: 0, errors: 0 };
         
         if (this.mode === 'errors') {
-            if (keyData.count === 0) return 'key-neutral';
+            if (keyData.count === 0) return null;
             const errorRate = keyData.errors / keyData.count;
-            if (errorRate > 0.2) return 'key-error-high';
-            if (errorRate > 0.1) return 'key-error-med';
-            if (keyData.errors > 0) return 'key-error-low';
-            return 'key-neutral';
+            if (errorRate > 0.2) return 'error-high';
+            if (errorRate > 0.1) return 'error-med';
+            if (keyData.errors > 0) return 'error-low';
+            return null;
         } else {
-            // Usage mode
             const maxCount = Math.max(
                 1,
                 ...Object.values(this.data).map(k => k.count)
             );
             const intensity = keyData.count / maxCount;
-            if (intensity > 0.7) return 'key-usage-high';
-            if (intensity > 0.4) return 'key-usage-med';
-            if (keyData.count > 0) return 'key-usage-low';
-            return 'key-neutral';
+            if (intensity > 0.7) return 'usage-high';
+            if (intensity > 0.4) return 'usage-med';
+            if (keyData.count > 0) return 'usage-low';
+            return null;
         }
     }
 
@@ -69,11 +68,20 @@ export class KeyboardHeatmap {
             
             row.forEach(key => {
                 const keyDiv = document.createElement('div');
-                keyDiv.className = `key ${this.getKeyColor(key)}`;
-                keyDiv.textContent = key;
+                keyDiv.className = 'key';
                 keyDiv.style.flex = this.getKeyWidth(key);
                 
-                // Add tooltip
+                const keyText = document.createElement('span');
+                keyText.textContent = key;
+                keyDiv.appendChild(keyText);
+                
+                const indicatorClass = this.getKeyIndicatorClass(key);
+                if (indicatorClass) {
+                    const indicator = document.createElement('div');
+                    indicator.className = `key-indicator ${indicatorClass}`;
+                    keyDiv.appendChild(indicator);
+                }
+                
                 const keyLower = key.toLowerCase();
                 const keyData = this.data[keyLower];
                 if (keyData) {
@@ -99,17 +107,17 @@ export class KeyboardHeatmap {
         
         if (this.mode === 'errors') {
             legend.innerHTML = `
-                <span class="legend-item"><span class="color-box key-error-high"></span>High Error Rate (>20%)</span>
-                <span class="legend-item"><span class="color-box key-error-med"></span>Medium (10-20%)</span>
-                <span class="legend-item"><span class="color-box key-error-low"></span>Low (<10%)</span>
-                <span class="legend-item"><span class="color-box key-neutral"></span>No Errors</span>
+                <span class="legend-item"><span class="color-box" style="background: #dc2626;"></span>High Error Rate (&gt;20%)</span>
+                <span class="legend-item"><span class="color-box" style="background: #fbbf24;"></span>Medium (10-20%)</span>
+                <span class="legend-item"><span class="color-box" style="background: #4ade80;"></span>Low (&lt;10%)</span>
+                <span class="legend-item"><span class="color-box" style="background: var(--bg-card); border: 1px solid var(--border-color);"></span>No Errors</span>
             `;
         } else {
             legend.innerHTML = `
-                <span class="legend-item"><span class="color-box key-usage-high"></span>High Usage</span>
-                <span class="legend-item"><span class="color-box key-usage-med"></span>Medium</span>
-                <span class="legend-item"><span class="color-box key-usage-low"></span>Low</span>
-                <span class="legend-item"><span class="color-box key-neutral"></span>Not Used</span>
+                <span class="legend-item"><span class="color-box" style="background: var(--primary);"></span>High Usage</span>
+                <span class="legend-item"><span class="color-box" style="background: #86efac;"></span>Medium</span>
+                <span class="legend-item"><span class="color-box" style="background: #bbf7d0;"></span>Low</span>
+                <span class="legend-item"><span class="color-box" style="background: var(--bg-card); border: 1px solid var(--border-color);"></span>Not Used</span>
             `;
         }
         

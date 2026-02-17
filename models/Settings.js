@@ -5,16 +5,29 @@ const settingsSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        default: 'global_exam_config' // Single document pattern
+        default: 'global_exam_config'
     },
     typing: {
-        wpmThreshold: { type: Number, default: 35 }, // Score multiplier base
-        durationSeconds: { type: Number, default: 300 }, // 5 minutes
-        durationSecondsNewPattern: { type: Number, default: 600 } // 10 minutes
+        standard: {
+            duration: { type: Number, default: 300 }, // 5 mins
+            maxMarks: { type: Number, default: 20 },
+            minAccuracy: { type: Number, default: 90 }, // Disqualify below this
+            penalty: { type: Number, default: 2 }, // Deduct marks for 90-95%
+            bonus: { type: Number, default: 1 }, // Add marks for 100%
+            targetWPM: { type: Number, default: 35 },
+            allowBackspace: { type: Boolean, default: true }
+        },
+        newPattern: {
+            duration: { type: Number, default: 600 }, // 10 mins
+            maxMarks: { type: Number, default: 30 },
+            minAccuracy: { type: Number, default: 90 },
+            penalty: { type: Number, default: 2 },
+            bonus: { type: Number, default: 1 },
+            targetWPM: { type: Number, default: 40 },
+            allowBackspace: { type: Boolean, default: true }
+        }
     },
     exam: {
-        maxTypingMarksStandard: { type: Number, default: 20 },
-        maxTypingMarksNew: { type: Number, default: 30 },
         excelMcqTimerSeconds: { type: Number, default: 300 }
     }
 }, { timestamps: true });

@@ -44,16 +44,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initExam() {
         let duration = 300; // Fallback
+        let allowBackspace = true;
+        let minAccuracy = 90;
 
         try {
             const config = await client.get('/api/settings/public');
+            // Support both old and new API response structures for safety
+            const typingConfig = config.typing || {};
+            
             if (currentPattern === 'new_pattern') {
-                duration = config.typingDurationNew;
+                const np = typingConfig.newPattern || {};
+                duration = np.duration || config.typingDurationNew || 600;
+                allowBackspace = np.allowBackspace !== false;
+                minAccuracy = np.minAccuracy || 90;
             } else {
-                duration = config.typingDuration;
+                const std = typingConfig.standard || {};
+                duration = std.duration || config.typingDuration || 300;
+                allowBackspace = std.allowBackspace !== false;
+                minAccuracy = std.minAccuracy || 90;
             }
         } catch (err) {
-            console.warn("Using default duration due to config error:", err);
+            console.warn("Using default config due to error:", err);
         }
 
         engine = new TypingEngine({
@@ -64,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
             wpmElement: elements.wpmElement,
             accuracyElement: elements.accuracyElement,
             duration: duration,
+            allowBackspace: allowBackspace,
+            minAccuracy: minAccuracy,
             onComplete: (stats) => submitExam(stats)
         });
 

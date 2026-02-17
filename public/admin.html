@@ -642,43 +642,82 @@
                     <h2>Global Exam Settings</h2>
                 </div>
                 <form id="settings-form">
-                    <div class="settings-grid">
-                        <div class="settings-group">
-                            <h3>Typing Configuration</h3>
+                    <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        
+                        <!-- Standard Pattern -->
+                        <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Standard Pattern</h3>
                             
                             <div class="form-group">
-                                <label>WPM Threshold (Full Marks)</label>
-                                <input type="number" id="set-wpm-threshold">
+                                <label>Duration (Seconds)</label>
+                                <input type="number" id="std-duration" required>
                             </div>
-                            
                             <div class="form-group">
-                                <label>Duration (Standard) - Seconds</label>
-                                <input type="number" id="set-dur-std">
+                                <label>Max Marks</label>
+                                <input type="number" id="std-max-marks" required>
                             </div>
-                            
                             <div class="form-group">
-                                <label>Duration (New Pattern) - Seconds</label>
-                                <input type="number" id="set-dur-new">
+                                <label>Target WPM (Full Marks)</label>
+                                <input type="number" id="std-target-wpm" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Min Accuracy % (Qualifying)</label>
+                                <input type="number" id="std-min-acc" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Penalty (90-95% Acc)</label>
+                                <input type="number" id="std-penalty" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Bonus (100% Acc)</label>
+                                <input type="number" id="std-bonus" required>
+                            </div>
+                            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="std-backspace" style="width: auto;">
+                                <label style="margin: 0;">Allow Backspace</label>
                             </div>
                         </div>
-                        
-                        <div class="settings-group">
-                            <h3>Scoring Limits</h3>
+
+                        <!-- New Pattern -->
+                        <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">New Pattern</h3>
                             
                             <div class="form-group">
-                                <label>Max Marks (Standard Pattern)</label>
-                                <input type="number" id="set-max-std">
+                                <label>Duration (Seconds)</label>
+                                <input type="number" id="new-duration" required>
                             </div>
-                            
                             <div class="form-group">
-                                <label>Max Marks (New Pattern)</label>
-                                <input type="number" id="set-max-new">
+                                <label>Max Marks</label>
+                                <input type="number" id="new-max-marks" required>
                             </div>
-                            
                             <div class="form-group">
-                                <label>Excel MCQ Timer - Seconds</label>
-                                <input type="number" id="set-mcq-timer">
+                                <label>Target WPM (Full Marks)</label>
+                                <input type="number" id="new-target-wpm" required>
                             </div>
+                            <div class="form-group">
+                                <label>Min Accuracy % (Qualifying)</label>
+                                <input type="number" id="new-min-acc" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Penalty (90-95% Acc)</label>
+                                <input type="number" id="new-penalty" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Bonus (100% Acc)</label>
+                                <input type="number" id="new-bonus" required>
+                            </div>
+                            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="new-backspace" style="width: auto;">
+                                <label style="margin: 0;">Allow Backspace</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem;">
+                        <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Excel Exam</h3>
+                        <div class="form-group">
+                            <label>Excel MCQ Timer - Seconds</label>
+                            <input type="number" id="set-mcq-timer" required>
                         </div>
                     </div>
                     
