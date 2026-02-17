@@ -5564,6 +5564,18 @@ body.mobile-warning-active {
     align-items: center;
     gap: 1rem;
     min-width: 0;
+    flex: 1;
+}
+
+.rank-user[onclick] {
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.rank-user[onclick]:hover {
+    background: var(--bg-input);
+    transform: scale(1.02);
 }
 
 .rank-avatar {
@@ -5653,6 +5665,18 @@ body.mobile-warning-active {
     background: linear-gradient(135deg, #FFF5D1 0%, #FFE4A0 100%);
     border-color: #FFD700;
     color: #996600;
+}
+
+.rank-2 .rank-score-value {
+    background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+    border-color: #C0C0C0;
+    color: #555555;
+}
+
+.rank-3 .rank-score-value {
+    background: linear-gradient(135deg, #FFF8F0 0%, #FFE8D6 100%);
+    border-color: #CD7F32;
+    color: #8B4513;
 }
 
 .rank-vs-btn {
@@ -9911,4 +9935,271 @@ body.typing-page textarea:focus,
 .win97-text-size-btn:active {
     border-color: #000000 #ffffff #ffffff #000000;
     box-shadow: inset 1px 1px 0 #808080;
+}
+
+/* ============================================
+   RESULTS PAGE REDESIGN - TABS & AI COACH
+   ============================================ */
+
+/* Tab Navigation */
+.results-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+    justify-content: center;
+}
+
+.tab-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-bottom-width: 4px;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--text-secondary);
+}
+
+.tab-btn:hover {
+    border-color: var(--primary);
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    border-bottom-color: var(--primary-shade);
+    color: white;
+}
+
+.tab-btn:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+}
+
+/* Tab Content */
+.results-tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.results-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* WPM Chart Container */
+.wpm-chart-card {
+    margin-top: var(--spacing-lg);
+}
+
+.chart-container {
+    height: 280px;
+    width: 100%;
+    position: relative;
+}
+
+#wpm-chart {
+    width: 100%;
+    height: 100%;
+}
+
+/* AI Coach Section */
+.ai-coach-section {
+    margin-top: var(--spacing-xl);
+    text-align: center;
+}
+
+.ai-coach-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border: 2px solid #7c3aed;
+    border-bottom-width: 4px;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.ai-coach-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+.ai-coach-btn:active {
+    transform: translateY(0);
+    border-bottom-width: 2px;
+}
+
+.ai-coach-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ai-coach-btn .icon {
+    font-size: 1.3rem;
+}
+
+/* Coach Panel */
+.coach-panel {
+    margin-top: var(--spacing-lg);
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align: left;
+    animation: slideIn 0.4s ease;
+}
+
+.coach-panel.hidden {
+    display: none;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.coach-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.coach-header h3 {
+    font-family: var(--font-heading);
+    color: var(--primary);
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.coach-header .badge {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .results-tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .chart-container {
+        height: 220px;
+    }
+}
+
+/* Coach Report Content Styles */
+.coach-level {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.coach-summary {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.6;
+}
+
+.coach-tips {
+    background: var(--bg-input);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.coach-tips .tip {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.coach-tips .tip:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.coach-tips .tip strong {
+    color: var(--primary);
+}
+
+.coach-drills {
+    margin-bottom: var(--spacing-lg);
+}
+
+.coach-drills h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.drill-item {
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.drill-item .drill-name {
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.drill-item .drill-text {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+    padding: var(--spacing-sm);
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+}
+
+.drill-item .drill-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.coach-goals {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: center;
+    font-weight: 700;
+    color: #92400e;
 }

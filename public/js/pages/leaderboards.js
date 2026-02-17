@@ -236,10 +236,9 @@ function createRankCard(entry, rank, isTop3, unit) {
     
     return `
         <div class="rank-card rank-${rank} ${isMe ? 'is-me' : ''}" 
-             style="animation-delay: ${isTop3 ? (rank - 1) * 0.1 : (rank - 3) * 0.05}s"
-             onclick="${!isMe ? `openCompare('${entry._id}')` : ''}">
+             style="animation-delay: ${isTop3 ? (rank - 1) * 0.1 : (rank - 3) * 0.05}s">
             <div class="rank-number">${rank}</div>
-            <div class="rank-user">
+            <div class="rank-user" ${!isMe ? `onclick="openCompare('${entry._id}')" style="cursor:pointer"` : ''}>
                 ${getAvatarHtml(entry.user)}
                 <div class="rank-info">
                     <div class="rank-username">
@@ -251,7 +250,7 @@ function createRankCard(entry, rank, isTop3, unit) {
             </div>
             <div class="rank-score">
                 <span class="rank-score-value">${scoreValue} ${unit}</span>
-                ${!isMe ? `<button class="rank-vs-btn" onclick="event.stopPropagation(); openCompare('${entry._id}')">VS</button>` : ''}
+                ${!isMe ? `<button class="rank-vs-btn" onclick="openCompare('${entry._id}')">VS</button>` : ''}
             </div>
         </div>
     `;
@@ -400,6 +399,12 @@ window.closeModal = function(e) {
 };
 
 function triggerConfetti(type) {
+    // Check if confetti library is loaded
+    if (typeof confetti !== 'function') {
+        console.warn('Confetti library not loaded');
+        return;
+    }
+    
     if (type === 'page') {
         const count = 200;
         const defaults = {

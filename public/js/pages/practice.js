@@ -132,10 +132,157 @@ document.addEventListener('DOMContentLoaded', () => {
     window.retryPractice = retryPractice;
     window.backToResults = showDrillResults; // For drill intermediate results
     window.changePassageSize = changePassageSize;
+    window.switchResultsTab = switchResultsTab;
 
     // Heatmap Toggle Removed - Always Error Mode
+    
+    // Tab Switching
+    function switchResultsTab(tabName) {
+        // Update button states
+        document.querySelectorAll('.results-tabs .tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.toLowerCase().includes(tabName === 'overview' ? 'overview' : 'analysis')) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Show/hide tab content
+        document.querySelectorAll('.results-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+    
+    // AI Coach Button
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const coachPanel = document.getElementById('coach-panel');
+    
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', async () => {
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<span class="icon">⏳</span><span class="text">Analyzing...</span>';
+            
+            // Get stats from the last session
+            const stats = state.lastSessionStats;
+            if (!stats) {
+                ui.showToast('No session data available', 'error');
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Analyze with AI Coach</span>';
+                return;
+            }
+            
+            try {
+                const res = await client.post('/api/practice/analyze', {
+                    type: 'typing',
+                    wpm: stats.wpm,
+                    accuracy: stats.accuracy,
+                    duration: stats.duration,
+                    errorCount: stats.errorCount,
+                    errorDetails: stats.errorDetails || ''
+                });
+                
+                if (res.analysis) {
+                    renderCoachReport(res.analysis);
+                    coachPanel.classList.remove('hidden');
+                    analyzeBtn.innerHTML = '<span class="icon">✅</span><span class="text">Analysis Complete</span>';
+                }
+            } catch (err) {
+                console.error('AI Analysis error:', err);
+                ui.showToast('Failed to generate analysis', 'error');
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Analyze with AI Coach</span>';
+            }
+        });
+    }
+    
+    function renderCoachReport(analysis) {
+        const content = document.getElementById('coach-content');
+        if (!content) return;
+        
+        let html = '';
+        
+        // Level badge
+        if (analysis.level) {
+            html += `<div class="coach-level">Level: ${analysis.level}</div>`;
+        }
+        
+        // Summary
+        if (analysis.summary) {
+            html += `<div class="coach-summary">${analysis.summary}</div>`;
+        }
+        
+        // Tips
+        if (analysis.speedTip || analysis.accuracyTip) {
+            html += '<div class="coach-tips">';
+            if (analysis.speedTip) {
+                html += `<div class="tip"><strong>⚡ Speed:</strong> ${analysis.speedTip}</div>`;
+            }
+            if (analysis.accuracyTip) {
+                html += `<div class="tip"><strong>🎯 Accuracy:</strong> ${analysis.accuracyTip}</div>`;
+            }
+            html += '</div>';
+        }
+        
+        // Drills
+        if (analysis.drills && analysis.drills.length > 0) {
+            html += '<div class="coach-drills"><h4>Recommended Drills</h4>';
+            analysis.drills.forEach((drill, i) => {
+                html += `
+                    <div class="drill-item">
+                        <div class="drill-name">${i + 1}. ${drill.name}</div>
+                        <div class="drill-text">${drill.text}</div>
+                        <div class="drill-meta">${drill.reps} reps · Target: ${drill.target}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+        
+        // Goals
+        if (analysis.goalWpm || analysis.goalAccuracy) {
+            html += `<div class="coach-goals">🎯 Goal: ${analysis.goalWpm || '--'} WPM at ${analysis.goalAccuracy || '--'}% accuracy</div>`;
+        }
+        
+        content.innerHTML = html;
+    }
+    
+    // WPM Timeline for chart
+    let wpmTimeline = [];
+    let wpmSampleInterval = null;
+    let sessionStartTime = null;
 
-
+    // Start WPM sampling
+    function startWpmSampling() {
+        wpmTimeline = [{ time: 0, wpm: 0 }];
+        sessionStartTime = Date.now();
+        
+        wpmSampleInterval = setInterval(() => {
+            if (!state.engine || !state.engine.inputElement) return;
+            
+            const elapsed = (Date.now() - sessionStartTime) / 60000; // minutes
+            const typed = state.engine.inputElement.value.length;
+            const wpm = elapsed > 0 ? Math.round((typed / 5) / elapsed) : 0;
+            const secs = Math.round((Date.now() - sessionStartTime) / 1000);
+            
+            wpmTimeline.push({ time: secs, wpm });
+        }, 3000); // Sample every 3 seconds
+    }
+    
+    // Stop WPM sampling
+    function stopWpmSampling() {
+        if (wpmSampleInterval) {
+            clearInterval(wpmSampleInterval);
+            wpmSampleInterval = null;
+        }
+        // Add final sample
+        if (sessionStartTime && state.engine && state.engine.inputElement) {
+            const elapsed = (Date.now() - sessionStartTime) / 60000;
+            const typed = state.engine.inputElement.value.length;
+            const wpm = elapsed > 0 ? Math.round((typed / 5) / elapsed) : 0;
+            const secs = Math.round((Date.now() - sessionStartTime) / 1000);
+            wpmTimeline.push({ time: secs, wpm });
+        }
+    }
 
     // --- Core Functions ---
 
@@ -193,7 +340,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ...elements,
             duration: state.config.duration,
             isSimulationMode: isSim,
-            onComplete: handleSessionComplete
+            onStart: startWpmSampling,
+            onComplete: (stats) => {
+                stopWpmSampling();
+                handleSessionComplete(stats);
+            }
         });
 
         // Load Passage
@@ -331,11 +482,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Switch to Results View
         switchView('results');
         
-        // 2. Check for personal record and render basic stats
+        // 2. Store stats for AI analysis
+        state.lastSessionStats = {
+            ...stats,
+            errorDetails: formatErrorDetails(state.engine.errors)
+        };
+        
+        // Reset AI button
+        if (analyzeBtn) {
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Analyze with AI Coach</span>';
+        }
+        if (coachPanel) {
+            coachPanel.classList.add('hidden');
+        }
+        
+        // 3. Check for personal record and render basic stats
         const isNewRecord = await checkAndShowPersonalRecord(stats.wpm);
         renderBasicStats(stats, isNewRecord);
         
-        // 3. Render Visualizations
+        // 4. Draw WPM Chart
+        drawWpmChart();
+        
+        // 5. Render Visualizations (Analysis Tab)
         if (state.heatmap) {
             state.heatmap.updateData(state.engine.keystrokes);
         } else {
@@ -343,17 +512,138 @@ document.addEventListener('DOMContentLoaded', () => {
             state.heatmap.render();
         }
 
-        // 4. Analyze Errors
+        // 6. Analyze Errors
         const analysis = state.analyzer.analyze(state.engine.errors, state.engine.keystrokes);
         state.analyzer.renderTopErrors(dom.topErrorsChart, analysis.topErrors);
         state.analyzer.renderFingerStats(dom.fingerStats, analysis.fingerPerformance);
         state.analyzer.renderRecommendations(dom.recommendationsList, analysis.recommendations);
 
-        // 5. Submit Data
+        // 7. Submit Data
         await submitPracticeData(stats);
 
-        // 6. Load History
+        // 8. Load History
         loadHistoricalProgress();
+    }
+    
+    function formatErrorDetails(errors) {
+        if (!errors || errors.length === 0) return '';
+        const errorMap = {};
+        errors.forEach(err => {
+            const key = `${err.expected}→${err.actual}`;
+            errorMap[key] = (errorMap[key] || 0) + 1;
+        });
+        return Object.entries(errorMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([k, v]) => `${k} (${v}x)`)
+            .join('\n');
+    }
+    
+    // Draw WPM Timeline Chart
+    function drawWpmChart() {
+        const canvas = document.getElementById('wpm-chart');
+        if (!canvas || wpmTimeline.length < 2) return;
+        
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Set canvas size
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const W = rect.width;
+        const H = rect.height;
+        const pad = { top: 20, right: 20, bottom: 35, left: 45 };
+        const chartW = W - pad.left - pad.right;
+        const chartH = H - pad.top - pad.bottom;
+        
+        const data = wpmTimeline;
+        const maxTime = data[data.length - 1].time || 1;
+        const maxWpm = Math.max(20, ...data.map(d => d.wpm)) * 1.15;
+        
+        const x = (t) => pad.left + (t / maxTime) * chartW;
+        const y = (w) => pad.top + chartH - (w / maxWpm) * chartH;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, W, H);
+        
+        // Grid lines
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 4; i++) {
+            const gy = pad.top + (chartH / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, gy);
+            ctx.lineTo(pad.left + chartW, gy);
+            ctx.stroke();
+        }
+        
+        // Y axis labels
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 4; i++) {
+            const val = Math.round(maxWpm * (1 - i / 4));
+            const gy = pad.top + (chartH / 4) * i;
+            ctx.fillText(val, pad.left - 8, gy + 4);
+        }
+        
+        // X axis labels
+        ctx.textAlign = 'center';
+        const xSteps = Math.min(6, data.length);
+        for (let i = 0; i < xSteps; i++) {
+            const idx = Math.floor((i / (xSteps - 1)) * (data.length - 1));
+            const d = data[idx];
+            ctx.fillText(`${d.time}s`, x(d.time), H - 8);
+        }
+        
+        // Gradient fill
+        const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+        grad.addColorStop(0, 'rgba(88, 204, 2, 0.3)');
+        grad.addColorStop(1, 'rgba(88, 204, 2, 0.02)');
+        
+        ctx.beginPath();
+        ctx.moveTo(x(data[0].time), y(0));
+        data.forEach(d => ctx.lineTo(x(d.time), y(d.wpm)));
+        ctx.lineTo(x(data[data.length - 1].time), y(0));
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        
+        // Line
+        ctx.beginPath();
+        data.forEach((d, i) => {
+            if (i === 0) ctx.moveTo(x(d.time), y(d.wpm));
+            else ctx.lineTo(x(d.time), y(d.wpm));
+        });
+        ctx.strokeStyle = '#58CC02';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        
+        // Dots
+        data.forEach(d => {
+            ctx.beginPath();
+            ctx.arc(x(d.time), y(d.wpm), 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#58CC02';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        });
+        
+        // Axis labels
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Time (seconds)', W / 2, H - 2);
+        ctx.save();
+        ctx.translate(12, H / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('WPM', 0, 0);
+        ctx.restore();
     }
 
     async function checkAndShowPersonalRecord(currentWpm) {

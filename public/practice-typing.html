@@ -217,68 +217,95 @@
         <div id="results-view" class="results-view practice-results-view hidden">
             <div class="results-header">
                 <h2>Practice Complete!</h2>
-                <p>Here's how you performed</p>
+                <div class="results-tabs">
+                    <button class="tab-btn active" onclick="switchResultsTab('overview')">Overview</button>
+                    <button class="tab-btn" onclick="switchResultsTab('analysis')">Analysis & Heatmap</button>
+                </div>
             </div>
 
-            <div class="practice-results-card score-card">
-                <div class="practice-score-section">
-                    <div class="practice-score-circle" id="score-ring">
-                        <span class="score-value" id="score-wpm">0</span>
-                        <span class="score-label">WPM</span>
-                    </div>
-                    <div id="personal-record-badge" class="personal-record-badge hidden">
-                        <span>New Personal Record!</span>
-                    </div>
-                    <div class="practice-stats-row">
-                        <div class="practice-stat">
-                            <span id="stat-accuracy">0%</span>
-                            <label>Accuracy</label>
+            <!-- OVERVIEW TAB -->
+            <div id="tab-overview" class="results-tab-content active">
+                <div class="practice-results-card score-card">
+                    <div class="practice-score-section">
+                        <div class="practice-score-circle" id="score-ring">
+                            <span class="score-value" id="score-wpm">0</span>
+                            <span class="score-label">WPM</span>
                         </div>
-                        <div class="practice-stat">
-                            <span id="stat-chars">0</span>
-                            <label>Characters</label>
+                        <div id="personal-record-badge" class="personal-record-badge hidden">
+                            <span>New Personal Record!</span>
                         </div>
-                        <div class="practice-stat">
-                            <span id="stat-errors">0</span>
-                            <label>Errors</label>
+                        <div class="practice-stats-row">
+                            <div class="practice-stat">
+                                <span id="stat-accuracy">0%</span>
+                                <label>Accuracy</label>
+                            </div>
+                            <div class="practice-stat">
+                                <span id="stat-chars">0</span>
+                                <label>Characters</label>
+                            </div>
+                            <div class="practice-stat">
+                                <span id="stat-errors">0</span>
+                                <label>Errors</label>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="practice-results-card breakdown-card">
-                <h3>Performance Breakdown</h3>
-                <div id="performance-chart"></div>
-            </div>
-
-            <div class="practice-results-card heatmap-card">
-                <div class="heatmap-header">
-                    <h3>Keyboard Heatmap (Error Intensity)</h3>
-                </div>
-                <div id="keyboard-heatmap"></div>
-            </div>
-
-            <div class="practice-results-card analysis-card">
-                <h3>Error Analysis</h3>
-                <div class="analysis-grid">
-                    <div class="analysis-section">
-                        <h4>Top Mistyped Keys</h4>
-                        <div id="top-errors-chart"></div>
-                    </div>
-                    <div class="analysis-section">
-                        <h4>Finger Performance</h4>
-                        <div id="finger-stats"></div>
+                <div class="practice-results-card wpm-chart-card">
+                    <h3>Speed Over Time</h3>
+                    <div class="chart-container">
+                        <canvas id="wpm-chart"></canvas>
                     </div>
                 </div>
-                <div class="recommendations">
-                    <h4>Recommendations</h4>
-                    <div id="recommendations-list"></div>
+
+                <div class="ai-coach-section">
+                    <button id="analyze-btn" class="ai-coach-btn">
+                        <span class="icon">🤖</span>
+                        <span class="text">Analyze with AI Coach</span>
+                    </button>
+                    
+                    <!-- Hidden Coach Panel -->
+                    <div id="coach-panel" class="coach-panel hidden">
+                        <div class="coach-header">
+                            <h3>AI Coaching Report</h3>
+                            <span class="badge">Personalized</span>
+                        </div>
+                        <div id="coach-content"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="practice-results-card history-card">
-                <h3>Your Progress</h3>
-                <div id="progress-chart"></div>
+            <!-- ANALYSIS TAB -->
+            <div id="tab-analysis" class="results-tab-content">
+                <div class="practice-results-card heatmap-card">
+                    <div class="heatmap-header">
+                        <h3>Keyboard Heatmap (Error Intensity)</h3>
+                    </div>
+                    <div id="keyboard-heatmap"></div>
+                </div>
+
+                <div class="practice-results-card analysis-card">
+                    <h3>Detailed Error Analysis</h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-section">
+                            <h4>Top Mistyped Keys</h4>
+                            <div id="top-errors-chart"></div>
+                        </div>
+                        <div class="analysis-section">
+                            <h4>Finger Performance</h4>
+                            <div id="finger-stats"></div>
+                        </div>
+                    </div>
+                    <div class="recommendations">
+                        <h4>Recommendations</h4>
+                        <div id="recommendations-list"></div>
+                    </div>
+                </div>
+                
+                <div class="practice-results-card history-card">
+                    <h3>Your Progress</h3>
+                    <div id="progress-chart"></div>
+                </div>
             </div>
 
             <div class="results-footer">

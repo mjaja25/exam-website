@@ -14,6 +14,7 @@ export class TypingEngine {
 
         this.onComplete = config.onComplete || (() => { });
         this.onTick = config.onTick || (() => { });
+        this.onStart = config.onStart || (() => { });
 
         this.timerInterval = null;
         this.startTime = null;
@@ -135,6 +136,7 @@ export class TypingEngine {
         if (this.isRunning) return;
         this.isRunning = true;
         this.startTime = Date.now();
+        this.onStart();
 
         this.timerInterval = setInterval(() => {
             if (!this.startTime) return; 
