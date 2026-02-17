@@ -168,12 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Expose global function for HTML onclicks
         window.formatText = (cmd) => format(cmd);
         
-        // Add submit listener with confirmation
+        // Add submit listener without confirmation
         if (elements.submitBtn) {
             elements.submitBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to submit your letter?')) {
-                    endTest();
-                }
+                endTest();
             });
         }
     }

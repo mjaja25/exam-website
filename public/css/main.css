@@ -7043,9 +7043,9 @@ body.typing-page textarea:focus,
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: var(--page-width);
+    max-width: 900px;
     margin: 0 auto;
-    padding: 0 var(--spacing-xl);
+    padding: 0 var(--spacing-md);
 }
 
 .practice-header .logo {

@@ -216,6 +216,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
                 window.location.href = `/results-new.html?sessionId=${sessionId}`;
             } else {
+                const data = await res.json();
+                if (data.message && data.message.includes("Test already completed")) {
+                    ui.showToast('Test already completed. Redirecting to results...', 'info');
+                    setTimeout(() => window.location.href = `/results-new.html?sessionId=${sessionId}`, 1500);
+                    return;
+                }
                 ui.showToast('Submission failed. Please contact admin.', 'error');
             }
         } catch (err) {

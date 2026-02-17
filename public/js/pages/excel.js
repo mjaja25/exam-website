@@ -164,6 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 isSubmitting = false;
                 
                 const errorMessage = error.message || 'Unknown error occurred';
+
+                // Handle already completed error
+                if (errorMessage.includes("Test already completed")) {
+                    ui.showToast('Test already completed. Redirecting to results...', 'info');
+                    setTimeout(() => window.location.href = '/results.html', 1500);
+                    return;
+                }
+
                 ui.showToast('File upload failed: ' + errorMessage, 'error');
                 console.error('Excel upload error:', error);
             }

@@ -21,10 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Initialize Quick Actions
     initQuickActions();
 
-    // 5. Logout
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.onclick = () => auth.logout();
-
     // 6. Initialize Modules
     new UserManager();
     new ContentManager();

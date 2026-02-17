@@ -165,12 +165,16 @@ exports.submitExcel = async (req, res) => {
         const originalQuestion = await ExcelQuestion.findById(questionId);
         if (!originalQuestion) return res.status(404).json({ message: 'Excel question not found.' });
 
-        // Use Service for Grading
-        const gradeResult = await aiGradingService.gradeExcel(req.file.path, originalQuestion.solutionFilePath, originalQuestion.questionName);
-
         // --- UNIFIED UPDATE & COMPLETION ---
         const existingRecord = await TestResult.findOne({ sessionId, user: userId });
         if (!existingRecord) return res.status(404).json({ message: "Test Session not found." });
+
+        if (existingRecord.status === 'completed') {
+            return res.status(400).json({ message: "Test already completed." });
+        }
+
+        // Use Service for Grading
+        const gradeResult = await aiGradingService.gradeExcel(req.file.path, originalQuestion.solutionFilePath, originalQuestion.questionName);
 
         const typingMarks = parseFloat(existingRecord.typingScore) || 0;
         const letterMarks = parseFloat(existingRecord.letterScore) || 0;
