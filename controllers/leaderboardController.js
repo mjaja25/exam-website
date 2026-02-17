@@ -59,6 +59,34 @@ exports.getAllLeaderboards = async (req, res) => {
 
         const baseQuery = { attemptMode: 'exam', status: 'completed', ...dateFilter };
 
+        // Helper function to get best score per user using aggregation
+        const getBestPerUser = async (matchQuery, sortField, sortOrder = -1) => {
+            return await TestResult.aggregate([
+                { $match: matchQuery },
+                { $sort: { [sortField]: sortOrder } },
+                {
+                    $group: {
+                        _id: '$user',
+                        bestResult: { $first: '$$ROOT' }
+                    }
+                },
+                { $replaceRoot: { newRoot: '$bestResult' } },
+                { $limit: limit }
+            ]);
+        };
+
+        // Populate user data for each category
+        const populateUsers = async (results) => {
+            const userIds = results.map(r => r.user).filter(Boolean);
+            const users = await require('../models/User').find({ _id: { $in: userIds } }).select('username avatar');
+            const userMap = new Map(users.map(u => [u._id.toString(), u]));
+            
+            return results.map(r => ({
+                ...r,
+                user: userMap.get(r.user?.toString()) || { username: 'Unknown', avatar: null }
+            }));
+        };
+
         const [
             std_overall,
             std_typing,
@@ -68,33 +96,33 @@ exports.getAllLeaderboards = async (req, res) => {
             new_typing,
             new_mcq
         ] = await Promise.all([
-            // 1. Standard Pattern - Overall
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ totalScore: -1 }).limit(limit).populate('user', 'username avatar'),
+            // 1. Standard Pattern - Overall (best totalScore per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'standard' }, 'totalScore')
+                .then(populateUsers),
 
-            // 2. Standard Pattern - Typing
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ wpm: -1 }).limit(limit).populate('user', 'username avatar'),
+            // 2. Standard Pattern - Typing (best wpm per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'standard' }, 'wpm')
+                .then(populateUsers),
 
-            // 3. Standard Pattern - Letter
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ letterScore: -1 }).limit(limit).populate('user', 'username avatar'),
+            // 3. Standard Pattern - Letter (best letterScore per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'standard' }, 'letterScore')
+                .then(populateUsers),
 
-            // 4. Standard Pattern - Excel
-            TestResult.find({ ...baseQuery, testPattern: 'standard' })
-                .sort({ excelScore: -1 }).limit(limit).populate('user', 'username avatar'),
+            // 4. Standard Pattern - Excel (best excelScore per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'standard' }, 'excelScore')
+                .then(populateUsers),
 
-            // 5. New Pattern - Overall
-            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
-                .sort({ totalScore: -1 }).limit(limit).populate('user', 'username avatar'),
+            // 5. New Pattern - Overall (best totalScore per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'new_pattern' }, 'totalScore')
+                .then(populateUsers),
 
-            // 6. New Pattern - Typing
-            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
-                .sort({ typingScore: -1, wpm: -1, accuracy: -1 }).limit(limit).populate('user', 'username avatar'),
+            // 6. New Pattern - Typing (best typingScore per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'new_pattern' }, 'typingScore')
+                .then(populateUsers),
 
-            // 7. New Pattern - Excel MCQ
-            TestResult.find({ ...baseQuery, testPattern: 'new_pattern' })
-                .sort({ mcqScore: -1 }).limit(limit).populate('user', 'username avatar')
+            // 7. New Pattern - Excel MCQ (best mcqScore per user)
+            getBestPerUser({ ...baseQuery, testPattern: 'new_pattern' }, 'mcqScore')
+                .then(populateUsers)
         ]);
 
         const results = {

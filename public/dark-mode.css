@@ -241,6 +241,64 @@ body {
     background: var(--bg-tertiary);
 }
 
+/* Gamified Leaderboard Dark Mode */
+[data-theme="dark"] .podium-stand {
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-shade) 100%);
+}
+
+[data-theme="dark"] .podium-1 .podium-stand {
+    background: linear-gradient(180deg, #BFA112 0%, #8B6914 100%);
+}
+
+[data-theme="dark"] .podium-2 .podium-stand {
+    background: linear-gradient(180deg, #808080 0%, #606060 100%);
+}
+
+[data-theme="dark"] .podium-3 .podium-stand {
+    background: linear-gradient(180deg, #8B4513 0%, #5D2E0C 100%);
+}
+
+[data-theme="dark"] .rank-card {
+    background: var(--bg-elevated);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .rank-card:hover {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .rank-card.is-me {
+    background: linear-gradient(135deg, rgba(226, 183, 20, 0.15), rgba(30, 41, 59, 0.95));
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .rank-score-value {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .rank-1 .rank-score-value {
+    background: linear-gradient(135deg, rgba(191, 161, 18, 0.3), rgba(191, 161, 18, 0.1));
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+[data-theme="dark"] .gap-bar-container {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .gap-row {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .modal-close {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .vs-badge {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--danger) 100%);
+}
+
 /* Practice items in dark mode */
 [data-theme="dark"] .practice-item {
     background: var(--bg-elevated);

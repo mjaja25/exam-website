@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Leaderboards | Dream Centre</title>
     <link rel="stylesheet" href="css/main.css">
-
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 
 <body class="dashboard-page">
@@ -16,10 +16,11 @@
     </header>
 
     <main class="leaderboard-wrapper">
+        <!-- Rank Hero Section -->
         <div class="rank-hero" id="my-rank-hero">
             <div class="my-rank-info">
                 <h2>Your Global Rank</h2>
-                <div style="display: flex; align-items: baseline; gap: 10px; justify-content: inherit;">
+                <div class="rank-display">
                     <span class="big-rank" id="hero-rank">--</span>
                     <span class="percentile" id="hero-percentile">Top --%</span>
                 </div>
@@ -30,14 +31,21 @@
             <div class="achievements-mini">
                 <h2 style="font-size: 1rem; color: rgba(255,255,255,0.8);">Your Achievements</h2>
                 <div class="achievements-preview" id="hero-badges"></div>
-                <a href="#badges-section" class="view-all-badges">View All Badges &rarr;</a>
+                <a href="#badges-section" class="view-all-badges">View All Badges →</a>
             </div>
         </div>
 
+        <!-- Controls Bar -->
         <div class="controls-bar">
             <div class="toggle-group">
-                <button class="toggle-btn active" id="btn-new" onclick="setPattern('new_pattern')">New Pattern</button>
-                <button class="toggle-btn" id="btn-std" onclick="setPattern('standard')">Standard</button>
+                <button class="toggle-btn active" id="btn-new" onclick="setPattern('new_pattern')">
+                    <span class="toggle-icon">N</span>
+                    <span>New Pattern</span>
+                </button>
+                <button class="toggle-btn" id="btn-std" onclick="setPattern('standard')">
+                    <span class="toggle-icon">S</span>
+                    <span>Standard</span>
+                </button>
             </div>
             <select class="filter-select" id="timeframe-select" onchange="setTimeframe(this.value)">
                 <option value="all">All Time</option>
@@ -46,50 +54,103 @@
             </select>
         </div>
 
+        <!-- Category Tabs -->
         <div class="category-tabs" id="category-tabs"></div>
 
-        <div id="loading-state" style="text-align: center; padding: 3rem; display: none;">
-            <div class="spinner"></div>
-            <p>Updating standings...</p>
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-container" style="display: none;">
+            <div class="skeleton-podium">
+                <div class="skeleton skeleton-box" style="height: 120px; width: 80px;"></div>
+                <div class="skeleton skeleton-box" style="height: 160px; width: 80px;"></div>
+                <div class="skeleton skeleton-box" style="height: 100px; width: 80px;"></div>
+            </div>
+            <div class="skeleton-list">
+                <div class="skeleton skeleton-row"></div>
+                <div class="skeleton skeleton-row"></div>
+                <div class="skeleton skeleton-row"></div>
+            </div>
         </div>
 
-        <table class="rank-table">
-            <tbody id="leaderboard-body"></tbody>
-        </table>
+        <!-- Podium Section -->
+        <div class="podium-section" id="podium-section" style="display: none;">
+            <div class="podium-container">
+                <div class="podium-place podium-2" id="podium-2">
+                    <div class="podium-avatar-wrapper">
+                        <div class="podium-avatar" id="podium-avatar-2"></div>
+                        <span class="podium-medal">🥈</span>
+                    </div>
+                    <div class="podium-name" id="podium-name-2">--</div>
+                    <div class="podium-score" id="podium-score-2">--</div>
+                    <div class="podium-stand">2</div>
+                </div>
+                <div class="podium-place podium-1" id="podium-1">
+                    <div class="crown-wrapper">
+                        <span class="crown">👑</span>
+                    </div>
+                    <div class="podium-avatar-wrapper">
+                        <div class="podium-avatar" id="podium-avatar-1"></div>
+                        <span class="podium-medal">🥇</span>
+                    </div>
+                    <div class="podium-name" id="podium-name-1">--</div>
+                    <div class="podium-score" id="podium-score-1">--</div>
+                    <div class="podium-stand">1</div>
+                </div>
+                <div class="podium-place podium-3" id="podium-3">
+                    <div class="podium-avatar-wrapper">
+                        <div class="podium-avatar" id="podium-avatar-3"></div>
+                        <span class="podium-medal">🥉</span>
+                    </div>
+                    <div class="podium-name" id="podium-name-3">--</div>
+                    <div class="podium-score" id="podium-score-3">--</div>
+                    <div class="podium-stand">3</div>
+                </div>
+            </div>
+        </div>
 
-        <div id="badges-section"
-            style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
-            <h2 style="margin-bottom: 1rem; color: var(--text-primary);">Achievements Gallery</h2>
+        <!-- Leaderboard List -->
+        <div class="leaderboard-list" id="leaderboard-list">
+            <div class="leaderboard-cards" id="leaderboard-body"></div>
+        </div>
+
+        <!-- Achievements Section -->
+        <div id="badges-section" class="badges-section">
+            <div class="section-header">
+                <h2>Achievements Gallery</h2>
+                <p class="section-subtitle">Collect badges by completing challenges</p>
+            </div>
             <div class="badges-grid" id="badges-grid"></div>
         </div>
     </main>
 
+    <!-- Comparison Modal -->
     <div class="modal-overlay" id="compare-modal" onclick="closeModal(event)">
-        <div class="modal-card" onclick="event.stopPropagation()">
-            <button onclick="closeModal(null)"
-                style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <div class="modal-card compare-modal" onclick="event.stopPropagation()">
+            <button onclick="closeModal(null)" class="modal-close">&times;</button>
 
             <div class="compare-header">
                 <h3>Performance Comparison</h3>
-                <div class="vs-row">
-                    <div style="text-align: right;">
-                        <span id="comp-you-name"
-                            style="color: var(--primary); font-weight: 700; display: block;">You</span>
-                    </div>
+            </div>
+
+            <div class="compare-vs-row">
+                <div class="compare-side compare-you">
+                    <span class="compare-label">YOU</span>
+                    <div class="compare-avatar-large" id="comp-you-avatar"></div>
+                    <span class="compare-name" id="comp-you-name">You</span>
+                </div>
+                <div class="vs-badge-wrapper">
                     <span class="vs-badge">VS</span>
-                    <div style="text-align: left;">
-                        <span id="comp-them-name"
-                            style="color: var(--error); font-weight: 700; display: block;">Them</span>
-                    </div>
+                </div>
+                <div class="compare-side compare-them">
+                    <span class="compare-label" id="comp-them-label">Them</span>
+                    <div class="compare-avatar-large" id="comp-them-avatar"></div>
+                    <span class="compare-name" id="comp-them-name">--</span>
                 </div>
             </div>
 
-            <div id="compare-content" style="margin-bottom: 2rem;"></div>
+            <div id="compare-content" class="compare-content"></div>
 
-            <div style="text-align: center;">
-                <a href="/dashboard.html" class="nav-button secondary"
-                    style="width: 100%; text-align: center; display: inline-block; background: var(--gradient-primary); color: white;">Start
-                    Practice to Improve</a>
+            <div class="compare-footer">
+                <a href="/dashboard.html" class="btn btn-primary">Start Practice →</a>
             </div>
         </div>
     </div>
