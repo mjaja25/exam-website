@@ -3412,7 +3412,7 @@ body.mobile-warning-active {
     padding: var(--spacing-xl) var(--spacing-md);
 }
 
-.practice-header {
+.practice-page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;

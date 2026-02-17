@@ -55,8 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.questionDisplay.textContent = question.questionText;
             currentQuestionId = question._id;
             
+            // Fetch timer from settings
+            let timerDuration = 180; // Default 3 mins
+            try {
+                const config = await client.get('/api/settings/public');
+                if (config.exam && config.exam.letterDuration) {
+                    timerDuration = config.exam.letterDuration;
+                }
+            } catch (e) {
+                console.warn("Using default letter timer");
+            }
+            
             // Start Timer
-            startTimer(180); // 3 mins
+            startTimer(timerDuration);
             elements.editor.focus();
         } catch (error) {
             elements.questionDisplay.textContent = 'Error loading question. Please refresh the page.';

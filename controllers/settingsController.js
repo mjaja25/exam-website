@@ -25,7 +25,11 @@ exports.getPublicConfig = async (req, res) => {
 
         res.json({
             typing: settings.typing,
-            excelMcqDuration: settings.exam.excelMcqTimerSeconds
+            exam: {
+                excelMcqDuration: settings.exam.excelMcqTimerSeconds,
+                letterDuration: settings.exam.letterTimerSeconds,
+                excelPracticalDuration: settings.exam.excelPracticalTimerSeconds
+            }
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch config" });

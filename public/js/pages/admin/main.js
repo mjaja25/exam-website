@@ -227,6 +227,8 @@ async function initSettings() {
 
         // Excel
         document.getElementById('set-mcq-timer').value = settings.exam.excelMcqTimerSeconds || 300;
+        document.getElementById('set-letter-timer').value = settings.exam.letterTimerSeconds || 180;
+        document.getElementById('set-excel-practical-timer').value = settings.exam.excelPracticalTimerSeconds || 420;
 
     } catch (err) {
         ui.showToast('Failed to load settings', 'error');
@@ -257,7 +259,9 @@ async function initSettings() {
                 }
             },
             exam: {
-                excelMcqTimerSeconds: parseInt(document.getElementById('set-mcq-timer').value)
+                excelMcqTimerSeconds: parseInt(document.getElementById('set-mcq-timer').value),
+                letterTimerSeconds: parseInt(document.getElementById('set-letter-timer').value),
+                excelPracticalTimerSeconds: parseInt(document.getElementById('set-excel-practical-timer').value)
             }
         };
 

@@ -49,7 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
             currentQuestionId = question._id;
 
             if (downloadBtn) downloadBtn.removeAttribute('disabled');
-            startTimer();
+            
+            // Fetch timer from settings
+            let timerDuration = 420; // Default 7 mins
+            try {
+                const config = await client.get('/api/settings/public');
+                if (config.exam && config.exam.excelPracticalDuration) {
+                    timerDuration = config.exam.excelPracticalDuration;
+                }
+            } catch (e) {
+                console.warn("Using default excel practical timer");
+            }
+            
+            startTimer(timerDuration);
         } catch (error) {
             if (questionNameElement) questionNameElement.textContent = 'Error loading question. Please add questions in the admin panel.';
             if (downloadBtn) {
@@ -61,12 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function startTimer() {
+    function startTimer(durationSeconds) {
         if (testInProgress) return;
         testInProgress = true;
 
         const startTime = new Date().getTime();
-        const totalDuration = 420 * 1000; // 7 minutes
+        const totalDuration = durationSeconds * 1000;
 
         timerInterval = setInterval(() => {
             const timeElapsed = new Date().getTime() - startTime;

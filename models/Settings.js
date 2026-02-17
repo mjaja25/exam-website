@@ -28,7 +28,9 @@ const settingsSchema = new mongoose.Schema({
         }
     },
     exam: {
-        excelMcqTimerSeconds: { type: Number, default: 300 }
+        excelMcqTimerSeconds: { type: Number, default: 300 },
+        letterTimerSeconds: { type: Number, default: 180 },
+        excelPracticalTimerSeconds: { type: Number, default: 420 }
     }
 }, { timestamps: true });
 
