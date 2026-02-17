@@ -6783,6 +6783,7 @@ body.typing-page textarea:focus,
 
 .download-btn:hover {
     background: #2563eb;
+    color: white;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }

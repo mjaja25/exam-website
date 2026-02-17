@@ -2,6 +2,9 @@
 (function () {
     'use strict';
 
+    // IMPORTANT: Hide page immediately to prevent flash
+    document.documentElement.style.visibility = 'hidden';
+
     // Get saved theme or default to system preference
     const getSavedTheme = () => {
         const saved = localStorage.getItem('theme');
@@ -18,6 +21,9 @@
     const applyTheme = (theme) => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
+        
+        // Make page visible once theme is applied
+        document.documentElement.style.visibility = 'visible';
 
         // Update toggle button if it exists
         const toggle = document.querySelector('.theme-toggle');
@@ -159,15 +165,6 @@ const style = document.createElement('style');
 style.textContent = `
     body.theme-transitioning * {
         transition-duration: 0.3s !important;
-    }
-    
-    /* Prevent flash of unstyled content */
-    html:not([data-theme]) {
-        visibility: hidden;
-    }
-    
-    html[data-theme] {
-        visibility: visible;
     }
 `;
 document.head.appendChild(style);
