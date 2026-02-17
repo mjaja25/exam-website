@@ -6689,7 +6689,7 @@ body.typing-page textarea:focus,
     gap: var(--spacing-sm);
     margin-top: var(--spacing-md);
     padding: var(--spacing-sm) var(--spacing-lg);
-    background: var(--primary);
+    background: #3b82f6;
     color: white;
     text-decoration: none;
     border-radius: var(--radius-md);
@@ -6701,7 +6701,7 @@ body.typing-page textarea:focus,
 }
 
 .download-btn:hover {
-    background: var(--primary-shade);
+    background: #2563eb;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
