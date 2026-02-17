@@ -232,22 +232,41 @@ async function analyzePerformance(result, type) {
 
     // 1. TYPING ANALYSIS
     if (type === 'typing') {
-        const { wpm, accuracy, typingDuration, errorCount, typingErrorDetails } = result;
-        analysisPrompt = `
-            You are a typing coach. Analyze this exam performance:
-            - Speed: ${wpm} WPM (Target: 35+)
-            - Accuracy: ${accuracy}%
-            - Duration: ${typingDuration ? typingDuration + 's' : 'Standard Exam'}
-            - Errors: ${errorCount || 'N/A'}
-            ${typingErrorDetails ? `- Patterns: ${typingErrorDetails}` : ''}
+        const { wpm, accuracy, duration, errorCount, errorDetails, historicalProblemKeys } = result;
+        
+        let historyContext = "";
+        if (historicalProblemKeys && historicalProblemKeys.length > 0) {
+            historyContext = `
+            Historical Problem Keys (User's long-term struggle): ${historicalProblemKeys.map(k => k.key).join(', ')}
+            Compare the current session's errors with these historical ones. Acknowledge improvements or persistent issues.
+            `;
+        }
 
-            Return ONLY a valid JSON object:
+        analysisPrompt = `
+            You are an elite typing coach. Analyze this practice session:
+            - Speed: ${wpm} WPM
+            - Accuracy: ${accuracy}%
+            - Duration: ${duration ? duration + 's' : 'Standard Session'}
+            - Errors in this session: ${errorCount || 0}
+            ${errorDetails ? `- Error Patterns (This Session): ${errorDetails}` : ''}
+            ${historyContext}
+
+            Provide a structured coaching report in JSON format.
+            
+            Return ONLY this JSON structure:
             {
-              "strengths": [{ "title": "string", "detail": "string" }],
-              "improvements": [{ "title": "string", "detail": "string", "suggestion": "string" }],
-              "tips": [{ "text": "string" }]
+              "level": "Beginner|Intermediate|Advanced|Pro",
+              "summary": "One sentence summary of performance, mentioning any progress on historical keys if applicable.",
+              "speedTip": "Specific tip to increase speed based on this run.",
+              "accuracyTip": "Specific tip to improve accuracy based on this run.",
+              "drills": [
+                { "name": "Drill Name", "text": "actual text to type (10-15 words)", "reps": 10, "target": "Focus area" }
+              ],
+              "warmup": ["step 1", "step 2", "step 3"],
+              "goalWpm": "next realistic target",
+              "goalAccuracy": "next realistic target"
             }
-            Provide 2-3 items per array. Be encouraging but strict on standard.
+            Include 2-3 specific custom drills based on the error patterns provided.
         `;
     }
     // 2. LETTER ANALYSIS

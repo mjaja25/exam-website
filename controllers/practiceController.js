@@ -136,16 +136,24 @@ exports.analyzePractice = async (req, res) => {
 };
 
 exports.analyzeTypingPractice = async (req, res) => {
-    // Specific endpoint for typing practice analysis if needed, 
-    // or just reuse `analyzePractice` with type='typing'.
-    // server.js had `app.post('/api/practice/typing-analyze', ...)` which I might have missed in the cut off?
-    // Wait, I see `practice-typing.js` calls `/api/practice/typing-analyze`.
-    // I will rely on `analyzePractice` being the unified handler or create a specific one.
-    // In `server.js` cut off part, likely `typing-analyze` was separate or part of the `practice/analyze` block.
-    // I'll create a dedicated one to be safe and clear.
     try {
-        const result = req.body; // wpm, accuracy, etc directly in body
-        const analysis = await aiGradingService.analyzePerformance(result, 'typing');
+        const result = req.body; // wpm, accuracy, duration, errorCount, errorDetails...
+
+        // Fetch historical top error keys for context
+        const historicalErrors = await PracticeResult.aggregate([
+            { $match: { user: new mongoose.Types.ObjectId(req.userId), category: 'typing' } },
+            { $unwind: '$errors' },
+            { $group: { _id: '$errors.key', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 }
+        ]);
+        
+        const historicalProblemKeys = historicalErrors.map(e => ({ key: e._id, count: e.count }));
+        
+        // Enhance result with history
+        const enhancedResult = { ...result, historicalProblemKeys };
+
+        const analysis = await aiGradingService.analyzePerformance(enhancedResult, 'typing');
         res.json({ success: true, analysis });
     } catch (error) {
         console.error("Typing Practice Analysis Error:", error);
@@ -270,7 +278,7 @@ exports.getUserHeatmapData = async (req, res) => {
             {
                 $match: {
                     user: new mongoose.Types.ObjectId(req.userId),
-                    category: { $in: ['typing', /^drill-/, 'drill-home', 'drill-top', 'drill-bottom', 'drill-numbers', 'drill-words', 'drill-custom'] }
+                    category: 'typing' // Only actual typing practice sessions, exclude drills
                 }
             },
             {

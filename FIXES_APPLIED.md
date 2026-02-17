@@ -53,6 +53,28 @@ Comprehensive analysis and fixes applied to the exam website project. All critic
 - Documented credential rotation process
 **Files**: `.env`, `.env.example`, `SECURITY_FIXES.md`
 
+### 8. AI Coach & WPM Chart Disappeared ✅ FIXED
+**Problem**: 
+- Frontend expected specific JSON structure from AI service but received generic format
+- WPM Chart required minimum 2 data points which might fail on very short tests
+**Fix**:
+- Updated `services/aiGradingService.js` to return correct JSON structure (`level`, `summary`, `drills`, etc.)
+- Verified chart logic in `practice-typing.js`
+**Files**: `services/aiGradingService.js`
+
+### 9. Heatmap Improvements ✅ FIXED
+**Problem**: 
+- User wanted to remove "Usage" mode and only show "Error" intensity
+- Heatmap data was mixing drills and practice sessions
+- Heatmap was not integrated with AI Coach
+**Fix**:
+- Removed toggle from `practice-typing.html` & `practice.js`
+- Refactored `KeyboardHeatmap.js` to support only error mode with new color scale (Yellow -> Red)
+- Updated `practiceController.js` to filter heatmap data for `category: 'typing'` only
+- Updated `practiceController.js` to fetch historical problem keys and pass to AI
+- Updated `aiGradingService.js` to use historical keys in coaching prompt
+**Files**: `public/js/components/KeyboardHeatmap.js`, `public/css/main.css`, `controllers/practiceController.js`, `services/aiGradingService.js`, `public/practice-typing.html`, `public/js/pages/practice.js`
+
 ## Verified Working Features
 
 ### API Endpoints (All Working)
@@ -94,6 +116,8 @@ Comprehensive analysis and fixes applied to the exam website project. All critic
 ✅ Admin panel for content management
 ✅ File uploads to Cloudinary
 ✅ CSV bulk upload for MCQs
+✅ AI Coach for Typing Practice (Restored & Enhanced)
+✅ Keyboard Heatmap (Enhanced & Integrated)
 
 ## No Issues Found
 
@@ -160,6 +184,12 @@ Comprehensive analysis and fixes applied to the exam website project. All critic
 7. `.env.example` - Created template (NEW)
 8. `SECURITY_FIXES.md` - Security documentation (NEW)
 9. `FIXES_APPLIED.md` - This file (NEW)
+10. `services/aiGradingService.js` - AI Coach fix & enhancement
+11. `public/js/components/KeyboardHeatmap.js` - Heatmap visual update
+12. `public/css/main.css` - Heatmap styles
+13. `controllers/practiceController.js` - Heatmap data filtering & AI integration
+14. `public/practice-typing.html` - Removed heatmap toggle
+15. `public/js/pages/practice.js` - Removed toggle logic
 
 ## Conclusion
 

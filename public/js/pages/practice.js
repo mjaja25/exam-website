@@ -133,15 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.backToResults = showDrillResults; // For drill intermediate results
     window.changePassageSize = changePassageSize;
 
-    // Heatmap Toggles
-    document.querySelectorAll('.heatmap-toggle .toggle-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mode = btn.dataset.mode;
-            document.querySelectorAll('.heatmap-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (state.heatmap) state.heatmap.setMode(mode);
-        });
-    });
+    // Heatmap Toggle Removed - Always Error Mode
+
 
 
     // --- Core Functions ---

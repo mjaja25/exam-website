@@ -7027,7 +7027,7 @@ body.typing-page textarea:focus,
 .practice-page {
     min-height: 100vh;
     background: var(--bg-body);
-    color: var(--text-primary);
+    color: black;
     font-family: var(--font-ui);
 }
 
@@ -7411,54 +7411,67 @@ body.typing-page textarea:focus,
     text-align: center;
 }
 
-.keyboard-heatmap {
+.keyboard-heatmap-board {
     display: flex;
     flex-direction: column;
     gap: 6px;
     padding: var(--spacing-lg);
     background: var(--bg-input);
     border-radius: var(--radius-lg);
+    user-select: none;
 }
 
-.keyboard-row {
+.kb-row {
     display: flex;
     justify-content: center;
     gap: 6px;
 }
 
-.key {
-    min-width: 44px;
+.kb-key {
+    min-width: 40px;
     height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 600;
     border: 2px solid var(--border-color);
     background: var(--bg-card);
     color: var(--text-primary);
     position: relative;
+    transition: all 0.2s ease;
 }
 
-.key-indicator {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0.9;
-    pointer-events: none;
+/* Error Intensity Colors */
+.kb-key.error-low {
+    background-color: #fef08a; /* Yellow-200 */
+    border-color: #fde047;
+    color: #854d0e;
+}
+.kb-key.error-med {
+    background-color: #fdba74; /* Orange-300 */
+    border-color: #fb923c;
+    color: #9a3412;
+}
+.kb-key.error-high {
+    background-color: #fca5a5; /* Red-300 */
+    border-color: #f87171;
+    color: #991b1b;
+}
+.kb-key.error-critical {
+    background-color: #ef4444; /* Red-500 */
+    border-color: #dc2626;
+    color: white;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    animation: pulse-red 2s infinite;
 }
 
-.key-indicator.error-high { background: #dc2626; box-shadow: 0 0 8px rgba(220, 38, 38, 0.6); }
-.key-indicator.error-med { background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.6); }
-.key-indicator.error-low { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
-.key-indicator.usage-high { background: var(--primary); box-shadow: 0 0 8px rgba(88, 204, 2, 0.6); }
-.key-indicator.usage-med { background: #86efac; box-shadow: 0 0 8px rgba(134, 239, 172, 0.6); }
-.key-indicator.usage-low { background: #bbf7d0; box-shadow: 0 0 8px rgba(187, 247, 208, 0.6); }
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
 
 .heatmap-legend {
     display: flex;
@@ -7469,7 +7482,26 @@ body.typing-page textarea:focus,
     margin-top: var(--spacing-md);
     padding-top: var(--spacing-md);
     border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
 }
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-item .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-item .dot.critical { background: #ef4444; }
+.legend-item .dot.high { background: #fca5a5; }
+.legend-item .dot.med { background: #fdba74; }
+.legend-item .dot.low { background: #fef08a; }
 
 .legend-item {
     display: flex;

@@ -1,136 +1,91 @@
 export class KeyboardHeatmap {
-    constructor(container, data, mode = 'errors') {
+    constructor(container, data) {
         this.container = container;
         this.data = data || {};
-        this.mode = mode;
-        this.layout = this.getQWERTYLayout();
-    }
-
-    getQWERTYLayout() {
-        return [
+        this.layout = [
             ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
             ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\'],
             ['Caps', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'", 'Enter'],
             ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'Shift'],
             ['Ctrl', 'Win', 'Alt', 'Space', 'Alt', 'Win', 'Menu', 'Ctrl']
         ];
+        this.render();
     }
 
-    getKeyIndicatorClass(key) {
-        const keyLower = key.toLowerCase();
-        const keyData = this.data[keyLower] || { count: 0, errors: 0 };
-        
-        if (this.mode === 'errors') {
-            if (keyData.count === 0) return null;
-            const errorRate = keyData.errors / keyData.count;
-            if (errorRate > 0.2) return 'error-high';
-            if (errorRate > 0.1) return 'error-med';
-            if (keyData.errors > 0) return 'error-low';
-            return null;
-        } else {
-            const maxCount = Math.max(
-                1,
-                ...Object.values(this.data).map(k => k.count)
-            );
-            const intensity = keyData.count / maxCount;
-            if (intensity > 0.7) return 'usage-high';
-            if (intensity > 0.4) return 'usage-med';
-            if (keyData.count > 0) return 'usage-low';
-            return null;
-        }
+    getKeyClass(keyLabel) {
+        // Normalize key label to match data keys (usually lowercase or specific codes)
+        // Data likely keys: 'a', 'b', '1', 'space', 'shift' etc.
+        const key = keyLabel.toLowerCase();
+        const stats = this.data[key];
+
+        if (!stats || stats.errors === 0) return '';
+
+        // Calculate error rate: errors / total presses
+        // If total presses is 0 (shouldn't happen if errors > 0), assume high error
+        const total = stats.count || stats.errors; 
+        const rate = stats.errors / total;
+
+        // Gradient logic
+        if (rate >= 0.5) return 'error-critical'; // > 50% error rate
+        if (rate >= 0.2) return 'error-high';     // > 20%
+        if (rate >= 0.05) return 'error-med';      // > 5%
+        return 'error-low';                       // > 0%
     }
 
     getKeyWidth(key) {
         const widths = {
-            'Backspace': 2,
-            'Tab': 1.5,
-            'Caps': 1.8,
-            'Enter': 2.2,
-            'Shift': 2.3,
-            'Ctrl': 1.3,
-            'Win': 1.3,
-            'Alt': 1.3,
-            'Space': 6,
-            'Menu': 1.3
+            'Backspace': 2, 'Tab': 1.5, 'Caps': 1.8, 'Enter': 2.2,
+            'Shift': 2.4, 'Ctrl': 1.5, 'Win': 1.2, 'Alt': 1.2,
+            'Space': 6.2, 'Menu': 1.2
         };
         return widths[key] || 1;
     }
 
     render() {
         this.container.innerHTML = '';
-        
-        const keyboard = document.createElement('div');
-        keyboard.className = 'keyboard-heatmap';
-        
+        const board = document.createElement('div');
+        board.className = 'keyboard-heatmap-board';
+
         this.layout.forEach(row => {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'keyboard-row';
+            const rowEl = document.createElement('div');
+            rowEl.className = 'kb-row';
             
-            row.forEach(key => {
-                const keyDiv = document.createElement('div');
-                keyDiv.className = 'key';
-                keyDiv.style.flex = this.getKeyWidth(key);
-                
-                const keyText = document.createElement('span');
-                keyText.textContent = key;
-                keyDiv.appendChild(keyText);
-                
-                const indicatorClass = this.getKeyIndicatorClass(key);
-                if (indicatorClass) {
-                    const indicator = document.createElement('div');
-                    indicator.className = `key-indicator ${indicatorClass}`;
-                    keyDiv.appendChild(indicator);
+            row.forEach(keyLabel => {
+                const keyEl = document.createElement('div');
+                keyEl.className = `kb-key ${this.getKeyClass(keyLabel)}`;
+                keyEl.style.flex = this.getKeyWidth(keyLabel);
+                keyEl.textContent = keyLabel;
+
+                // Tooltip
+                const stats = this.data[keyLabel.toLowerCase()];
+                if (stats) {
+                    const rate = stats.count > 0 ? Math.round((stats.errors / stats.count) * 100) : 0;
+                    keyEl.title = `Errors: ${stats.errors} | Presses: ${stats.count} | Rate: ${rate}%`;
                 }
-                
-                const keyLower = key.toLowerCase();
-                const keyData = this.data[keyLower];
-                if (keyData) {
-                    const errorRate = keyData.count > 0 
-                        ? ((keyData.errors / keyData.count) * 100).toFixed(1)
-                        : 0;
-                    keyDiv.title = `${key}: ${keyData.count} presses, ${keyData.errors} errors (${errorRate}%)`;
-                }
-                
-                rowDiv.appendChild(keyDiv);
+
+                rowEl.appendChild(keyEl);
             });
-            
-            keyboard.appendChild(rowDiv);
+            board.appendChild(rowEl);
         });
-        
-        this.container.appendChild(keyboard);
+
+        this.container.appendChild(board);
         this.renderLegend();
     }
 
     renderLegend() {
         const legend = document.createElement('div');
         legend.className = 'heatmap-legend';
-        
-        if (this.mode === 'errors') {
-            legend.innerHTML = `
-                <span class="legend-item"><span class="color-box" style="background: #dc2626;"></span>High Error Rate (&gt;20%)</span>
-                <span class="legend-item"><span class="color-box" style="background: #fbbf24;"></span>Medium (10-20%)</span>
-                <span class="legend-item"><span class="color-box" style="background: #4ade80;"></span>Low (&lt;10%)</span>
-                <span class="legend-item"><span class="color-box" style="background: var(--bg-card); border: 1px solid var(--border-color);"></span>No Errors</span>
-            `;
-        } else {
-            legend.innerHTML = `
-                <span class="legend-item"><span class="color-box" style="background: var(--primary);"></span>High Usage</span>
-                <span class="legend-item"><span class="color-box" style="background: #86efac;"></span>Medium</span>
-                <span class="legend-item"><span class="color-box" style="background: #bbf7d0;"></span>Low</span>
-                <span class="legend-item"><span class="color-box" style="background: var(--bg-card); border: 1px solid var(--border-color);"></span>Not Used</span>
-            `;
-        }
-        
+        legend.innerHTML = `
+            <div class="legend-item"><span class="dot critical"></span>Critical (>50%)</div>
+            <div class="legend-item"><span class="dot high"></span>High (>20%)</div>
+            <div class="legend-item"><span class="dot med"></span>Medium (>5%)</div>
+            <div class="legend-item"><span class="dot low"></span>Low (<5%)</div>
+        `;
         this.container.appendChild(legend);
     }
 
-    setMode(mode) {
-        this.mode = mode;
-        this.render();
-    }
-
-    updateData(data) {
-        this.data = data;
+    updateData(newData) {
+        this.data = newData || {};
         this.render();
     }
 }
