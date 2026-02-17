@@ -108,18 +108,42 @@ document.addEventListener('DOMContentLoaded', () => {
             const topScores = [stats.maxTyping, stats.maxLetter, stats.maxExcel];
 
             if (chartCanvas && window.Chart) {
+                const colors = ['#fbbf24', '#9ca3af', '#10b981'];
+
                 new window.Chart(chartCanvas, {
                     type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [
-                            { label: 'You', data: userScores, backgroundColor: '#fbbf24', borderRadius: 4 },
-                            { label: 'Avg', data: avgScores, backgroundColor: '#9ca3af', borderRadius: 4 },
-                            { label: 'Top', data: topScores, backgroundColor: '#10b981', borderRadius: 4 }
+                            { label: 'You', data: userScores, backgroundColor: colors[0], borderRadius: 4 },
+                            { label: 'Avg', data: avgScores, backgroundColor: colors[1], borderRadius: 4 },
+                            { label: 'Top', data: topScores, backgroundColor: colors[2], borderRadius: 4 }
                         ]
                     },
-                    options: { indexAxis: 'y', scales: { x: { beginAtZero: true, max: 20 } } }
+                    options: {
+                        indexAxis: 'y',
+                        scales: { x: { beginAtZero: true, max: 20 } },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
                 });
+
+                // Generate custom pill-shaped legend
+                if (legendContainer) {
+                    const legendItems = [
+                        { label: 'You', color: colors[0] },
+                        { label: 'Avg', color: colors[1] },
+                        { label: 'Top', color: colors[2] }
+                    ];
+
+                    legendContainer.innerHTML = legendItems.map(item => `
+                        <div class="legend-pill">
+                            <span class="legend-dot" style="background: ${item.color}"></span>
+                            <span class="legend-label">${item.label}</span>
+                        </div>
+                    `).join('');
+                }
             }
         } catch (err) { console.error("Chart Error:", err); }
 
