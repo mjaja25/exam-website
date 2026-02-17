@@ -2,6 +2,8 @@ import { client } from '../api/client.js';
 import { auth } from '../utils/auth.js';
 import { ui } from '../utils/ui.js';
 
+let isSubmitting = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     // Check Auth
     if (!auth.getToken()) {
@@ -14,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timerElement: document.getElementById('timer'),
         mobileTimerElement: document.getElementById('mobile-timer'),
         progressBar: document.getElementById('progress-bar'),
-        editor: document.getElementById('letter-editor'), // Changed ID
+        editor: document.getElementById('letter-editor'),
         submitBtn: document.getElementById('submit-btn'),
         questionDisplay: document.getElementById('question-display'),
         loadingOverlay: document.getElementById('loading-overlay')
@@ -22,13 +24,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // State
     const sessionId = localStorage.getItem('currentSessionId');
+    const attemptMode = localStorage.getItem('currentAttemptMode');
     let currentQuestionId = null;
     let timerInterval;
     let testInProgress = false;
 
-    // Protection
-    const handleBeforeUnload = (e) => { e.preventDefault(); e.returnValue = ''; };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Beforeunload handler - named function for removal
+    const handleBeforeUnload = (e) => {
+        if (attemptMode === 'exam' && !isSubmitting) {
+            e.preventDefault();
+            e.returnValue = 'You have an exam in progress. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    };
+
+    // Set up beforeunload protection (only in exam mode)
+    if (attemptMode === 'exam') {
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    }
 
     // Initial Load
     loadRandomQuestion();
@@ -46,8 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
             startTimer(300); // 5 mins
             elements.editor.focus();
         } catch (error) {
-            elements.questionDisplay.textContent = 'Error loading question.';
+            elements.questionDisplay.textContent = 'Error loading question. Please refresh the page.';
             elements.submitBtn.disabled = true;
+            ui.showToast('Failed to load question. Please refresh.', 'error');
+            console.error('Letter question loading error:', error);
         }
     }
 
@@ -67,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
             
             if (elements.timerElement) elements.timerElement.textContent = timeStr;
+            if (elements.mobileTimerElement) elements.mobileTimerElement.textContent = timeStr;
             if (elements.progressBar) {
                 const pct = ((total - remaining) / total) * 100;
                 elements.progressBar.style.width = `${pct}%`;
@@ -79,16 +95,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function endTest() {
+        // Prevent multiple submissions
+        if (isSubmitting) return;
+        isSubmitting = true;
+
         clearInterval(timerInterval);
         window.removeEventListener('beforeunload', handleBeforeUnload);
-        elements.editor.contentEditable = false;
+        
+        if (elements.editor) {
+            elements.editor.contentEditable = false;
+        }
         
         if (elements.submitBtn) {
             elements.submitBtn.disabled = true;
             elements.submitBtn.textContent = 'Submitting...';
         }
 
-        const content = elements.editor.innerHTML;
+        // Show loading overlay if available
+        if (elements.loadingOverlay) {
+            elements.loadingOverlay.style.display = 'flex';
+        }
+
+        const content = elements.editor ? elements.editor.innerHTML : '';
 
         try {
             await client.post('/api/submit/letter', {
@@ -97,29 +125,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 questionId: currentQuestionId
             });
 
-            window.location.href = '/excel.html';
+            ui.showToast('Letter submitted successfully!', 'success');
+
+            // Small delay to show success message
+            setTimeout(() => {
+                window.location.href = '/excel.html';
+            }, 500);
+
         } catch (err) {
-            console.error(err);
-            ui.showToast('Submission failed. Trying again...', 'error');
-            // Retry logic or enable button
-            elements.submitBtn.disabled = false;
-            elements.submitBtn.textContent = 'Retry Submit';
+            // Re-add beforeunload since we're staying on the page
+            if (attemptMode === 'exam') {
+                window.addEventListener('beforeunload', handleBeforeUnload);
+            }
+            
+            // Re-enable editor
+            if (elements.editor) {
+                elements.editor.contentEditable = true;
+            }
+            
+            // Hide loading overlay
+            if (elements.loadingOverlay) {
+                elements.loadingOverlay.style.display = 'none';
+            }
+            
+            // Restore button
+            if (elements.submitBtn) {
+                elements.submitBtn.disabled = false;
+                elements.submitBtn.textContent = 'Retry Submit';
+            }
+            
+            isSubmitting = false;
+            
+            const errorMessage = err.message || 'Unknown error occurred';
+            ui.showToast('Submission failed: ' + errorMessage, 'error');
+            console.error('Letter submission error:', err);
         }
     }
 
     function bindToolbar() {
         const format = (cmd) => document.execCommand(cmd, false, null);
         
-        // We need to bind these to the buttons in HTML or add listeners if IDs exist
-        // letter.html has onclick="formatText...". We should ideally expose this or attach listeners.
-        // Let's attach listeners to data-attributes or IDs if we update HTML.
-        // For now, let's expose a global function for the existing HTML onclicks.
+        // Expose global function for HTML onclicks
         window.formatText = (cmd) => format(cmd);
         
-        // Add submit listener
+        // Add submit listener with confirmation
         if (elements.submitBtn) {
             elements.submitBtn.addEventListener('click', () => {
-                if (confirm('Submit letter?')) endTest();
+                if (confirm('Are you sure you want to submit your letter?')) {
+                    endTest();
+                }
             });
         }
     }

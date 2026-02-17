@@ -951,3 +951,199 @@ body {
 [data-theme="dark"] .auth-card form > p a:hover {
     color: var(--primary);
 }
+
+/* ============================================
+   TEST PAGES DARK MODE
+   ============================================ */
+
+[data-theme="dark"] body.test-page {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .test-container {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .test-header {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .stats-bar {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .stat-item span {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .stat-item p {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .timer-display strong {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .passage-card {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .passage-card span.correct {
+    color: var(--primary);
+    background: rgba(88, 204, 2, 0.15);
+}
+
+[data-theme="dark"] .passage-card span.incorrect {
+    color: #f87171;
+}
+
+[data-theme="dark"] .passage-card span.current {
+    background: var(--primary);
+    color: #1C1C1E;
+}
+
+[data-theme="dark"] body.typing-page textarea,
+[data-theme="dark"] .test-page textarea {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] body.typing-page textarea:focus,
+[data-theme="dark"] .test-page textarea:focus {
+    background: var(--bg-card);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .question-card {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .editor-container {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .editor-toolbar {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .editor-toolbar button {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .editor-toolbar button:hover {
+    background: rgba(88, 204, 2, 0.1);
+    color: var(--primary);
+}
+
+[data-theme="dark"] #letter-editor,
+[data-theme="dark"] .letter-editor {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #letter-editor:empty:before,
+[data-theme="dark"] .letter-editor:empty:before {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .instructions-card,
+[data-theme="dark"] .upload-card {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .instructions-card h3,
+[data-theme="dark"] .upload-card h3 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .upload-card input[type="file"] {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .upload-card input[type="file"]:hover {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .download-btn:disabled {
+    background: var(--neutral);
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .mobile-header {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .mobile-header span {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .mobile-header strong {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .loading-overlay {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* Practice Pages Dark Mode */
+[data-theme="dark"] .practice-config {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .practice-header {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .practice-timer {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+    color: var(--primary);
+}
+
+[data-theme="dark"] .editor-wrapper {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .text-editor {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .question-prompt {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .question-label {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .question-text {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .review-content {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .drill-picker {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}

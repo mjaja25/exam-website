@@ -3,6 +3,9 @@ import { client } from '../api/client.js';
 import { TypingEngine } from '../core/TypingEngine.js';
 import { ui } from '../utils/ui.js';
 
+let engine = null;
+let isSubmitting = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Auth Check
     if (!auth.getToken()) {
@@ -18,14 +21,25 @@ document.addEventListener('DOMContentLoaded', () => {
         wpmElement: document.getElementById('wpm'),
         accuracyElement: document.getElementById('accuracy'),
         passageDisplayElement: document.getElementById('passage-display'),
-        userInputElement: document.getElementById('user-input')
+        userInputElement: document.getElementById('user-input'),
+        adminBypass: document.getElementById('admin-bypass'),
+        quickSubmitBtn: document.getElementById('quick-submit-btn')
     };
 
     // 3. State
     const currentPattern = localStorage.getItem('currentExamPattern');
-    const attemptMode = localStorage.getItem('currentAttemptMode'); // 'exam' or 'practice'
+    const attemptMode = localStorage.getItem('currentAttemptMode');
 
-    // 4. Load Config & Initialize
+    // 4. Beforeunload handler - named function for removal
+    const handleBeforeUnload = (e) => {
+        if (attemptMode === 'exam' && !isSubmitting) {
+            e.preventDefault();
+            e.returnValue = 'You have an exam in progress. Are you sure you want to leave?';
+            return e.returnValue;
+        }
+    };
+
+    // 5. Load Config & Initialize
     initExam();
 
     async function initExam() {
@@ -39,10 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 duration = config.typingDuration;
             }
         } catch (err) {
-            console.warn("Using default duration due to config error");
+            console.warn("Using default duration due to config error:", err);
         }
 
-        const engine = new TypingEngine({
+        engine = new TypingEngine({
             displayElement: elements.passageDisplayElement,
             inputElement: elements.userInputElement,
             timerElement: elements.timerElement,
@@ -54,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         loadPassage(engine);
+        setupAdminBypass();
     }
 
     async function loadPassage(engine) {
@@ -62,16 +77,50 @@ document.addEventListener('DOMContentLoaded', () => {
             engine.loadPassage(data.content);
             elements.userInputElement.focus();
         } catch (err) {
-            elements.passageDisplayElement.textContent = 'Error loading passage.';
+            elements.passageDisplayElement.textContent = 'Error loading passage. Please refresh the page.';
+            ui.showToast('Failed to load passage. Please refresh.', 'error');
+            console.error('Passage loading error:', err);
+        }
+    }
+
+    function setupAdminBypass() {
+        // Check if user is admin and show bypass button
+        if (auth.isAdmin() && elements.adminBypass && elements.quickSubmitBtn) {
+            elements.adminBypass.style.display = 'block';
+            
+            elements.quickSubmitBtn.addEventListener('click', async () => {
+                if (confirm("Admin: End this test immediately and submit current progress?")) {
+                    window.removeEventListener('beforeunload', handleBeforeUnload);
+                    
+                    // Get current stats from engine
+                    if (engine) {
+                        const stats = engine.calculateStats();
+                        await submitExam(stats);
+                    }
+                }
+            });
         }
     }
 
     async function submitExam(stats) {
-        // Exam Submission Logic
+        // Prevent multiple submissions
+        if (isSubmitting) return;
+        isSubmitting = true;
+
+        // Remove beforeunload to allow navigation
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+
+        // Disable input to prevent changes during submission
+        if (elements.userInputElement) {
+            elements.userInputElement.disabled = true;
+        }
+
+        // Show loading feedback
+        ui.showToast('Submitting your typing test...', 'info');
+
         const sessionId = localStorage.getItem('currentSessionId');
 
         let typingMarks = 0;
-        // Formula: (WPM / 35) * MAX_MARKS
         const maxMarks = currentPattern === 'new_pattern' ? 30 : 20;
         typingMarks = Math.min(maxMarks, (stats.wpm / 35) * maxMarks);
 
@@ -89,23 +138,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await client.post('/api/submit/typing', payload);
+            
+            ui.showToast('Typing test submitted successfully!', 'success');
 
-            // Redirect based on pattern
-            if (currentPattern === 'new_pattern') {
-                window.location.href = '/excel-mcq.html';
-            } else {
-                window.location.href = '/letter.html';
-            }
+            // Small delay to show success message before navigation
+            setTimeout(() => {
+                if (currentPattern === 'new_pattern') {
+                    window.location.href = '/excel-mcq.html';
+                } else {
+                    window.location.href = '/letter.html';
+                }
+            }, 500);
+
         } catch (err) {
-            ui.showToast('Submission failed', 'error');
+            // Re-add beforeunload since we're staying on the page
+            if (attemptMode === 'exam') {
+                window.addEventListener('beforeunload', handleBeforeUnload);
+            }
+            
+            // Re-enable input for retry
+            if (elements.userInputElement) {
+                elements.userInputElement.disabled = false;
+            }
+            
+            isSubmitting = false;
+            
+            const errorMessage = err.message || 'Unknown error occurred';
+            ui.showToast('Submission failed: ' + errorMessage + '. Click to retry.', 'error');
+            
+            console.error('Typing submission error:', err);
+            
+            // Add retry button functionality
+            elements.userInputElement?.focus();
         }
     }
 
-    // Prevent navigation during exam
+    // Set up beforeunload protection (only in exam mode)
     if (attemptMode === 'exam') {
-        window.addEventListener('beforeunload', (e) => {
-            e.preventDefault();
-            e.returnValue = '';
-        });
+        window.addEventListener('beforeunload', handleBeforeUnload);
     }
 });

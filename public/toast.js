@@ -3,7 +3,6 @@
     // Create container once
     const container = document.createElement('div');
     container.id = 'toast-container';
-    container.id = 'toast-container';
     // Styles handled by main.css
     document.body.appendChild(container);
 

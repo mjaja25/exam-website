@@ -10,7 +10,7 @@
 </head>
 
 <body class="dashboard-page">
-    <header class="test-header">
+    <header class="test-header practice-header">
         <div class="logo">Letter <span>Practice Zone</span></div>
         <a href="/dashboard.html" class="nav-button secondary">Exit Practice</a>
     </header>
@@ -19,15 +19,13 @@
         <!-- TEST VIEW -->
         <div id="test-view">
             <div class="practice-header">
-                <h2>✉️ Letter Writing Practice</h2>
+                <h2>Letter Writing Practice</h2>
                 <div class="practice-timer">Time: <span id="timer">03:00</span></div>
             </div>
 
-            <div class="card question-prompt" style="margin-bottom: 1.5rem;">
-                <h3
-                    style="margin: 0 0 0.5rem 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
-                    Question</h3>
-                <p id="question-display" style="font-size: 1.05rem;">Loading question...</p>
+            <div class="card question-prompt">
+                <h3 class="question-label">Question</h3>
+                <p id="question-display" class="question-text">Loading question...</p>
             </div>
 
             <div class="editor-wrapper">
@@ -52,13 +50,13 @@
                 <div id="user-input" class="text-editor" contenteditable="true" spellcheck="false"></div>
             </div>
 
-            <div class="practice-actions" style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
+            <div class="practice-actions">
                 <button id="submit-btn" class="btn btn-primary">Submit for AI Grading</button>
             </div>
         </div>
 
         <!-- RESULTS VIEW -->
-        <div id="results-view" class="results-view" style="display: none;">
+        <div id="results-view" class="results-view">
             <div class="score-hero">
                 <h2 id="results-title">Your Practice Score</h2>
                 <div class="score-ring" id="score-ring">
@@ -67,30 +65,29 @@
                 <p class="score-label" id="score-label">out of 10</p>
             </div>
 
-            <div class="breakdown-grid" id="breakdown-grid" style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+            <div class="breakdown-grid" id="breakdown-grid">
             </div>
 
-            <div class="action-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <button class="btn btn-secondary" id="analyze-btn">🔍 Get Detailed AI Analysis</button>
-                <button id="review-btn" class="btn btn-outline">📄 Review Your Letter</button>
-                <button onclick="location.reload()" class="btn btn-outline">🔄 Try Again</button>
-                <button onclick="location.href='/dashboard.html'" class="btn btn-outline">🏠 Dashboard</button>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="analyze-btn">Get Detailed AI Analysis</button>
+                <button id="review-btn" class="btn btn-outline">Review Your Letter</button>
+                <button onclick="location.reload()" class="btn btn-outline">Try Again</button>
+                <button onclick="location.href='/dashboard.html'" class="btn btn-outline">Dashboard</button>
             </div>
 
             <div id="analysis-panel" class="analysis-panel">
-                <h3>🤖 Detailed AI Analysis</h3>
+                <h3>Detailed AI Analysis</h3>
                 <div id="analysis-content"></div>
             </div>
 
-            <div id="review-panel" class="card review-panel" style="display: none; margin-top: 1.5rem;">
-                <h3 style="margin-bottom: 1rem;">📄 Your Submitted Letter</h3>
-                <div id="review-content" class="review-content"
-                    style="border:1px solid var(--border-color); padding: 1rem; border-radius: 8px;"></div>
+            <div id="review-panel" class="card review-panel">
+                <h3 class="review-title">Your Submitted Letter</h3>
+                <div id="review-content" class="review-content"></div>
             </div>
         </div>
     </main>
 
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
         <p>AI is grading your letter...</p>
     </div>

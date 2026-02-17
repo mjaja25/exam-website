@@ -16,6 +16,7 @@
         <span id="mobile-stage-title">Stage 3: Excel</span>
         <strong id="mobile-timer">7:00</strong>
     </header>
+    
     <main class="test-container">
         <header class="test-header desktop-only">
             <hgroup>
@@ -33,14 +34,16 @@
                 <p>1. Click the link below to download the Excel exercise file.</p>
                 <p>2. Complete all tasks described in the file's "Instructions" sheet.</p>
                 <p>3. Save your completed file and upload it below.</p>
-                <a href="#" id="download-btn" role="button" download disabled>Download Question File</a>
+                <a href="#" id="download-btn" class="download-btn" download disabled>
+                    Download Question File
+                </a>
             </div>
 
             <div class="upload-card">
                 <h3>Upload Your Solution</h3>
                 <form id="excel-form">
-                    <input type="file" id="excel-file" name="excelFile" required>
-                    <button type="submit" class="submit-btn-main">Submit for AI Grading</button>
+                    <input type="file" id="excel-file" name="excelFile" accept=".xlsx,.xls,.csv" required>
+                    <button type="submit" class="excel-submit-btn">Submit for AI Grading</button>
                 </form>
             </div>
         </article>
@@ -48,15 +51,20 @@
         <footer class="test-footer">
             <div class="timer-display">
                 <span>Time Left:</span>
-                <strong id="timer">5:00</strong>
+                <strong id="timer">7:00</strong>
             </div>
         </footer>
     </main>
 
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
         <p>Calculating results, please wait...</p>
     </div>
+
+    <button class="theme-toggle-test" onclick="toggleTheme()">
+        <span class="sun-icon">☀️</span>
+        <span class="moon-icon">🌙</span>
+    </button>
 
     <script src="toast.js"></script>
     <script type="module" src="/js/pages/excel.js"></script>

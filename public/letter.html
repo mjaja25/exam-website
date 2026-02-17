@@ -5,199 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Letter Test</title>
-    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="css/main.css">
     <script src="/auth.js" defer></script>
     <script src="/test-ui.js" defer></script>
     <script src="/disable-back.js" defer></script>
-    <style>
-        .test-page {
-            min-height: 100vh;
-            background: var(--gradient-bg);
-        }
-
-        .mobile-header {
-            display: none;
-            background: var(--bg-card);
-            padding: var(--spacing-md) var(--spacing-lg);
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .test-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: var(--spacing-xl);
-        }
-
-        .test-header {
-            background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            margin-bottom: var(--spacing-xl);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-        }
-
-        .test-header h2 {
-            margin: 0 0 var(--spacing-xs) 0;
-            color: var(--primary);
-        }
-
-        .test-header p {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: var(--font-size-sm);
-        }
-
-        .progress-container {
-            margin-top: var(--spacing-md);
-            height: 8px;
-            background: var(--bg-input);
-            border-radius: var(--border-radius-full);
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: var(--border-radius-full);
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        .timer-display {
-            margin-top: var(--spacing-md);
-            font-size: var(--font-size-lg);
-            color: var(--text-secondary);
-        }
-
-        .timer-display strong {
-            color: var(--primary);
-            font-size: var(--font-size-xl);
-        }
-
-        .letter-body {
-            background: var(--bg-card);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-        }
-
-        .question-card {
-            background: var(--bg-input);
-            border-radius: var(--border-radius-md);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .question-card p {
-            margin: 0;
-            color: var(--text-primary);
-            font-size: var(--font-size-base);
-            line-height: 1.6;
-        }
-
-        .editor-container {
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius-md);
-            overflow: hidden;
-        }
-
-        .editor-toolbar {
-            background: var(--bg-input);
-            padding: var(--spacing-sm) var(--spacing-md);
-            display: flex;
-            gap: var(--spacing-sm);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .editor-toolbar button {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .editor-toolbar button:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        #letter-input {
-            width: 100%;
-            min-height: 300px;
-            padding: var(--spacing-lg);
-            font-size: var(--font-size-base);
-            border: none;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-family: var(--font-body);
-            resize: vertical;
-            line-height: 1.6;
-        }
-
-        #letter-input:focus {
-            outline: none;
-        }
-
-        #letter-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            bottom: var(--spacing-xl);
-            right: var(--spacing-xl);
-            width: 44px;
-            height: 44px;
-            border-radius: var(--border-radius-full);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-md);
-            transition: all var(--transition-base);
-            z-index: 100;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-        }
-
-        .theme-toggle .sun-icon {
-            display: none;
-            color: var(--warning);
-        }
-
-        .theme-toggle .moon-icon {
-            display: block;
-            color: var(--text-secondary);
-        }
-
-        [data-theme="dark"] .theme-toggle .sun-icon {
-            display: block;
-        }
-
-        [data-theme="dark"] .theme-toggle .moon-icon {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-header {
-                display: flex;
-            }
-
-            .desktop-only {
-                display: none;
-            }
-        }
-    </style>
 </head>
 
 <body class="test-page letter-page">
@@ -205,6 +16,7 @@
         <span id="mobile-stage-title">Stage 2: Letter</span>
         <strong id="mobile-timer">5:00</strong>
     </header>
+    
     <main class="test-container">
         <header class="test-header desktop-only">
             <hgroup>
@@ -216,7 +28,7 @@
             </div>
             <div class="timer-display">
                 <span>Time Left:</span>
-                <strong id="timer">3:00</strong>
+                <strong id="timer">5:00</strong>
             </div>
         </header>
 
@@ -231,16 +43,25 @@
                     <button onclick="formatText('italic')"><i>I</i></button>
                     <button onclick="formatText('underline')"><u>U</u></button>
                 </div>
-                <div id="letter-editor" contenteditable="true" 
-                     style="width: 100%; min-height: 300px; padding: var(--spacing-lg); font-size: var(--font-size-base); background: var(--bg-card); color: var(--text-primary); font-family: var(--font-body); line-height: 1.6; outline: none;"
-                     placeholder="Start writing your letter here..."></div>
+                <div id="letter-editor" class="letter-editor" contenteditable="true" 
+                    placeholder="Start writing your letter here..."></div>
             </div>
             
-            <div style="margin-top: 2rem; text-align: right;">
-                <button id="submit-btn" class="nav-button primary" style="background: var(--gradient-primary); color: white; padding: 10px 30px;">Submit Letter</button>
+            <div class="letter-submit-wrapper">
+                <button id="submit-btn" class="letter-submit-btn">Submit Letter</button>
             </div>
         </div>
     </main>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Submitting your letter...</p>
+    </div>
+
+    <button class="theme-toggle-test" onclick="toggleTheme()">
+        <span class="sun-icon">☀️</span>
+        <span class="moon-icon">🌙</span>
+    </button>
 
     <script src="toast.js"></script>
     <script type="module" src="/js/pages/letter.js"></script>
