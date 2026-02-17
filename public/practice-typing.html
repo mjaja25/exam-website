@@ -140,29 +140,43 @@
 
         <!-- SIMULATION ENGINE -->
         <div id="sim-engine" class="practice-engine hidden">
-            <div class="engine-card simulation-mode">
-                <div class="engine-header minimal">
-                    <div class="engine-stats-bar minimal">
-                        <div class="engine-stat">
-                            <span class="engine-stat-value" id="sim-timer">02:00</span>
-                            <span class="engine-stat-label">Time</span>
-                        </div>
-                        <div class="engine-stat">
-                            <span class="engine-stat-value" id="sim-wpm">0</span>
-                            <span class="engine-stat-label">WPM</span>
+            <div class="engine-card simulation-mode win97-mode">
+                <div class="win97-window">
+                    <div class="win97-titlebar">
+                        <span class="win97-titlebar-title">Typing Test - Simulation Mode</span>
+                        <div class="win97-titlebar-controls">
+                            <span class="win97-titlebar-btn">_</span>
+                            <span class="win97-titlebar-btn">□</span>
+                            <span class="win97-titlebar-btn">×</span>
                         </div>
                     </div>
-                </div>
-                <div class="text-size-controls">
-                    <span>Text Size</span>
-                    <button class="text-size-btn" onclick="changePassageSize(-1)">−</button>
-                    <button class="text-size-btn" onclick="changePassageSize(1)">+</button>
-                </div>
-                <div id="sim-passage" class="passage-display simulation">Loading passage...</div>
-                <textarea id="sim-input" class="engine-textarea" placeholder="Start typing here..." autocomplete="off"
-                    autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-                <div id="sim-admin-bypass" class="admin-bypass hidden">
-                    <button class="btn secondary" id="sim-quick-submit">Admin: Quick Submit</button>
+                    <div class="win97-body">
+                        <div class="win97-stats-bar">
+                            <div class="win97-stat">
+                                <span class="win97-stat-label">Time:</span>
+                                <span class="win97-stat-value" id="sim-timer">02:00</span>
+                            </div>
+                            <div class="win97-stat">
+                                <span class="win97-stat-label">WPM:</span>
+                                <span class="win97-stat-value" id="sim-wpm">0</span>
+                            </div>
+                        </div>
+                        <div class="win97-text-size-controls">
+                            <span>Text Size:</span>
+                            <button class="win97-text-size-btn" onclick="changePassageSize(-1)">−</button>
+                            <button class="win97-text-size-btn" onclick="changePassageSize(1)">+</button>
+                        </div>
+                        <div class="win97-passage-container" id="sim-passage-container">
+                            <div id="sim-passage" class="win97-passage-text">Loading passage...</div>
+                        </div>
+                        <div class="win97-textarea-container">
+                            <textarea id="sim-input" class="win97-textarea" placeholder="Start typing here..." autocomplete="off"
+                                autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+                        </div>
+                        <div id="sim-admin-bypass" class="win97-button-bar hidden">
+                            <button class="win97-btn" id="sim-quick-submit">Admin: Quick Submit</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

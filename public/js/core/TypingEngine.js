@@ -8,8 +8,9 @@ export class TypingEngine {
         this.accuracyElement = config.accuracyElement;
 
         this.duration = config.duration || 300;
-        this.allowBackspace = config.allowBackspace !== false; // Default true
+        this.allowBackspace = config.allowBackspace !== false;
         this.minAccuracy = config.minAccuracy || 90;
+        this.isSimulationMode = config.isSimulationMode || false;
 
         this.onComplete = config.onComplete || (() => { });
         this.onTick = config.onTick || (() => { });
@@ -19,7 +20,6 @@ export class TypingEngine {
         this.isRunning = false;
         this.currentPassage = '';
 
-        // Tracking data for heatmap and error analysis
         this.keystrokes = {};
         this.errors = [];
         this.fingerMap = this.getFingerMap();
@@ -249,11 +249,14 @@ export class TypingEngine {
 
     scrollToCurrentChar(currentSpan) {
         if (!currentSpan || !this.displayElement) return;
+        if (this.isSimulationMode) return;
 
-        const container = this.displayElement;
+        const container = this.displayElement.parentElement && this.displayElement.parentElement.classList.contains('win97-passage-container')
+            ? this.displayElement.parentElement
+            : this.displayElement;
+
         const lineHeight = parseInt(window.getComputedStyle(currentSpan).lineHeight) || 32;
         const containerHeight = container.offsetHeight;
-        const visibleLines = Math.floor(containerHeight / lineHeight);
         
         const spanTop = currentSpan.offsetTop;
         const spanHeight = currentSpan.offsetHeight || lineHeight;

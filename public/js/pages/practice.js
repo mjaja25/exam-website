@@ -199,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.engine = new TypingEngine({
             ...elements,
             duration: state.config.duration,
+            isSimulationMode: isSim,
             onComplete: handleSessionComplete
         });
 

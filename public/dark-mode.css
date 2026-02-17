@@ -1479,6 +1479,140 @@ body {
 }
 
 /* ============================================
+   WINDOWS 97 DARK MODE (for simulation)
+   ============================================ */
+
+[data-theme="dark"] .win97-mode {
+    background: #2d2d2d !important;
+}
+
+[data-theme="dark"] .win97-window {
+    background: #2d2d2d;
+    border-color: #555555 #000000 #000000 #555555;
+    box-shadow: inset -1px -1px 0 #555555, inset 1px 1px 0 #000000;
+}
+
+[data-theme="dark"] .win97-titlebar {
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-titlebar-btn {
+    background: #3d3d3d;
+    border-color: #555555 #000000 #000000 #555555;
+    box-shadow: inset -1px -1px 0 #222222, inset 1px 1px 0 #555555;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-titlebar-btn:active {
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-body {
+    background: #2d2d2d;
+}
+
+[data-theme="dark"] .win97-stats-bar {
+    background: #2d2d2d;
+    border-color: #000000 #555555 #555555 #000000;
+    box-shadow: inset 1px 1px 0 #000000, inset -1px -1px 0 #555555;
+}
+
+[data-theme="dark"] .win97-stat-label {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-stat-value {
+    background: #1a1a1a;
+    border-color: #000000 #555555 #555555 #000000;
+    color: var(--primary);
+}
+
+[data-theme="dark"] .win97-passage-container {
+    background: #1a1a1a;
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-passage-text {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-passage-container::-webkit-scrollbar {
+    background: #2d2d2d;
+}
+
+[data-theme="dark"] .win97-passage-container::-webkit-scrollbar-track {
+    background: #2d2d2d;
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-passage-container::-webkit-scrollbar-thumb {
+    background: #3d3d3d;
+    border-color: #555555 #000000 #000000 #555555;
+}
+
+[data-theme="dark"] .win97-passage-container::-webkit-scrollbar-button {
+    background: #3d3d3d;
+    border-color: #555555 #000000 #000000 #555555;
+}
+
+[data-theme="dark"] .win97-textarea-container {
+    background: #1a1a1a;
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-textarea {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-textarea::placeholder {
+    color: #666666;
+}
+
+[data-theme="dark"] .win97-btn {
+    background: #3d3d3d;
+    border-color: #555555 #000000 #000000 #555555;
+    box-shadow: inset -1px -1px 0 #222222, inset 1px 1px 0 #555555;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-btn:hover {
+    background: #4a4a4a;
+}
+
+[data-theme="dark"] .win97-btn:active {
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-text-size-controls {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-text-size-btn {
+    background: #3d3d3d;
+    border-color: #555555 #000000 #000000 #555555;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-text-size-btn:active {
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-label {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .win97-fieldset {
+    border-color: #000000 #555555 #555555 #000000;
+}
+
+[data-theme="dark"] .win97-legend {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+/* ============================================
    RESULTS PAGES DARK MODE
    ============================================ */
 
