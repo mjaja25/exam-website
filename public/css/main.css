@@ -4270,9 +4270,9 @@ body.mobile-warning-active {
 }
 
 .instructions-card a.disabled {
-    background: var(--bg-input);
-    color: var(--text-muted);
-    border-bottom: none;
+    background: #dbeafe;
+    border: 2px solid #3b82f6;
+    color: #1e40af;
     pointer-events: none;
     cursor: not-allowed;
 }
@@ -6957,3 +6957,342 @@ body.typing-page textarea:focus,
 /* ============================================
    END OF TEST PAGES STYLES
    ============================================ */
+
+/* ============================================
+   RESULTS PAGES
+   ============================================ */
+
+.results-page {
+    min-height: 100vh;
+    background: var(--bg-body);
+    padding: var(--spacing-xl);
+}
+
+.results-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.results-header h1 {
+    font-family: var(--font-heading);
+    color: var(--primary);
+    font-size: 2rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.results-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+/* Score Section - 2 Column Grid */
+.score-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    align-items: stretch;
+    margin-bottom: var(--spacing-xl);
+}
+
+.results-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.results-card h2 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.results-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Score Circle */
+.score-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 auto var(--spacing-lg);
+    color: var(--primary);
+    background: conic-gradient(var(--primary) var(--progress, 0deg), var(--bg-input) var(--progress, 0deg));
+    position: relative;
+}
+
+.score-circle::before {
+    content: '';
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    background: var(--bg-card);
+    border-radius: 50%;
+}
+
+.score-circle span {
+    position: relative;
+    z-index: 1;
+}
+
+/* Skills Layout */
+.skills-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+.skills-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+/* Report Grid */
+.report-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Comparison Card */
+.comparison-container {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.comparison-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.comparison-header h3 {
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.trophy-icon {
+    font-size: 1.5rem;
+}
+
+/* Detailed Report */
+.test-details-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border-color);
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* MCQ Review Card */
+.mcq-review-card {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.mcq-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 2px solid var(--border-color);
+}
+
+/* Score Grid */
+.score-grid {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.score-grid-item {
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--bg-input);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border-color);
+    min-width: 100px;
+}
+
+.score-grid-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.score-grid-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+/* Results Footer */
+.results-footer {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.results-footer .action-btn,
+.results-footer .btn {
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.results-footer .action-btn.primary,
+.results-footer .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+}
+
+.results-footer .action-btn.primary:hover,
+.results-footer .btn-primary:hover {
+    background: var(--primary-shade);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.results-footer .action-btn.secondary,
+.results-footer .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.results-footer .action-btn.secondary:hover,
+.results-footer .btn-secondary:hover {
+    background: var(--bg-input);
+    border-color: var(--text-muted);
+}
+
+/* Loading Text */
+.loading-text {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+/* Results Page Responsive */
+@media (max-width: 768px) {
+    .results-page {
+        padding: var(--spacing-md);
+    }
+    
+    .score-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .results-card {
+        min-height: 350px;
+    }
+    
+    .results-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .results-footer {
+        flex-direction: column;
+    }
+    
+    .results-footer .action-btn,
+    .results-footer .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ============================================
+   END OF RESULTS PAGES STYLES
+   ============================================ */
+
+/* ============================================
+   NAV BUTTON (Results Page)
+   ============================================ */
+
+.nav-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: var(--primary-shade);
+    transform: translateY(-1px);
+}

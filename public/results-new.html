@@ -5,46 +5,41 @@
     <meta charset="UTF-8">
     <title>Exam Results | Proficiency Portal</title>
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="results.css">
-    <link rel="stylesheet" href="results-new.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
-<body>
-    <div class="container">
-        <div class="header">
+<body class="results-page">
+    <main class="results-container">
+        <div class="results-header">
             <h1 id="results-title">Exam Complete!</h1>
             <p>Here is your performance summary.</p>
         </div>
 
         <div class="score-section">
-            <div class="card">
+            <div class="results-card">
                 <h2>Overall Score</h2>
                 <div class="card-body">
-                    <div class="score-circle" id="total-score-circle">
+                    <div class="score-circle" id="total-score-circle" style="--progress: 0deg;">
                         <span><span id="total-score-display">0</span> / 50</span>
                     </div>
                     <p>You performed better than <strong id="percentile-rank">0%</strong> of test-takers.</p>
                 </div>
             </div>
 
-            <div class="card breakdown-card">
+            <div class="results-card">
                 <h2>Breakdown</h2>
-                <div id="score-breakdown" class="score-grid">
-                </div>
+                <div id="score-breakdown" class="score-grid"></div>
             </div>
 
-            <div class="card chart-card">
+            <div class="results-card">
                 <h2>Score Visualization</h2>
                 <canvas id="scoreChart"></canvas>
             </div>
-
         </div>
 
         <div class="report-grid">
-            <div class="card mcq-review-card">
+            <div class="results-card mcq-review-card">
                 <h2>Excel MCQ Review</h2>
                 <div id="mcq-viewer-content"></div>
                 <div class="mcq-controls">
@@ -55,11 +50,12 @@
             </div>
         </div>
 
-        <div class="footer-actions">
+        <div class="results-footer">
             <a href="/dashboard.html" class="action-btn secondary">Back to Dashboard</a>
             <a href="/feedback.html" class="action-btn primary">Give Feedback</a>
         </div>
-    </div>
+    </main>
+
     <script src="toast.js"></script>
     <script type="module" src="/js/pages/results-new.js"></script>
     <script src="theme-toggle.js"></script>

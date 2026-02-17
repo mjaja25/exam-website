@@ -13,43 +13,39 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
-<body>
-    <!-- Hidden header for theme toggle injection -->
-    <div class="test-header"
-        style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; box-shadow: none; padding: 0; width: auto;">
-        <nav></nav>
-    </div>
-
-    <div class="container" style="padding-top: 4rem;">
+<body class="results-page">
+    <main class="results-container">
         <div class="results-header">
             <h1 id="results-title">Exam Complete!</h1>
             <p>Here is your performance summary.</p>
         </div>
 
         <div class="score-section">
-            <div class="card">
+            <div class="results-card">
                 <h2>Overall Score</h2>
                 <div class="card-body">
-                    <div class="score-circle" id="total-score-circle">
+                    <div class="score-circle" id="total-score-circle" style="--progress: 0deg;">
                         <span><span id="score-value">0</span> / 50</span>
                     </div>
                     <p>You performed better than <strong id="percentile-rank">0%</strong> of test-takers.</p>
                 </div>
             </div>
 
-            <div class="card">
+            <div class="results-card">
                 <h2>Skills Breakdown</h2>
-                <div class="card-body skills-layout">
-                    <div class="chart-container">
-                        <canvas id="skills-chart-canvas"></canvas>
+                <div class="card-body">
+                    <div class="skills-layout">
+                        <div class="chart-container">
+                            <canvas id="skills-chart-canvas"></canvas>
+                        </div>
+                        <div id="chart-legend" class="chart-legend"></div>
+                        <div id="skills-text-breakdown" class="skills-text"></div>
                     </div>
-                    <div id="chart-legend" class="chart-legend"></div>
-                    <div id="skills-text-breakdown" class="skills-text"></div>
                 </div>
             </div>
         </div>
 
-        <div id="comparison-card" class="card comparison-container hidden" style="margin-top: 20px;">
+        <div id="comparison-card" class="comparison-container hidden">
             <div class="comparison-header">
                 <span class="trophy-icon">🏆</span>
                 <h3>Global Performance Insights</h3>
@@ -57,23 +53,23 @@
             <div id="comparison-content">
                 <p class="loading-text">Analyzing your rank...</p>
             </div>
-            <button onclick="window.location.href='/leaderboards.html'" class="action-btn secondary"
-                style="margin-top: 1rem;">
+            <a href="/leaderboards.html" class="action-btn secondary">
                 View Global Hall of Fame
-            </button>
+            </a>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
+        <div class="results-card">
             <h2>Detailed Report</h2>
-            <div id="test-details-container" class="card-body"></div>
+            <div id="test-details-container" class="test-details-container"></div>
         </div>
 
-        <div class="footer-actions">
+        <div class="results-footer">
             <a href="/dashboard.html" class="action-btn secondary">Back to Dashboard</a>
             <a href="/feedback.html" class="action-btn primary">Give Feedback</a>
         </div>
-    </div>
+    </main>
 
+    <script src="toast.js"></script>
     <script type="module" src="/js/pages/results.js"></script>
     <script src="theme-toggle.js"></script>
 </body>

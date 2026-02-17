@@ -1147,3 +1147,106 @@ body {
     background: var(--bg-tertiary);
     border-color: var(--border-light);
 }
+
+/* ============================================
+   RESULTS PAGES DARK MODE
+   ============================================ */
+
+[data-theme="dark"] .results-page {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .results-header h1 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .results-header p {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .results-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .results-card h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .results-card .card-body {
+    justify-content: center;
+}
+
+[data-theme="dark"] .score-circle {
+    color: var(--primary);
+    background: conic-gradient(var(--primary) var(--progress, 0deg), var(--bg-tertiary) var(--progress, 0deg));
+}
+
+[data-theme="dark"] .score-circle::before {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .comparison-container {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .comparison-header h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .detail-row {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .detail-label {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .detail-value {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .score-grid-item {
+    background: var(--bg-tertiary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .score-grid-value {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .score-grid-label {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .nav-btn {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .nav-btn:hover {
+    background: var(--primary-shade);
+}
+
+[data-theme="dark"] .loading-text {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .results-footer .action-btn.primary {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .results-footer .action-btn.secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .results-footer .action-btn.secondary:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--text-muted);
+}
