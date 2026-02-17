@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentQuestionId = question._id;
             
             // Start Timer
-            startTimer(300); // 5 mins
+            startTimer(180); // 3 mins
             elements.editor.focus();
         } catch (error) {
             elements.questionDisplay.textContent = 'Error loading question. Please refresh the page.';

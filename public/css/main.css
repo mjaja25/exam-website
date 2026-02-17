@@ -6320,6 +6320,13 @@ body.test-page {
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
     border: 2px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.test-header > div {
+    width: 100%;
 }
 
 .test-header hgroup h2 {
@@ -6354,15 +6361,16 @@ body.test-page {
 
 /* Stats Bar */
 .stats-bar {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 2rem;
-    margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-md) 0;
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
     background: var(--bg-input);
     border-radius: var(--radius-lg);
     border: 2px solid var(--border-color);
-    opacity: 0.7;
+    opacity: 0.9;
     transition: opacity 0.2s;
 }
 
@@ -6372,6 +6380,7 @@ body.test-page {
 
 .stat-item {
     text-align: center;
+    flex: 1;
 }
 
 .stat-item span {
@@ -6687,17 +6696,21 @@ body.typing-page textarea:focus,
     font-weight: 700;
     font-size: 0.9rem;
     transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
 }
 
 .download-btn:hover {
     background: var(--primary-shade);
     transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .download-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     background: var(--neutral);
+    color: var(--text-muted);
 }
 
 .upload-card input[type="file"] {
@@ -6850,9 +6863,10 @@ body.typing-page textarea:focus,
     }
     
     .stats-bar {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: var(--spacing-md);
         margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-md);
     }
     
     .passage-card {
