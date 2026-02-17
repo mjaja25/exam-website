@@ -199,7 +199,27 @@ a:hover {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-lg);
-    align-items: start;
+    align-items: stretch;
+}
+
+.dashboard-content .card {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.past-results-card {
+    max-height: 600px;
+}
+
+.results-table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.practice-stats-card {
+    justify-content: center;
 }
 
 main.page-wrap {
