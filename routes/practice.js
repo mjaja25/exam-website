@@ -9,13 +9,14 @@ const {
     submitPracticeExcelBody,
     analyzePracticeBody,
     analyzeTypingPracticeBody,
+    saveTypingPracticeBody,
     saveResultBody
 } = require('../validation/schemas/practice');
 
 // Practice Letter Submission
 router.post('/letter', authMiddleware, validate({ body: submitPracticeLetterBody }), practiceController.submitPracticeLetter);
 
-// Practice Excel Submission — validation after multer
+// Practice Excel Submission
 router.post('/excel', authMiddleware, uploadToCloudinary.single('excelFile'), validate({ body: submitPracticeExcelBody }), practiceController.submitPracticeExcel);
 
 // Practice Analysis (General)
@@ -24,10 +25,19 @@ router.post('/analyze', authMiddleware, validate({ body: analyzePracticeBody }),
 // Practice Typing Analysis
 router.post('/typing-analyze', authMiddleware, validate({ body: analyzeTypingPracticeBody }), practiceController.analyzeTypingPractice);
 
+// Save Typing Practice with Error Tracking
+router.post('/typing', authMiddleware, validate({ body: saveTypingPracticeBody }), practiceController.saveTypingPractice);
+
+// Get Typing Stats
+router.get('/typing-stats', authMiddleware, practiceController.getTypingStats);
+
+// Get User Heatmap Data
+router.get('/heatmap-data', authMiddleware, practiceController.getUserHeatmapData);
+
 // Practice Results (Save)
 router.post('/results', authMiddleware, validate({ body: saveResultBody }), practiceController.saveResult);
 
-// Practice Stats (Get) — no validation needed (user ID from auth)
+// Practice Stats (Get)
 router.get('/stats', authMiddleware, practiceController.getStats);
 
 module.exports = router;

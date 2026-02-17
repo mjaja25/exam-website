@@ -189,3 +189,113 @@ exports.getStats = async (req, res) => {
         res.status(500).json({ message: 'Error fetching practice stats.' });
     }
 };
+
+exports.saveTypingPractice = async (req, res) => {
+    try {
+        const practiceData = {
+            user: req.userId,
+            ...req.body,
+            completedAt: new Date()
+        };
+        
+        const result = await PracticeResult.create(practiceData);
+        
+        res.status(201).json({ 
+            success: true, 
+            message: 'Practice saved',
+            resultId: result._id 
+        });
+    } catch (error) {
+        console.error('Save Typing Practice Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getTypingStats = async (req, res) => {
+    try {
+        const { timeframe = '30d' } = req.query;
+        const days = parseInt(timeframe) || 30;
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        
+        const stats = await PracticeResult.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(req.userId),
+                    category: { $in: ['typing', 'drill-home', 'drill-top', 'drill-bottom', 'drill-numbers', 'drill-words'] },
+                    completedAt: { $gte: since }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    avgWpm: { $avg: '$wpm' },
+                    avgAccuracy: { $avg: '$accuracy' },
+                    totalSessions: { $sum: 1 },
+                    totalErrors: { $sum: '$errorCount' },
+                    bestWpm: { $max: '$wpm' }
+                }
+            }
+        ]);
+        
+        const trend = await PracticeResult.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(req.userId),
+                    category: 'typing',
+                    completedAt: { $gte: since }
+                }
+            },
+            {
+                $sort: { completedAt: 1 }
+            },
+            {
+                $project: {
+                    date: { $dateToString: { format: '%Y-%m-%d', date: '$completedAt' } },
+                    wpm: 1,
+                    accuracy: 1
+                }
+            }
+        ]);
+        
+        res.json({ stats: stats[0] || {}, trend });
+    } catch (error) {
+        console.error('Get Typing Stats Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getUserHeatmapData = async (req, res) => {
+    try {
+        const heatmapData = await PracticeResult.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(req.userId),
+                    category: { $in: ['typing', /^drill-/, 'drill-home', 'drill-top', 'drill-bottom', 'drill-numbers', 'drill-words', 'drill-custom'] }
+                }
+            },
+            {
+                $unwind: '$keystrokes'
+            },
+            {
+                $group: {
+                    _id: '$keystrokes.key',
+                    totalCount: { $sum: '$keystrokes.count' },
+                    totalErrors: { $sum: '$keystrokes.errors' }
+                }
+            }
+        ]);
+        
+        const formatted = {};
+        heatmapData.forEach(item => {
+            formatted[item._id] = {
+                count: item.totalCount,
+                errors: item.totalErrors
+            };
+        });
+        
+        res.json(formatted);
+    } catch (error) {
+        console.error('Get Heatmap Data Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};

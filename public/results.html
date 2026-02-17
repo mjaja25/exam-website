@@ -8,13 +8,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="css/main.css">
     <script src="/auth.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body class="results-page">
     <main class="results-container">
+        <!-- Performance Banner -->
+        <div id="performance-banner" class="performance-banner"></div>
+        
         <div class="results-header">
             <h1 id="results-title">Exam Complete!</h1>
             <p>Here is your performance summary.</p>
@@ -58,14 +59,16 @@
             </a>
         </div>
 
-        <div class="results-card">
+        <div class="results-card detailed-report-card">
             <h2>Detailed Report</h2>
             <div id="test-details-container" class="test-details-container"></div>
         </div>
 
         <div class="results-footer">
-            <a href="/dashboard.html" class="action-btn secondary">Back to Dashboard</a>
-            <a href="/feedback.html" class="action-btn primary">Give Feedback</a>
+            <a href="/dashboard.html" class="btn-secondary">Back to Dashboard</a>
+            <button id="retry-exam-btn" class="btn-secondary">Retry Exam</button>
+            <button id="practice-zone-btn" class="btn-secondary">Practice Zone</button>
+            <a href="/feedback.html" class="btn-primary">Give Feedback</a>
         </div>
     </main>
 

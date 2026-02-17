@@ -10,11 +10,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const chartCanvas = document.getElementById('skills-chart-canvas');
     const legendContainer = document.getElementById('chart-legend');
     const detailsContainer = document.getElementById('test-details-container');
+    const performanceBanner = document.getElementById('performance-banner');
 
     const token = auth.getToken();
 
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('sessionId') || localStorage.getItem('currentSessionId');
+
+    // Button handlers
+    const retryBtn = document.getElementById('retry-exam-btn');
+    if (retryBtn) {
+        retryBtn.onclick = () => {
+            localStorage.setItem('autoOpenExamModal', 'true');
+            window.location.href = '/dashboard.html';
+        };
+    }
+
+    const practiceBtn = document.getElementById('practice-zone-btn');
+    if (practiceBtn) {
+        practiceBtn.onclick = () => {
+            localStorage.setItem('scrollToPractice', 'true');
+            window.location.href = '/dashboard.html#practice';
+        };
+    }
 
     async function fetchSessionResults() {
         if (!sessionId) {
@@ -49,6 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const excelScore = Math.round(data.excelScore || 0);
         const totalScore = Math.round(data.totalScore || (typingScore + letterScore + excelScore));
 
+        // Show performance banner
+        showPerformanceBanner(totalScore, data);
+
         if (scoreValueElement) {
             const startTime = performance.now();
             const duration = 1200;
@@ -68,9 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (totalScoreCircle) {
             const scoreDegrees = (totalScore / 50) * 360;
-            totalScoreCircle.style.background = `conic-gradient(var(--primary-yellow) var(--score-deg), var(--border-color, #eee) var(--score-deg))`;
+            totalScoreCircle.style.background = `conic-gradient(var(--primary) var(--progress, 0deg), var(--bg-input) var(--progress, 0deg))`;
             requestAnimationFrame(() => {
-                totalScoreCircle.style.setProperty('--score-deg', scoreDegrees + 'deg');
+                totalScoreCircle.style.setProperty('--progress', scoreDegrees + 'deg');
             });
         }
 
@@ -104,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let detailsHtml = `
             <div class="test-block">
-                <h3>⌨ Typing Test <span class="score">${typingScore} / ${pattern === 'new_pattern' ? 30 : 20}</span></h3>
+                <h3>⌨ Typing Test <span class="score">${typingScore} / 20</span></h3>
                 <div class="feedback">WPM: <strong>${data.wpm || 0}</strong>, Accuracy: <strong>${data.accuracy || 0}%</strong></div>
             </div>
         `;
@@ -133,11 +154,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderComparison(totalScore, pattern);
 
-        const urlParams = new URLSearchParams(window.location.search);
         const isHistoryView = urlParams.has('sessionId');
         if (!isHistoryView) {
-            triggerCelebration(totalScore);
+            triggerCelebration(totalScore, false);
         }
+    }
+
+    function showPerformanceBanner(totalScore, data) {
+        if (!performanceBanner) return;
+        
+        // Determine tier
+        let tier, title, message;
+        if (totalScore >= 40) {
+            tier = 'green';
+            title = '🎉 Congratulations!';
+            message = 'Outstanding performance! You\'ve mastered this exam.';
+        } else if (totalScore >= 25) {
+            tier = 'yellow';
+            title = '💪 Good Progress!';
+            message = 'You\'re on the right track. Keep practicing!';
+        } else {
+            tier = 'red';
+            title = '🔥 Keep Pushing!';
+            message = 'Don\'t give up! Practice will make you stronger.';
+        }
+        
+        // Detect weakest area
+        const weakArea = detectWeakArea(data);
+        if (weakArea) {
+            message += ` Focus on ${weakArea} practice to improve your score.`;
+        }
+        
+        performanceBanner.className = `performance-banner ${tier}`;
+        performanceBanner.innerHTML = `<h2>${title}</h2><p>${message}</p>`;
+    }
+
+    function detectWeakArea(data) {
+        const scores = [
+            { name: 'typing', score: data.typingScore || 0, max: 20 },
+            { name: 'letter', score: data.letterScore || 0, max: 10 },
+            { name: 'Excel', score: data.excelScore || 0, max: 20 }
+        ];
+        
+        // Find lowest percentage
+        const weakest = scores.reduce((min, s) => {
+            const pct = s.score / s.max;
+            return pct < min.pct ? { name: s.name, pct } : min;
+        }, { name: null, pct: 1 });
+        
+        return weakest.pct < 0.6 ? weakest.name : null;
     }
 
     function formatLetterFeedback(feedback) {
@@ -194,30 +259,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return html + '</div>';
     }
 
-    async function triggerCelebration(score) {
+    async function triggerCelebration(score, isTopThree) {
+        // Don't celebrate on history view
+        const isHistoryView = urlParams.has('sessionId');
+        if (isHistoryView) return;
+        
+        // Standard confetti for all completions
         if (typeof window.confetti === 'function') {
             window.confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         }
-
-        try {
-            const res = await fetch('/api/leaderboard/all', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const lb = await res.json();
-            const leaders = lb['std_overall'] || [];
-
-            const isTopScorer = leaders.some(l => Math.round(l.totalScore) === Math.round(score));
-
-            if (isTopScorer && typeof window.confetti === 'function') {
-                let duration = 3000;
-                let end = Date.now() + duration;
-                (function frame() {
-                    window.confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-                    window.confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-                    if (Date.now() < end) requestAnimationFrame(frame);
-                })();
-            }
-        } catch (e) { console.error("Celebration Error:", e); }
+        
+        // Fireworks ONLY for top 3
+        if (isTopThree && typeof window.confetti === 'function') {
+            const duration = 4000;
+            const end = Date.now() + duration;
+            
+            (function frame() {
+                window.confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.8 },
+                    colors: ['#fbbf24', '#f59e0b', '#ef4444', '#10b981']
+                });
+                window.confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.8 },
+                    colors: ['#fbbf24', '#f59e0b', '#ef4444', '#10b981']
+                });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            })();
+        }
     }
 
     async function fetchPercentile(sessionId) {
@@ -259,13 +333,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let message = "";
             let subtext = "";
+            let isTopThree = false;
 
             if (userScore >= topScore) {
                 message = "RANK #1 ACHIEVED!";
                 subtext = "You've matched or beaten the current global leader. Your name is now being decorated in gold on the dashboard!";
+                isTopThree = true;
             } else if (userScore >= thirdScore) {
                 message = "YOU'RE ON THE PODIUM!";
                 subtext = `Incredible work! You are currently in the Top 3. You only need ${diffToFirst.toFixed(1)} more marks to take the #1 spot.`;
+                isTopThree = true;
             } else if (diffToPodium <= 5) {
                 message = "SO CLOSE TO GLORY!";
                 subtext = `You are less than 5 marks away from the Bronze medal. A little more practice in the MCQ zone will get you there!`;
@@ -279,6 +356,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="comparison-subtext">${subtext}</p>
             `;
             card.classList.remove('hidden');
+            
+            // Trigger fireworks if top 3 (and not history view)
+            const isHistoryView = urlParams.has('sessionId');
+            if (isTopThree && !isHistoryView) {
+                triggerCelebration(userScore, true);
+            }
 
         } catch (err) {
             console.error("Comparison Error:", err);

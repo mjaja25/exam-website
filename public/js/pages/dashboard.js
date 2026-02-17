@@ -68,6 +68,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load Data
     fetchDashboardData();
     fetchPracticeStats();
+    
+    // Auto-open exam modal if coming from results page
+    if (localStorage.getItem('autoOpenExamModal') === 'true') {
+        localStorage.removeItem('autoOpenExamModal');
+        setTimeout(() => openExamModal(), 500);
+    }
+
+    // Scroll to practice section if coming from results page
+    if (localStorage.getItem('scrollToPractice') === 'true') {
+        localStorage.removeItem('scrollToPractice');
+        setTimeout(() => {
+            const practiceCard = document.querySelector('.practice-zone-card');
+            if (practiceCard) {
+                practiceCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 500);
+    }
 });
 
 // --- Data Fetching ---

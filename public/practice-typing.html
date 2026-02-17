@@ -9,103 +9,128 @@
     <script src="/auth.js" defer></script>
 </head>
 
-<body class="dashboard-page">
-    <header class="test-header practice-header">
+<body class="practice-page">
+    <header class="practice-header">
         <div class="logo">Typing <span>Practice Zone</span></div>
         <a href="/dashboard.html" class="nav-button secondary">Exit Practice</a>
     </header>
 
-    <main class="container">
+    <main class="practice-container">
         <!-- CONFIG VIEW -->
-        <div id="config-view" class="practice-config">
-            <h2 class="config-title">Configure Your Session</h2>
+        <div id="config-view" class="practice-config-card">
+            <div class="config-header">
+                <h1>⌨️ Typing Practice</h1>
+                <p>Configure your session and improve your skills</p>
+            </div>
 
-            <div class="config-group">
-                <label>Test Duration</label>
-                <div class="selector-grid">
-                    <button class="select-btn" onclick="setTime(60, this)">1 Minute</button>
-                    <button class="select-btn active" onclick="setTime(120, this)">2 Minutes</button>
-                    <button class="select-btn" onclick="setTime(300, this)">5 Minutes</button>
+            <div class="config-grid">
+                <div class="config-section">
+                    <label>Test Duration</label>
+                    <div class="selector-grid">
+                        <button class="select-btn" data-time="60">1 Minute</button>
+                        <button class="select-btn active" data-time="120">2 Minutes</button>
+                        <button class="select-btn" data-time="300">5 Minutes</button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <label>Passage Difficulty</label>
+                    <div class="selector-grid">
+                        <button class="select-btn active" data-diff="easy">Easy</button>
+                        <button class="select-btn" data-diff="medium">Medium</button>
+                        <button class="select-btn" data-diff="hard">Hard</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="config-group">
-                <label>Passage Difficulty</label>
-                <div class="selector-grid">
-                    <button class="select-btn active" onclick="setDiff('easy', this)">Easy</button>
-                    <button class="select-btn" onclick="setDiff('medium', this)">Medium</button>
-                    <button class="select-btn" onclick="setDiff('hard', this)">Hard</button>
-                </div>
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="standard">
+                    <span class="mode-icon">👁️</span>
+                    <div class="mode-content">
+                        <span class="mode-label">Standard</span>
+                        <span class="mode-desc">Visual feedback & stats</span>
+                    </div>
+                </button>
+                <button class="mode-btn" data-mode="simulation">
+                    <span class="mode-icon">🎯</span>
+                    <div class="mode-content">
+                        <span class="mode-label">Simulation</span>
+                        <span class="mode-desc">Exam-like minimal UI</span>
+                    </div>
+                </button>
             </div>
 
-            <div class="sim-toggle">
-                <input type="checkbox" id="true-sim-check" />
-                <div>
-                    <label for="true-sim-check">True Simulation Mode</label>
-                    <small>Minimal UI, monospaced font, large textarea — emulates a real exam</small>
-                </div>
-            </div>
-
-            <button class="primary start-btn" onclick="launchPractice()">Launch Practice Session</button>
+            <button class="primary start-btn" onclick="launchPractice()">
+                🚀 Launch Practice
+            </button>
 
             <hr class="practice-divider">
 
-            <!-- Finger Drill Section -->
-            <h3 class="drill-section-title">Finger Drill Practice</h3>
-            <div class="drill-picker">
-                <div class="drill-picker-grid">
-                    <button class="drill-pick-btn" onclick="selectDrill('home', this)">
-                        <span class="pick-icon">🏠</span> Home Row
+            <div class="drills-section">
+                <h3>🏋️ Finger Drill Practice</h3>
+                <div class="drill-grid">
+                    <button class="drill-btn" data-drill="home">
+                        <span class="drill-icon">🏠</span>
+                        <span>Home Row</span>
                     </button>
-                    <button class="drill-pick-btn" onclick="selectDrill('top', this)">
-                        <span class="pick-icon">⬆️</span> Top Row
+                    <button class="drill-btn" data-drill="top">
+                        <span class="drill-icon">⬆️</span>
+                        <span>Top Row</span>
                     </button>
-                    <button class="drill-pick-btn" onclick="selectDrill('bottom', this)">
-                        <span class="pick-icon">⬇️</span> Bottom Row
+                    <button class="drill-btn" data-drill="bottom">
+                        <span class="drill-icon">⬇️</span>
+                        <span>Bottom Row</span>
                     </button>
-                    <button class="drill-pick-btn" onclick="selectDrill('numbers', this)">
-                        <span class="pick-icon">🔢</span> Numbers
+                    <button class="drill-btn" data-drill="numbers">
+                        <span class="drill-icon">🔢</span>
+                        <span>Numbers</span>
                     </button>
-                    <button class="drill-pick-btn" onclick="selectDrill('words', this)">
-                        <span class="pick-icon">📝</span> Common Words
+                    <button class="drill-btn" data-drill="words">
+                        <span class="drill-icon">📝</span>
+                        <span>Words</span>
                     </button>
-                    <button class="drill-pick-btn" onclick="selectDrill('custom', this)">
-                        <span class="pick-icon">✏️</span> Custom
+                    <button class="drill-btn" data-drill="custom">
+                        <span class="drill-icon">✏️</span>
+                        <span>Custom</span>
                     </button>
                 </div>
                 <div id="word-set-picker" class="word-set-picker">
-                    <button class="word-set-btn active" onclick="selectWordSet('1k', this)">1K Words</button>
-                    <button class="word-set-btn" onclick="selectWordSet('5k', this)">5K Words</button>
-                    <button class="word-set-btn" onclick="selectWordSet('10k', this)">10K Words</button>
+                    <button class="word-set-btn active" data-set="1k">1K Words</button>
+                    <button class="word-set-btn" data-set="5k">5K Words</button>
+                    <button class="word-set-btn" data-set="10k">10K Words</button>
                 </div>
-                <textarea id="drill-custom-text" class="drill-custom-input" rows="2"
+                <textarea id="drill-custom-text" class="drill-custom-input hidden" rows="3"
                     placeholder="Type your custom drill text here..."></textarea>
-                <button class="primary start-btn drill-start-btn" onclick="launchDrill()">Start Finger Drill</button>
+                <button class="primary start-btn drill-start-btn" onclick="launchDrill()">
+                    Start Finger Drill
+                </button>
             </div>
         </div>
 
-        <!-- DECORATED ENGINE (sim-style layout WITH visual feedback) -->
-        <div id="decorated-engine" class="dec-engine hidden">
-            <div class="sim-stats">
-                <span>Time: <strong id="dec-timer">02:00</strong></span>
-                <span>WPM: <strong id="dec-wpm">0</strong></span>
-                <span>Accuracy: <strong id="dec-accuracy">100%</strong></span>
+        <!-- DECORATED ENGINE -->
+        <div id="decorated-engine" class="practice-engine hidden">
+            <div class="engine-header">
+                <div class="sim-stats">
+                    <span>Time: <strong id="dec-timer">02:00</strong></span>
+                    <span>WPM: <strong id="dec-wpm">0</strong></span>
+                    <span>Accuracy: <strong id="dec-accuracy">100%</strong></span>
+                </div>
             </div>
             <div id="dec-passage" class="sim-passage">Loading passage...</div>
             <textarea id="dec-input" class="sim-textarea" placeholder="Start typing here..." autocomplete="off"
                 autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-
             <div id="dec-admin-bypass" class="admin-bypass">
                 <button id="dec-quick-submit">Admin: Quick Submit</button>
             </div>
         </div>
 
-        <!-- TRUE SIMULATION ENGINE -->
-        <div id="sim-engine" class="sim-engine hidden">
-            <div class="sim-stats">
-                <span>Time: <strong id="sim-timer">02:00</strong></span>
-                <span>WPM: <strong id="sim-wpm">0</strong></span>
-                <span>Accuracy: <strong id="sim-accuracy">100%</strong></span>
+        <!-- SIMULATION ENGINE -->
+        <div id="sim-engine" class="practice-engine hidden">
+            <div class="engine-header minimal">
+                <div class="sim-stats minimal">
+                    <span id="sim-timer">02:00</span>
+                    <span id="sim-wpm">0 WPM</span>
+                </div>
             </div>
             <div class="text-size-controls">
                 <span>Text Size</span>
@@ -115,16 +140,15 @@
             <div id="sim-passage" class="sim-passage">Loading passage...</div>
             <textarea id="sim-input" class="sim-textarea" placeholder="Start typing here..." autocomplete="off"
                 autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-
             <div id="sim-admin-bypass" class="admin-bypass">
                 <button id="sim-quick-submit">Admin: Quick Submit</button>
             </div>
         </div>
 
         <!-- DRILL ENGINE -->
-        <div id="drill-engine" class="drill-engine hidden">
+        <div id="drill-engine" class="practice-engine hidden">
             <div class="drill-header">
-                <h3 id="drill-title">Finger Drill</h3>
+                <h3 id="drill-title">🏋️ Finger Drill</h3>
                 <button class="drill-back-btn" onclick="exitDrill()">← Back</button>
             </div>
             <div id="drill-progress" class="drill-progress">Rep 1 of 10</div>
@@ -140,68 +164,100 @@
                 <span id="drill-wpm-stat" class="drill-wpm-stat">WPM: <strong id="drill-wpm-text">0</strong></span>
             </div>
             <div id="drill-complete" class="drill-complete-card hidden">
-                <h3>Drill Complete!</h3>
+                <h3>✅ Drill Complete!</h3>
                 <p id="drill-complete-msg"></p>
-                <p id="drill-record-msg" class="drill-record-msg"></p>
+                <p id="drill-record-msg" class="drill-record-msg hidden"></p>
                 <div class="drill-complete-actions">
                     <button onclick="restartDrill()" class="drill-action-btn drill-repeat-btn">🔄 Repeat</button>
-                    <button id="drill-back-to-results-btn" onclick="backToResults()" class="drill-action-btn drill-results-btn">← Back to Results</button>
+                    <button id="drill-back-to-results-btn" onclick="backToResults()" class="drill-action-btn drill-results-btn hidden">← Back to Results</button>
                     <button onclick="exitDrill()" class="drill-action-btn">← Back</button>
                 </div>
             </div>
         </div>
+
+        <!-- RESULTS VIEW -->
+        <div id="results-view" class="results-view hidden">
+            <div class="results-header">
+                <h2>🎯 Practice Complete!</h2>
+                <p>Here's how you performed</p>
+            </div>
+
+            <div class="results-grid">
+                <div class="results-card score-card">
+                    <div class="score-circle" id="score-ring">
+                        <span class="score-value" id="score-wpm">0</span>
+                        <span class="score-label">WPM</span>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat">
+                            <span id="stat-accuracy">0%</span>
+                            <label>Accuracy</label>
+                        </div>
+                        <div class="stat">
+                            <span id="stat-chars">0</span>
+                            <label>Characters</label>
+                        </div>
+                        <div class="stat">
+                            <span id="stat-errors">0</span>
+                            <label>Errors</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-card breakdown-card">
+                    <h3>📊 Performance Breakdown</h3>
+                    <div id="performance-chart"></div>
+                </div>
+            </div>
+
+            <!-- Keyboard Heatmap -->
+            <div class="results-card heatmap-card">
+                <div class="heatmap-header">
+                    <h3>⌨️ Keyboard Heatmap</h3>
+                    <div class="heatmap-toggle">
+                        <button class="toggle-btn active" data-mode="errors">Errors</button>
+                        <button class="toggle-btn" data-mode="usage">Usage</button>
+                    </div>
+                </div>
+                <div id="keyboard-heatmap"></div>
+            </div>
+
+            <!-- Error Analysis -->
+            <div class="results-card analysis-card">
+                <h3>📈 Error Analysis</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-section">
+                        <h4>Top Mistyped Keys</h4>
+                        <div id="top-errors-chart"></div>
+                    </div>
+                    <div class="analysis-section">
+                        <h4>Finger Performance</h4>
+                        <div id="finger-stats"></div>
+                    </div>
+                </div>
+                <div class="recommendations">
+                    <h4>💡 Recommendations</h4>
+                    <div id="recommendations-list"></div>
+                </div>
+            </div>
+
+            <!-- Historical Progress -->
+            <div class="results-card history-card">
+                <h3>📈 Your Progress</h3>
+                <div id="progress-chart"></div>
+            </div>
+
+            <div class="results-footer">
+                <button class="btn secondary" onclick="retryPractice()">🔄 Try Again</button>
+                <button class="btn secondary" onclick="backToConfig()">⚙️ New Session</button>
+                <button class="btn primary" onclick="location.href='/dashboard.html'">🏠 Dashboard</button>
+            </div>
+        </div>
     </main>
 
-    <!-- RESULTS VIEW -->
-    <div id="results-view" class="results-view results-wrapper">
-        <div class="score-hero">
-            <h2 id="results-title">Practice Complete!</h2>
-            <div class="score-ring" id="score-ring">
-                <span class="score-value" id="score-wpm">0</span>
-            </div>
-            <p class="score-label">Words Per Minute</p>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="stat-accuracy">0%</div>
-                <div class="stat-label">Accuracy</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="stat-chars">0</div>
-                <div class="stat-label">Characters</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="stat-correct">0</div>
-                <div class="stat-label">Correct</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="stat-errors">0</div>
-                <div class="stat-label">Errors</div>
-            </div>
-        </div>
-
-        <!-- WPM Timeline Chart -->
-        <div class="chart-section">
-            <h3>WPM Over Time</h3>
-            <canvas id="wpm-chart" width="800" height="200"></canvas>
-        </div>
-
-        <div class="action-buttons">
-            <button class="btn-analyze" id="analyze-btn">Get AI Typing Coach</button>
-            <button onclick="location.reload()">🔄 Try Again</button>
-            <button onclick="location.href='/dashboard.html'">Dashboard</button>
-        </div>
-
-        <!-- AI Coach Panel (visual cards) -->
-        <div id="coach-panel" class="coach-panel">
-            <div id="coach-content"></div>
-        </div>
-    </div>
-
     <script src="toast.js"></script>
-    <script type="module" src="/js/pages/practice.js"></script>
     <script src="theme-toggle.js"></script>
+    <script type="module" src="/js/pages/practice.js"></script>
 </body>
 
 </html>

@@ -1194,6 +1194,82 @@ body {
 }
 
 /* ============================================
+   PRACTICE PAGES DARK MODE
+   ============================================ */
+
+[data-theme="dark"] .practice-page {
+    background: var(--bg-primary);
+}
+
+[data-theme="dark"] .practice-header {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .practice-config-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .mode-btn {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .mode-btn:hover {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .mode-btn.active {
+    background: rgba(88, 204, 2, 0.1);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .drill-btn {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .drill-btn:hover {
+    background: rgba(88, 204, 2, 0.1);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .keyboard-heatmap {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .key {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .key-neutral {
+    background: var(--bg-card);
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .recommendations {
+    background: rgba(88, 204, 2, 0.1);
+    border-left-color: var(--primary);
+}
+
+[data-theme="dark"] .heatmap-toggle .toggle-btn {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .heatmap-toggle .toggle-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .error-bar,
+[data-theme="dark"] .finger-bar {
+    background: var(--bg-tertiary);
+}
+
+/* ============================================
    RESULTS PAGES DARK MODE
    ============================================ */
 
