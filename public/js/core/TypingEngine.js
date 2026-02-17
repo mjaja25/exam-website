@@ -194,14 +194,7 @@ export class TypingEngine {
             const next = spans[chars.length];
             if (next) {
                 next.classList.add('current');
-                // Ensure the cursor stays in view
-                const containerHeight = this.displayElement.offsetHeight;
-                const spanTop = next.offsetTop;
-                const scrollTop = this.displayElement.scrollTop;
-                
-                if (spanTop > scrollTop + containerHeight - 50) {
-                    this.displayElement.scrollTop = spanTop - containerHeight / 2;
-                }
+                this.scrollToCurrentChar(next);
             }
         } else {
             this.end();
@@ -252,6 +245,27 @@ export class TypingEngine {
         const m = Math.floor(seconds / 60);
         const s = Math.floor(seconds % 60);
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    scrollToCurrentChar(currentSpan) {
+        if (!currentSpan || !this.displayElement) return;
+
+        const container = this.displayElement;
+        const lineHeight = parseInt(window.getComputedStyle(currentSpan).lineHeight) || 32;
+        const containerHeight = container.offsetHeight;
+        const visibleLines = Math.floor(containerHeight / lineHeight);
+        
+        const spanTop = currentSpan.offsetTop;
+        const spanHeight = currentSpan.offsetHeight || lineHeight;
+        
+        const targetScrollTop = spanTop - (containerHeight / 2) + (spanHeight / 2);
+        
+        const maxScroll = container.scrollHeight - containerHeight;
+        const newScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll));
+        
+        if (Math.abs(container.scrollTop - newScrollTop) > 5) {
+            container.scrollTop = newScrollTop;
+        }
     }
 
     calculateStats() {

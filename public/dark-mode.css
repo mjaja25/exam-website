@@ -1318,6 +1318,14 @@ body {
     background: rgba(88, 204, 2, 0.1);
 }
 
+[data-theme="dark"] .passage-display::before {
+    background: linear-gradient(to bottom, var(--bg-tertiary) 0%, var(--bg-tertiary) 50%, transparent 100%);
+}
+
+[data-theme="dark"] .passage-display::after {
+    background: linear-gradient(to top, var(--bg-tertiary) 0%, var(--bg-tertiary) 50%, transparent 100%);
+}
+
 /* Practice Results Dark Mode */
 [data-theme="dark"] .practice-results-card {
     background: var(--bg-card);
@@ -1373,6 +1381,14 @@ body {
 [data-theme="dark"] .drill-passage-display {
     background: var(--bg-tertiary);
     border-color: var(--border-light);
+}
+
+[data-theme="dark"] .drill-passage-display::before {
+    background: linear-gradient(to bottom, var(--bg-tertiary) 0%, var(--bg-tertiary) 50%, transparent 100%);
+}
+
+[data-theme="dark"] .drill-passage-display::after {
+    background: linear-gradient(to top, var(--bg-tertiary) 0%, var(--bg-tertiary) 50%, transparent 100%);
 }
 
 [data-theme="dark"] .drill-input {
