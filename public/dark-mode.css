@@ -1149,6 +1149,51 @@ body {
 }
 
 /* ============================================
+   MODALS DARK MODE
+   ============================================ */
+
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--bg-card);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .option-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .option-card:hover {
+    background: rgba(88, 204, 2, 0.1);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .option-card.selected {
+    background: rgba(88, 204, 2, 0.15);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.2);
+}
+
+[data-theme="dark"] .option-card h4 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .option-card.selected h4 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .option-card p {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .modal-note {
+    color: var(--text-tertiary);
+}
+
+/* ============================================
    RESULTS PAGES DARK MODE
    ============================================ */
 

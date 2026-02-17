@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSummary: document.getElementById('results-summary'),
         startTestBtn: document.getElementById('open-exam-modal-btn'),
         patternModal: document.getElementById('pattern-modal'),
+        profileModal: document.getElementById('profile-modal'),
         mobileWarning: document.getElementById('mobile-warning'),
         navAvatar: document.getElementById('nav-avatar'),
         navInitials: document.getElementById('nav-initials'),
@@ -38,7 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dom.startTestBtn) dom.startTestBtn.onclick = () => openExamModal();
     window.onclick = (event) => {
         if (event.target == dom.patternModal) closeModal();
+        if (event.target == dom.profileModal) closeProfileModal();
     };
+
+    // Escape key to close modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeProfileModal();
+        }
+    });
 
     // Expose window functions for HTML onclicks (temporary compatibility)
     window.openExamModal = openExamModal;
@@ -278,20 +288,43 @@ function updateCarouselSlide() {
 
 function openExamModal() {
     const m = document.getElementById('pattern-modal');
-    if (m) m.style.display = 'flex';
+    if (m) {
+        m.classList.remove('hidden');
+        // Force reflow to ensure transition works
+        m.offsetHeight;
+        m.classList.add('active');
+    }
 }
 
 function closeModal() {
     const m = document.getElementById('pattern-modal');
-    if (m) m.style.display = 'none';
+    if (m) {
+        m.classList.remove('active');
+        // Reset option cards
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        setTimeout(() => {
+            m.classList.add('hidden');
+        }, 300);
+    }
 }
 
 function handleExamSelection(pattern) {
-    localStorage.removeItem('currentSessionId');
-    localStorage.setItem('currentExamPattern', pattern);
-    localStorage.setItem('currentAttemptMode', 'exam');
-    localStorage.setItem('currentSessionId', 'sess_' + Date.now());
-    window.location.href = '/typing.html';
+    // Add visual feedback
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+
+    // Small delay to show selection before navigating
+    setTimeout(() => {
+        localStorage.removeItem('currentSessionId');
+        localStorage.setItem('currentExamPattern', pattern);
+        localStorage.setItem('currentAttemptMode', 'exam');
+        localStorage.setItem('currentSessionId', 'sess_' + Date.now());
+        window.location.href = '/typing.html';
+    }, 200);
 }
 
 function startPractice(type) {
@@ -318,7 +351,12 @@ let selectedDefaultId = null;
 
 function openProfileModal() {
     const m = document.getElementById('profile-modal');
-    if (m) m.style.display = 'flex';
+    if (m) {
+        m.classList.remove('hidden');
+        // Force reflow to ensure transition works
+        m.offsetHeight;
+        m.classList.add('active');
+    }
 
     if (window.currentUserData) {
         const bioEl = document.getElementById('profile-bio');
@@ -337,9 +375,23 @@ function updateBioCount() {
 
 function closeProfileModal() {
     const m = document.getElementById('profile-modal');
-    if (m) m.style.display = 'none';
-    selectedFile = null;
-    selectedDefaultId = null;
+    if (m) {
+        m.classList.remove('active');
+        setTimeout(() => {
+            m.classList.add('hidden');
+            // Reset form state
+            selectedFile = null;
+            selectedDefaultId = null;
+            // Reset avatar preview
+            document.getElementById('preview-avatar-img').classList.add('hidden');
+            document.getElementById('preview-avatar-initials').style.display = 'flex';
+            // Reset bio
+            if (window.currentUserData) {
+                document.getElementById('profile-bio').value = window.currentUserData.bio || '';
+                updateBioCount();
+            }
+        }, 300);
+    }
 }
 
 function handleFileSelect(input) {
@@ -351,7 +403,7 @@ function handleFileSelect(input) {
         reader.onload = (e) => {
             const img = document.getElementById('preview-avatar-img');
             img.src = e.target.result;
-            img.style.display = 'block';
+            img.classList.remove('hidden');
             document.getElementById('preview-avatar-initials').style.display = 'none';
         };
         reader.readAsDataURL(selectedFile);
@@ -365,7 +417,7 @@ function selectDefault(id) {
     const div = document.getElementById('preview-avatar-initials');
     div.textContent = map[id];
     div.style.display = 'flex';
-    document.getElementById('preview-avatar-img').style.display = 'none';
+    document.getElementById('preview-avatar-img').classList.add('hidden');
 }
 
 async function saveProfile() {
