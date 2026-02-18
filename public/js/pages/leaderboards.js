@@ -257,11 +257,10 @@ function createRankCard(entry, rank, isTop3, unit) {
 }
 
 function renderPodium(list, unit) {
-    const positions = [1, 0, 2];
-    const order = [list[1], list[0], list[2]];
+    // API returns sorted list: [1st, 2nd, 3rd, ...]
+    const order = [list[0], list[1], list[2]];
     
     for (let i = 0; i < 3; i++) {
-        const pos = positions[i];
         const entry = order[i];
         const rank = i + 1;
         

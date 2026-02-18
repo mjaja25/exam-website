@@ -4802,7 +4802,7 @@ body.mobile-warning-active {
 }
 
 .rank-hero {
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #58CC02 0%, #46A302 100%);
     color: white;
     border-radius: var(--radius-xl);
     padding: var(--spacing-2xl);
@@ -5469,7 +5469,7 @@ body.mobile-warning-active {
 
 .podium-stand {
     width: 80px;
-    height: 60px;
+    height: 90px;
     background: var(--primary);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
     display: flex;
@@ -5482,17 +5482,18 @@ body.mobile-warning-active {
 }
 
 .podium-1 .podium-stand {
-    height: 90px;
     background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
     box-shadow: 0 4px 0 #CC7800;
 }
 
 .podium-2 .podium-stand {
+    height: 90px;
     background: linear-gradient(180deg, #C0C0C0 0%, #A0A0A0 100%);
     box-shadow: 0 4px 0 #808080;
 }
 
 .podium-3 .podium-stand {
+    height: 90px;
     background: linear-gradient(180deg, #CD7F32 0%, #A0522D 100%);
     box-shadow: 0 4px 0 #8B4513;
 }
