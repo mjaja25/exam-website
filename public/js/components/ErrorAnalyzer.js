@@ -163,20 +163,33 @@ export class ErrorAnalyzer {
     }
 
     renderTopErrors(container, topErrors) {
-        if (!container || topErrors.length === 0) return;
+        if (!container) return;
+        if (topErrors.length === 0) {
+            container.innerHTML = '<div class="no-errors">✨ Clean run! No significant errors detected.</div>';
+            return;
+        }
         
         container.innerHTML = `
-            <div class="top-errors-list">
-                ${topErrors.map((err, i) => `
-                    <div class="error-item">
-                        <span class="error-rank">#${i + 1}</span>
-                        <span class="error-key">"${err.key}"</span>
-                        <div class="error-bar">
-                            <div class="error-fill" style="width: ${(err.errorRate * 100)}%"></div>
+            <div class="top-errors-grid">
+                ${topErrors.map((err, i) => {
+                    const health = Math.max(0, 100 - (err.errorRate * 100 * 2)); // Amplify error impact visually
+                    const healthColor = health > 80 ? '#4ade80' : health > 50 ? '#facc15' : '#f87171';
+                    
+                    return `
+                    <div class="key-card">
+                        <div class="key-display">
+                            <span class="key-char">${err.key === ' ' ? 'Space' : err.key}</span>
+                            <span class="error-badge">${err.errors}</span>
                         </div>
-                        <span class="error-rate">${(err.errorRate * 100).toFixed(1)}%</span>
+                        <div class="key-health">
+                            <div class="health-bar" style="width: ${health}%; background: ${healthColor}"></div>
+                        </div>
+                        <div class="key-stats">
+                            <span class="stat-label">Accuracy</span>
+                            <span class="stat-val">${(100 - err.errorRate * 100).toFixed(1)}%</span>
+                        </div>
                     </div>
-                `).join('')}
+                `}).join('')}
             </div>
         `;
     }
@@ -184,20 +197,32 @@ export class ErrorAnalyzer {
     renderFingerStats(container, fingerStats) {
         if (!container) return;
         
-        const stats = Object.values(fingerStats).sort((a, b) => a.accuracy - b.accuracy);
+        const fingerOrder = [
+            'leftPinky', 'leftRing', 'leftMiddle', 'leftIndex', 'thumbs', 
+            'rightIndex', 'rightMiddle', 'rightRing', 'rightPinky'
+        ];
+
+        const maxVal = Math.max(...Object.values(fingerStats).map(s => s.total));
         
         container.innerHTML = `
-            <div class="finger-stats-list">
-                ${stats.map(stat => `
-                    <div class="finger-stat">
-                        <span class="finger-name">${stat.finger}</span>
-                        <div class="finger-bar">
-                            <div class="finger-fill ${stat.accuracy < 85 ? 'low' : stat.accuracy < 95 ? 'med' : 'high'}" 
-                                 style="width: ${stat.accuracy}%"></div>
+            <div class="finger-equalizer">
+                ${fingerOrder.map(fKey => {
+                    const stat = fingerStats[fKey];
+                    if (!stat) return '';
+                    
+                    // Normalize height based on usage volume, color by accuracy
+                    const heightPercent = maxVal > 0 ? (stat.total / maxVal) * 100 : 0;
+                    const accuracyColor = stat.accuracy >= 95 ? '#4ade80' : stat.accuracy >= 85 ? '#facc15' : '#f87171';
+                    const label = stat.finger.split(' ').map(w => w[0]).join(''); // LP, LR, LM...
+                    
+                    return `
+                    <div class="eq-band" title="${stat.finger}: ${stat.accuracy}% (${stat.errors} err)">
+                        <div class="eq-bar-container">
+                            <div class="eq-bar" style="height: ${Math.max(10, heightPercent)}%; background: ${accuracyColor}"></div>
                         </div>
-                        <span class="finger-accuracy">${stat.accuracy}%</span>
+                        <span class="eq-label">${label}</span>
                     </div>
-                `).join('')}
+                `}).join('')}
             </div>
         `;
     }

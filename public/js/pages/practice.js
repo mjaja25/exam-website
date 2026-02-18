@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!errors || errors.length === 0) return '';
         const errorMap = {};
         errors.forEach(err => {
-            const key = `${err.expected}→${err.actual}`;
+            const key = `${err.expected}→${err.key}`; // key is the actual typed char
             errorMap[key] = (errorMap[key] || 0) + 1;
         });
         return Object.entries(errorMap)
@@ -741,6 +741,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function submitPracticeData(stats) {
         try {
+            // Convert keystrokes map to array
+            const keystrokesArray = Object.entries(state.engine.keystrokes).map(([key, data]) => ({
+                key,
+                count: data.count,
+                errors: data.errors
+            }));
+
+            // Convert errors array to match schema (already mostly correct but ensuring format)
+            const errorsArray = state.engine.errors.map(err => ({
+                key: err.key,
+                expected: err.expected,
+                position: err.position
+            }));
+
             const payload = {
                 category: state.drill.active ? `drill-${state.drill.type}` : 'typing',
                 difficulty: state.config.difficulty,
@@ -748,12 +762,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 duration: stats.durationMin * 60,
                 wpm: stats.wpm,
                 accuracy: stats.accuracy,
-                totalKeystrokes: stats.totalChars, // Approximation if raw keystrokes not summed
+                totalKeystrokes: stats.totalChars,
                 correctKeystrokes: stats.correctChars,
                 errorCount: stats.errorCount,
                 passageLength: stats.totalChars,
-                errors: stats.errors,
-                keystrokes: stats.keystrokes, // Array format from engine
+                errors: errorsArray,
+                keystrokes: keystrokesArray,
                 fingerStats: stats.fingerStats,
                 drillType: state.drill.active ? state.drill.type : null,
                 drillRepetitions: state.drill.active ? state.drill.reps : null
