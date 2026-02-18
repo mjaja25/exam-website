@@ -359,33 +359,3 @@ exports.deleteExcelQuestion = async (req, res) => {
     }
 };
 
-exports.debugGemini = async (req, res) => {
-    try {
-        // We use the 'axios' instance you already have imported to call the Google Discovery API
-        const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-
-        const response = await axios.get(url);
-
-        // This will return a list of objects containing:
-        // name (e.g., models/gemini-1.5-flash)
-        // supportedGenerationMethods (e.g., ["generateContent", "countTokens"])
-        res.json(response.data);
-    } catch (error) {
-        console.error("GEMINI DEBUG ERROR:", error.response ? error.response.data : error.message);
-        res.status(error.response?.status || 500).json({
-            message: "Failed to fetch Gemini models",
-            details: error.response?.data || error.message
-        });
-    }
-};
-
-exports.debugKey = (req, res) => {
-    const key = process.env.GEMINI_API_KEY;
-    res.json({
-        exists: !!key,
-        length: key ? key.length : 0,
-        // Shows the first 4 characters to confirm it's the NEW key
-        prefix: key ? key.substring(0, 4) : "none"
-    });
-};

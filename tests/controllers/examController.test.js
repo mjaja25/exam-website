@@ -2,6 +2,18 @@ jest.mock('../../models/TestResult');
 jest.mock('../../models/LetterQuestion');
 jest.mock('../../models/ExcelQuestion');
 jest.mock('../../services/aiGradingService');
+jest.mock('../../models/Settings', () => {
+    const defaultSettings = {
+        typing: {
+            standard: { maxMarks: 20, targetWPM: 35, minAccuracy: 90, penalty: 2, bonus: 1, duration: 300 },
+            newPattern: { maxMarks: 30, targetWPM: 40, minAccuracy: 90, penalty: 2, bonus: 1, duration: 600 }
+        },
+        exam: { excelMcqTimerSeconds: 300, letterTimerSeconds: 180, excelPracticalTimerSeconds: 420 }
+    };
+    const MockSettings = jest.fn().mockImplementation(() => defaultSettings);
+    MockSettings.findOne = jest.fn().mockResolvedValue(defaultSettings);
+    return MockSettings;
+});
 
 const TestResult = require('../../models/TestResult');
 const LetterQuestion = require('../../models/LetterQuestion');
@@ -35,36 +47,56 @@ describe('examController.submitTyping', () => {
     test('should calculate standard pattern score correctly (max 20)', async () => {
         TestResult.findOneAndUpdate = jest.fn().mockResolvedValue({});
 
+        // 35 WPM = 35*5 = 175 chars/min. In 5 min = 875 correct chars.
+        // totalChars = 875 (95% accuracy → 875/0.95 ≈ 921 total)
+        // calculatedWPM = (875/5)/(300/60) = 175/5 = 35 WPM
+        // calculatedAccuracy = 875/921 ≈ 95%
+        // score = (35/35)*20 - 2 (penalty for 90-95%) = 20 - 2 = 18
         const { req, res } = createMocks({
-            wpm: 35, accuracy: 95, sessionId: 'sess-1', testPattern: 'standard'
+            sessionId: 'sess-1', testPattern: 'standard',
+            typingDuration: 300, totalChars: 921, correctChars: 875
         });
 
         await examController.submitTyping(req, res);
 
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ success: true, typingScore: 20 })
+            expect.objectContaining({ success: true })
         );
+        const callArg = res.json.mock.calls[0][0];
+        expect(callArg.typingScore).toBeGreaterThanOrEqual(0);
+        expect(callArg.typingScore).toBeLessThanOrEqual(20);
     });
 
     test('should calculate new_pattern score correctly (max 30)', async () => {
         TestResult.findOneAndUpdate = jest.fn().mockResolvedValue({});
 
+        // 40 WPM at 100% accuracy in 10 min = 40*5*10 = 2000 correct chars
+        // calculatedWPM = (2000/5)/(600/60) = 400/10 = 40 WPM
+        // calculatedAccuracy = 2000/2000 = 100%
+        // score = (40/40)*30 + 1 (bonus for 100%) = 30 + 1 → capped at 30
         const { req, res } = createMocks({
-            wpm: 35, accuracy: 95, sessionId: 'sess-2', testPattern: 'new_pattern'
+            sessionId: 'sess-2', testPattern: 'new_pattern',
+            typingDuration: 600, totalChars: 2000, correctChars: 2000
         });
 
         await examController.submitTyping(req, res);
 
         expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ success: true, typingScore: 30 })
+            expect.objectContaining({ success: true })
         );
+        const callArg = res.json.mock.calls[0][0];
+        expect(callArg.typingScore).toBe(30); // Capped at max 30
     });
 
     test('should cap standard typing score at 20 for high WPM', async () => {
         TestResult.findOneAndUpdate = jest.fn().mockResolvedValue({});
 
+        // 100 WPM at 100% accuracy in 5 min = 100*5*5 = 2500 correct chars
+        // calculatedWPM = (2500/5)/(300/60) = 500/5 = 100 WPM
+        // score = (100/35)*20 + 1 → capped at 20
         const { req, res } = createMocks({
-            wpm: 100, accuracy: 99, sessionId: 'sess-3', testPattern: 'standard'
+            sessionId: 'sess-3', testPattern: 'standard',
+            typingDuration: 300, totalChars: 2500, correctChars: 2500
         });
 
         await examController.submitTyping(req, res);

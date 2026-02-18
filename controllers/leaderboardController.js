@@ -147,7 +147,7 @@ exports.getAllLeaderboards = async (req, res) => {
 
 exports.getMyRank = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         
         const patterns = ['standard', 'new_pattern'];
         const response = {};
@@ -231,7 +231,7 @@ exports.getMyRank = async (req, res) => {
 exports.compareResult = async (req, res) => {
     try {
         const targetResultId = req.params.resultId;
-        const userId = req.user.id;
+        const userId = req.userId;
 
         // Fetch the target result (Them)
         const them = await TestResult.findById(targetResultId).populate('user', 'username avatar');

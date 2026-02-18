@@ -59,17 +59,20 @@ exports.submitExcelMCQ = async (req, res) => {
             return res.status(400).json({ message: 'Session ID, set ID, and answers are required.' });
         }
 
-        if (!Array.isArray(answers) || answers.length !== 10) {
-            return res.status(400).json({ message: 'Exactly 10 answers are required.' });
+        // answers is an object keyed by question ID (e.g. { "abc123": 2, "def456": 0 })
+        if (typeof answers !== 'object' || Array.isArray(answers)) {
+            return res.status(400).json({ message: 'Answers must be an object keyed by question ID.' });
         }
 
-        // 1. Fetch curated set and calculate correct answers
+        // 1. Fetch curated set and calculate correct answers (server-side grading)
         const examSet = await MCQSet.findById(setId).populate('questions');
         if (!examSet) return res.status(404).json({ message: "Set not found." });
 
         let correctCount = 0;
         examSet.questions.forEach((q) => {
-            if (answers[q._id] === q.correctAnswerIndex) {
+            // Use .toString() to compare ObjectId with string key from client
+            const userAnswer = answers[q._id.toString()];
+            if (userAnswer !== undefined && parseInt(userAnswer) === q.correctAnswerIndex) {
                 correctCount++;
             }
         });
@@ -79,10 +82,18 @@ exports.submitExcelMCQ = async (req, res) => {
 
         // 3. Fetch previous typing marks to get the total (30 + 20 = 50)
         const typingResult = await TestResult.findOne({ sessionId, user: userId });
+        if (!typingResult) {
+            return res.status(404).json({ message: "Test session not found. Please start the exam from the beginning." });
+        }
+
+        if (typingResult.status === 'completed') {
+            return res.status(400).json({ message: "Test already completed." });
+        }
+
         const finalTotal = (parseFloat(typingResult.typingScore) || 0) + mcqMarks;
 
-        // 4. Update Result and User Progress
-        const finalResult = await TestResult.findOneAndUpdate(
+        // 4. Update Result and mark as completed
+        await TestResult.findOneAndUpdate(
             { sessionId, user: userId },
             {
                 mcqScore: mcqMarks,
@@ -91,17 +102,25 @@ exports.submitExcelMCQ = async (req, res) => {
                 // Save raw details so the review page can show Green/Red highlights
                 mcqDetails: Object.keys(answers).map(qId => ({
                     questionId: qId,
-                    userAnswer: answers[qId]
+                    userAnswer: parseInt(answers[qId])
                 }))
             },
             { new: true }
         );
 
+        // 5. Mark this set as completed for the user (prevents repeat)
+        await User.findByIdAndUpdate(userId, {
+            $addToSet: { completedMCQSets: setId }
+        });
+
         res.json({
             success: true,
+            mcqScore: mcqMarks,
+            totalScore: finalTotal,
             redirectUrl: `/results-new.html?sessionId=${sessionId}`
         });
     } catch (error) {
+        console.error("MCQ Submit Error:", error);
         res.status(500).json({ message: "Error saving MCQ results." });
     }
 };

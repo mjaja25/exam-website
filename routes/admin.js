@@ -46,8 +46,4 @@ router.post('/excel-questions', authMiddleware, adminMiddleware, upload.fields([
 ]), validate({ body: createExcelQuestionBody }), adminController.createExcelQuestion);
 router.delete('/excel-questions/:id', authMiddleware, adminMiddleware, validate({ params: idParam }), adminController.deleteExcelQuestion);
 
-// Debugging
-router.get('/debug-gemini', authMiddleware, adminMiddleware, adminController.debugGemini);
-router.get('/debug-key', authMiddleware, adminMiddleware, adminController.debugKey);
-
 module.exports = router;
