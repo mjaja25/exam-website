@@ -636,11 +636,11 @@
                     <h2>Global Exam Settings</h2>
                 </div>
                 <form id="settings-form">
-                    <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div class="settings-grid">
                         
                         <!-- Standard Pattern -->
-                        <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Standard Pattern</h3>
+                        <div class="settings-group">
+                            <h3>Standard Pattern</h3>
                             
                             <div class="form-group">
                                 <label>Duration (Seconds)</label>
@@ -666,15 +666,15 @@
                                 <label>Bonus (100% Acc)</label>
                                 <input type="number" id="std-bonus" required>
                             </div>
-                            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="std-backspace" style="width: auto;">
-                                <label style="margin: 0;">Allow Backspace</label>
+                            <div class="form-group settings-checkbox-group">
+                                <input type="checkbox" id="std-backspace">
+                                <label for="std-backspace">Allow Backspace</label>
                             </div>
                         </div>
 
                         <!-- New Pattern -->
-                        <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">New Pattern</h3>
+                        <div class="settings-group">
+                            <h3>New Pattern</h3>
                             
                             <div class="form-group">
                                 <label>Duration (Seconds)</label>
@@ -700,23 +700,23 @@
                                 <label>Bonus (100% Acc)</label>
                                 <input type="number" id="new-bonus" required>
                             </div>
-                            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="new-backspace" style="width: auto;">
-                                <label style="margin: 0;">Allow Backspace</label>
+                            <div class="form-group settings-checkbox-group">
+                                <input type="checkbox" id="new-backspace">
+                                <label for="new-backspace">Allow Backspace</label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Letter Exam</h3>
+                    <div class="settings-group" style="margin-bottom: 2rem;">
+                        <h3>Letter Exam</h3>
                         <div class="form-group">
                             <label>Letter Timer - Seconds</label>
                             <input type="number" id="set-letter-timer" required>
                         </div>
                     </div>
 
-                    <div class="settings-card" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">Excel Exams</h3>
+                    <div class="settings-group" style="margin-bottom: 2rem;">
+                        <h3>Excel Exams</h3>
                         <div class="form-group">
                             <label>Excel MCQ Timer - Seconds</label>
                             <input type="number" id="set-mcq-timer" required>

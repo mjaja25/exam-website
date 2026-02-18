@@ -83,6 +83,27 @@
     /* Layout */
     --page-width: 1200px;
     --header-height: 70px;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #58CC02 0%, #46A302 100%);
+    --gradient-secondary: linear-gradient(135deg, #1CB0F6 0%, #1899D6 100%);
+    --gradient-bg: linear-gradient(135deg, #F7F7F7 0%, #EEF2FF 100%);
+
+    /* Semantic Colors */
+    --warning: #F59E0B;
+    --warning-light: #FEF3C7;
+    --warning-shade: #D97706;
+    --success: #22C55E;
+    --success-light: #DCFCE7;
+    --success-shade: #16A34A;
+    --error: #FF4B4B;
+
+    /* Hover States */
+    --bg-card-hover: #EAEAEA;
+
+    /* Semantic Shadows */
+    --shadow-primary: 0 8px 20px rgba(88, 204, 2, 0.35);
+    --shadow-secondary: 0 8px 20px rgba(28, 176, 246, 0.35);
 }
 
 /* ============================================
@@ -114,6 +135,27 @@
     --border-color: #3A3A3C;
     --neutral: #3A3A3C;
     --neutral-shade: #1C1C1E;
+
+    /* Gradients - dark mode */
+    --gradient-primary: linear-gradient(135deg, #E2B714 0%, #BFA112 100%);
+    --gradient-secondary: linear-gradient(135deg, #646669 0%, #4D4F52 100%);
+    --gradient-bg: linear-gradient(135deg, #1C1C1E 0%, #2C2C2E 100%);
+
+    /* Semantic Colors - dark mode */
+    --warning: #FBBF24;
+    --warning-light: rgba(251, 191, 36, 0.15);
+    --warning-shade: #F59E0B;
+    --success: #4ADE80;
+    --success-light: rgba(74, 222, 128, 0.15);
+    --success-shade: #22C55E;
+    --error: #F87171;
+
+    /* Hover States - dark mode */
+    --bg-card-hover: #3A3A3C;
+
+    /* Semantic Shadows - dark mode */
+    --shadow-primary: 0 8px 20px rgba(226, 183, 20, 0.3);
+    --shadow-secondary: 0 8px 20px rgba(100, 102, 105, 0.3);
 }
 
 /* ============================================
@@ -525,6 +567,7 @@ main.page-wrap {
 .btn-ghost {
     background: transparent;
     border-bottom: none;
+    border: 2px solid var(--border-color);
     color: var(--text-secondary);
     box-shadow: none;
     padding: 10px 20px;
@@ -532,6 +575,7 @@ main.page-wrap {
 
 .btn-ghost:hover {
     background: var(--bg-input);
+    border-color: var(--text-muted);
 }
 
 .btn-block {
@@ -1018,16 +1062,7 @@ body.mobile-warning-active {
     border-top: 1px solid var(--border-color);
 }
 
-.btn-ghost {
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-secondary);
-}
-
-.btn-ghost:hover {
-    background: var(--bg-input);
-    border-color: var(--text-muted);
-}
+/* .btn-ghost — defined once above (~line 567) */
 
 .def-avatar-btn:hover {
     transform: scale(1.1);
@@ -1326,7 +1361,7 @@ body.mobile-warning-active {
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -1877,6 +1912,30 @@ body.mobile-warning-active {
 
 .settings-group .form-group:last-child {
     margin-bottom: 0;
+}
+
+.settings-checkbox-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    min-width: auto;
+}
+
+.settings-checkbox-group input[type="checkbox"] {
+    flex-shrink: 0;
+    accent-color: var(--primary);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.settings-checkbox-group label {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    cursor: pointer;
 }
 
 /* --- Enhanced MCQ Options --- */
@@ -2990,8 +3049,8 @@ body.mobile-warning-active {
    ============================================ */
 #toast-container {
     position: fixed;
-    bottom: 5.5rem;
-    left: 1.5rem;
+    bottom: 1.5rem;
+    right: 1.5rem;
     z-index: 9999;
     display: flex;
     flex-direction: column;
@@ -3009,7 +3068,7 @@ body.mobile-warning-active {
     border-radius: var(--radius-lg);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border-left: 4px solid var(--secondary);
-    transform: translateX(-100%);
+    transform: translateX(100%);
     opacity: 0;
     transition: all 0.3s ease;
     pointer-events: auto;
@@ -3223,6 +3282,33 @@ body.mobile-warning-active {
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin: 0;
+}
+
+/* ============================================
+   FEEDBACK PAGE
+   ============================================ */
+.feedback-content {
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
+    max-width: 680px;
+}
+
+.feedback-card {
+    min-height: auto;
+}
+
+.feedback-intro {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+    font-size: 1rem;
+}
+
+.feedback-textarea {
+    min-height: 160px;
+}
+
+.feedback-content .form-group {
+    margin-bottom: var(--spacing-lg);
 }
 
 /* ============================================
@@ -3727,17 +3813,7 @@ body.mobile-warning-active {
     animation: fadeInUp 0.4s ease-out;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* @keyframes fadeInUp — defined once above (~line 1368) */
 
 /* ============================================
    ADMIN PANEL SPECIFIC
@@ -3786,35 +3862,7 @@ body.mobile-warning-active {
     font-weight: 700;
 }
 
-/* Search & Filter Bar */
-.filter-bar {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.filter-bar input,
-.filter-bar select {
-    padding: 8px 12px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
-    font-size: 0.85rem;
-    background: var(--bg-card);
-    color: var(--text-primary);
-}
-
-.filter-bar input:focus,
-.filter-bar select:focus {
-    border-color: var(--primary);
-    outline: none;
-}
-
-.filter-bar input {
-    flex: 1;
-    min-width: 150px;
-}
+/* Search & Filter Bar — .filter-bar defined above (~line 1974) */
 
 /* Category Counts */
 .category-counts {
@@ -3950,26 +3998,7 @@ body.mobile-warning-active {
     color: var(--accent);
 }
 
-/* Edit Modal */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
-}
-
-.modal-overlay.active {
-    display: flex;
-    animation: fadeIn 0.2s ease-out;
-}
-
+/* Edit Modal — .modal-overlay and .modal-box defined above (~line 2568) */
 .modal-box {
     background: var(--bg-card);
     border-radius: var(--radius-xl);
@@ -4414,11 +4443,7 @@ body.mobile-warning-active {
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
+/* @keyframes spin — defined once above (~line 3428) */
 
 .loading-overlay p {
     margin-top: 1.5rem;
@@ -6079,29 +6104,21 @@ body.mobile-warning-active {
     margin-bottom: 4px;
 }
 
-.btn-primary {
+/* Duolingo-style .btn colour modifiers — only apply when paired with base .btn class */
+.btn.btn-primary {
     background: var(--primary);
     color: white;
     border-bottom-color: var(--primary-shade);
 }
 
-.btn-primary:hover {
+.btn.btn-primary:hover {
     background: var(--primary-shade);
 }
 
 /* ============================================
    ANIMATIONS
    ============================================ */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* @keyframes fadeInUp — defined once above (~line 1368) */
 
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -7027,16 +7044,7 @@ body.mobile-warning-active {
     z-index: 1;
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* @keyframes fadeInUp — defined once above (~line 1368) */
 
 /* Auth Card */
 .auth-card {
@@ -7075,6 +7083,15 @@ body.mobile-warning-active {
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.auth-card .auth-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
     text-align: center;
 }
 
@@ -7877,11 +7894,7 @@ body.typing-page textarea:focus,
     font-weight: 600;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
+/* @keyframes spin — defined once above (~line 3428) */
 
 /* Theme Toggle Button */
 .theme-toggle-test {
@@ -9322,16 +9335,7 @@ body.typing-page textarea:focus,
     to { opacity: 1; }
 }
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* @keyframes fadeInUp — defined once above (~line 1368) */
 
 /* Drill Engine Updates */
 .drill-engine .engine-card {

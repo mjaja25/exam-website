@@ -3,6 +3,8 @@
     // Create container once
     const container = document.createElement('div');
     container.id = 'toast-container';
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-atomic', 'true');
     // Styles handled by main.css
     document.body.appendChild(container);
 
