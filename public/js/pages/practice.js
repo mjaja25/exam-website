@@ -211,11 +211,13 @@ function initPractice() {
 
                 if (res.analysis) {
                     renderCoachReport(res.analysis);
-                    coachPanel.classList.remove('hidden');
+                    // Get fresh reference to coachPanel in case it wasn't found during init
+                    const coachPanelEl = document.getElementById('coach-panel');
+                    if (coachPanelEl) {
+                        coachPanelEl.classList.remove('hidden');
+                        coachPanelEl.scrollIntoView({ behavior: 'smooth' });
+                    }
                     analyzeBtn.innerHTML = '<span class="icon">✅</span><span class="text">Analysis Complete</span>';
-
-                    // Smooth scroll to coach panel
-                    coachPanel.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) {
                 console.error('AI Analysis error:', err);
