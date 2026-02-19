@@ -6,7 +6,8 @@ import { KeyboardHeatmap } from '../components/KeyboardHeatmap.js';
 import { ErrorAnalyzer } from '../components/ErrorAnalyzer.js';
 import { PRESET_DRILLS } from '../core/Drills.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize immediately if DOM is ready, otherwise wait for DOMContentLoaded
+function initPractice() {
     // 1. Auth Check
     if (!auth.isAuthenticated()) {
         window.location.href = '/login.html';
@@ -32,7 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         engine: null,
         heatmap: null,
-        analyzer: new ErrorAnalyzer()
+        analyzer: new ErrorAnalyzer(),
+        completedAIDrills: new Set()
     };
 
     // 3. DOM Elements
@@ -60,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statChars: document.getElementById('stat-chars'),
         statErrors: document.getElementById('stat-errors'),
         scoreRing: document.getElementById('score-ring'),
-        
+
         // Analysis Containers
         heatmapContainer: document.getElementById('keyboard-heatmap'),
         topErrorsChart: document.getElementById('top-errors-chart'),
@@ -140,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const type = btn.dataset.drill;
             updateActiveGroup(dom.drillBtns, btn);
-            
+
             // Show/hide custom input
             if (type === 'custom') {
                 dom.customDrillInput.classList.remove('hidden');
@@ -162,9 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.backToResults = showDrillResults; // For drill intermediate results
     window.changePassageSize = changePassageSize;
     window.switchResultsTab = switchResultsTab;
+    window.launchDrillFromAI = launchDrillFromAI;
 
     // Heatmap Toggle Removed - Always Error Mode
-    
+
     // Tab Switching
     function switchResultsTab(tabName) {
         // Update button states
@@ -174,23 +177,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('active');
             }
         });
-        
+
         // Show/hide tab content
         document.querySelectorAll('.results-tab-content').forEach(content => {
             content.classList.remove('active');
         });
         document.getElementById(`tab-${tabName}`).classList.add('active');
     }
-    
+
     // AI Coach Button
     const analyzeBtn = document.getElementById('analyze-btn');
     const coachPanel = document.getElementById('coach-panel');
-    
+
     if (analyzeBtn) {
         analyzeBtn.addEventListener('click', async () => {
             analyzeBtn.disabled = true;
             analyzeBtn.innerHTML = '<span class="icon">⏳</span><span class="text">Analyzing...</span>';
-            
+
             // Get stats from the last session
             const stats = state.lastSessionStats;
             if (!stats) {
@@ -199,21 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Analyze with AI Coach</span>';
                 return;
             }
-            
+
             try {
-                const res = await client.post('/api/practice/analyze', {
-                    type: 'typing',
-                    wpm: stats.wpm,
-                    accuracy: stats.accuracy,
-                    duration: stats.duration,
-                    errorCount: stats.errorCount,
-                    errorDetails: stats.errorDetails || ''
+                const res = await client.post('/api/practice/typing-analyze', {
+                    ...stats,
+                    type: 'typing'
                 });
-                
+
                 if (res.analysis) {
                     renderCoachReport(res.analysis);
                     coachPanel.classList.remove('hidden');
                     analyzeBtn.innerHTML = '<span class="icon">✅</span><span class="text">Analysis Complete</span>';
+
+                    // Smooth scroll to coach panel
+                    coachPanel.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) {
                 console.error('AI Analysis error:', err);
@@ -223,58 +225,101 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
-    function renderCoachReport(analysis) {
+
+    function renderCoachReport(a) {
         const content = document.getElementById('coach-content');
         if (!content) return;
-        
+
+        const levelClass = `level-${(a.level || 'average').toLowerCase()}`;
         let html = '';
-        
-        // Level badge
-        if (analysis.level) {
-            html += `<div class="coach-level">Level: ${analysis.level}</div>`;
-        }
-        
-        // Summary
-        if (analysis.summary) {
-            html += `<div class="coach-summary">${analysis.summary}</div>`;
-        }
-        
-        // Tips
-        if (analysis.speedTip || analysis.accuracyTip) {
-            html += '<div class="coach-tips">';
-            if (analysis.speedTip) {
-                html += `<div class="tip"><strong>⚡ Speed:</strong> ${analysis.speedTip}</div>`;
-            }
-            if (analysis.accuracyTip) {
-                html += `<div class="tip"><strong>🎯 Accuracy:</strong> ${analysis.accuracyTip}</div>`;
-            }
-            html += '</div>';
-        }
-        
-        // Drills
-        if (analysis.drills && analysis.drills.length > 0) {
-            html += '<div class="coach-drills"><h4>Recommended Drills</h4>';
-            analysis.drills.forEach((drill, i) => {
+
+        // Summary Card
+        html += `
+        <div class="coach-card">
+            <div class="coach-card-header">
+                <div class="icon" style="background:#fefce8;">📊</div>
+                <h4>Performance Summary</h4>
+            </div>
+            <p><span class="level-badge ${levelClass}">${a.level || 'Average'}</span> ${a.summary || ''}</p>
+        </div>`;
+
+        // Speed & Accuracy Tips Grid
+        html += `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1rem;">
+            <div class="coach-card" style="margin-bottom:0;">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#dbeafe;">⚡</div>
+                    <h4>Speed Tip</h4>
+                </div>
+                <p>${a.speedTip || ''}</p>
+            </div>
+            <div class="coach-card" style="margin-bottom:0;">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#fce7f3;">🎯</div>
+                    <h4>Accuracy Tip</h4>
+                </div>
+                <p>${a.accuracyTip || ''}</p>
+            </div>
+        </div>`;
+
+        // Drills Section
+        if (a.drills && a.drills.length > 0) {
+            html += `
+            <div class="coach-card">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#d1fae5;">🏋️</div>
+                    <h4>Recommended Exercises</h4>
+                </div>`;
+
+            a.drills.forEach((d, i) => {
+                const isCompleted = state.completedAIDrills.has(i);
+                const safeText = d.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeName = d.name.replace(/'/g, "\\'");
+
                 html += `
-                    <div class="drill-item">
-                        <div class="drill-name">${i + 1}. ${drill.name}</div>
-                        <div class="drill-text">${drill.text}</div>
-                        <div class="drill-meta">${drill.reps} reps · Target: ${drill.target}</div>
-                    </div>
-                `;
+                <div class="drill-card" id="ai-drill-${i}">
+                    <div class="drill-name">${i + 1}. ${d.name} ${isCompleted ? '✅' : ''}</div>
+                    <div class="drill-text">${d.text}</div>
+                    <div class="drill-meta">× ${d.reps} reps · Target: ${d.target}</div>
+                    <button class="drill-practice-btn" 
+                        ${isCompleted ? 'style="background:#dcfce7; color:#16a34a; border-color:#16a34a;"' : ''}
+                        onclick="launchDrillFromAI('${safeText}', ${d.reps || 10}, '${safeName}', ${i})">
+                        ${isCompleted ? '✅ Completed - Practice Again' : '🏋️ Practice This'}
+                    </button>
+                </div>`;
             });
-            html += '</div>';
+            html += `</div>`;
         }
-        
+
+        // Warmup Section
+        if (a.warmup && a.warmup.length > 0) {
+            html += `
+            <div class="coach-card">
+                <div class="coach-card-header">
+                    <div class="icon" style="background:#ede9fe;">🔥</div>
+                    <h4>Warm-Up Routine</h4>
+                </div>
+                <ul class="warmup-list">
+                    ${a.warmup.map(w => `<li>${w}</li>`).join('')}
+                </ul>
+            </div>`;
+        }
+
         // Goals
-        if (analysis.goalWpm || analysis.goalAccuracy) {
-            html += `<div class="coach-goals">🎯 Goal: ${analysis.goalWpm || '--'} WPM at ${analysis.goalAccuracy || '--'}% accuracy</div>`;
+        if (a.goalWpm || a.goalAccuracy) {
+            html += `
+            <div class="goal-bar">
+                <div class="goal-icon">🎯</div>
+                <div class="goal-text">
+                    Next Target: <strong>${a.goalWpm || '–'} WPM</strong> at <strong>${a.goalAccuracy || '–'}%</strong> accuracy
+                    <small>A realistic step up from your current performance</small>
+                </div>
+            </div>`;
         }
-        
+
         content.innerHTML = html;
     }
-    
+
     // WPM Timeline for chart
     let wpmTimeline = [];
     let wpmSampleInterval = null;
@@ -284,19 +329,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function startWpmSampling() {
         wpmTimeline = [{ time: 0, wpm: 0 }];
         sessionStartTime = Date.now();
-        
+
         wpmSampleInterval = setInterval(() => {
             if (!state.engine || !state.engine.inputElement) return;
-            
+
             const elapsed = (Date.now() - sessionStartTime) / 60000; // minutes
             const typed = state.engine.inputElement.value.length;
             const wpm = elapsed > 0 ? Math.round((typed / 5) / elapsed) : 0;
             const secs = Math.round((Date.now() - sessionStartTime) / 1000);
-            
+
             wpmTimeline.push({ time: secs, wpm });
         }, 3000); // Sample every 3 seconds
     }
-    
+
     // Stop WPM sampling
     function stopWpmSampling() {
         if (wpmSampleInterval) {
@@ -331,12 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isSim = state.config.mode === 'simulation';
         const engineContainer = isSim ? dom.simEngine : dom.decEngine;
-        
+
         // Hide other engines
         dom.simEngine.classList.add('hidden');
         dom.decEngine.classList.add('hidden');
         dom.drillEngine.classList.add('hidden');
-        
+
         engineContainer.classList.remove('hidden');
 
         // Map elements based on mode
@@ -397,10 +442,10 @@ document.addEventListener('DOMContentLoaded', () => {
             state.engine.loadPassage(passageContent);
             state.engine.passageId = data._id; // Store for submission
             elements.inputElement.focus();
-            
+
             // Setup Admin Bypass
             setupAdminBypass(isSim ? 'sim' : 'dec');
-            
+
         } catch (err) {
             ui.showToast('Failed to load passage', 'error');
             console.error(err);
@@ -416,10 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         state.drill.active = true;
         state.drill.currentRep = 0;
-        
+
         switchView('drill');
         dom.drillEngine.classList.remove('hidden');
-        
+
         // Setup Drill Engine
         const elements = {
             displayElement: document.getElementById('drill-passage-display'),
@@ -440,8 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadDrillRep() {
         let text = '';
-        
-        if (state.drill.type === 'custom') {
+
+        if (state.drill.type === 'ai') {
+            text = state.drill.text;
+        } else if (state.drill.type === 'custom') {
             text = dom.customDrillInput.value.trim();
             if (!text) {
                 ui.showToast('Please enter custom text', 'error');
@@ -451,11 +498,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const drillData = PRESET_DRILLS[state.drill.type];
             // Simple logic: cycle through available lines or random
-            const difficultyKey = state.config.difficulty; 
+            const difficultyKey = state.config.difficulty;
             // PRESET_DRILLS structure: { home: { easy: "...", medium: "..." } }
             // Or if it's an array of lines. Adapting to common structure.
             // Assuming Drills.js exports object with keys matching drill types
-            
+
             if (drillData) {
                 // If structure is { easy: [...], medium: [...] }
                 const lines = drillData[difficultyKey] || drillData['medium'] || drillData;
@@ -492,11 +539,15 @@ document.addEventListener('DOMContentLoaded', () => {
             state.drill.accumulatedStats.totalTime += stats.elapsed || 0;
             state.drill.accumulatedStats.repCount++;
         }
-        
+
         state.drill.currentRep++;
-        
+
         if (state.drill.currentRep >= state.drill.reps) {
             // Drill Session Complete - compute aggregate stats
+            if (state.drill.type === 'ai' && state.drill.aiIndex !== undefined) {
+                state.completedAIDrills.add(state.drill.aiIndex);
+            }
+
             const agg = state.drill.accumulatedStats;
             const aggregateStats = {
                 totalChars: agg.totalChars,
@@ -519,14 +570,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function finishDrillSession(aggregateStats) {
         const modal = document.getElementById('drill-complete');
         const msg = document.getElementById('drill-complete-msg');
-        
+
         msg.textContent = `Completed ${state.drill.reps} repetitions with ${aggregateStats.accuracy}% accuracy (${aggregateStats.wpm} WPM avg)`;
         modal.classList.remove('hidden');
-        
+
         // We can add a "Back to Results" button behavior here
         const resultsBtn = document.getElementById('drill-back-to-results-btn');
         resultsBtn.classList.remove('hidden');
-        
+
         // Prepare aggregate stats for submission/view
         state.lastStats = aggregateStats;
     }
@@ -542,16 +593,45 @@ document.addEventListener('DOMContentLoaded', () => {
         loadDrillRep();
     }
 
+    function launchDrillFromAI(text, reps, name, index) {
+        state.drill.active = true;
+        state.drill.type = 'ai';
+        state.drill.reps = reps || 10;
+        state.drill.currentRep = 0;
+        state.drill.text = text;
+        state.drill.aiIndex = index;
+
+        switchView('drill');
+        dom.drillEngine.classList.remove('hidden');
+
+        // Setup Drill Engine
+        const elements = {
+            displayElement: document.getElementById('drill-passage-display'),
+            inputElement: document.getElementById('drill-input'),
+            timerElement: null,
+            wpmElement: document.getElementById('drill-wpm-text'),
+            accuracyElement: document.getElementById('drill-acc-text')
+        };
+
+        state.engine = new TypingEngine({
+            ...elements,
+            duration: 0,
+            onComplete: handleDrillRepComplete
+        });
+
+        loadDrillRep();
+    }
+
     async function handleSessionComplete(stats) {
         // 1. Switch to Results View
         switchView('results');
-        
+
         // 2. Store stats for AI analysis
         state.lastSessionStats = {
             ...stats,
             errorDetails: formatErrorDetails(state.engine.errors)
         };
-        
+
         // Reset AI button
         if (analyzeBtn) {
             analyzeBtn.disabled = false;
@@ -560,14 +640,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (coachPanel) {
             coachPanel.classList.add('hidden');
         }
-        
+
         // 3. Check for personal record and render basic stats
         const isNewRecord = await checkAndShowPersonalRecord(stats.wpm);
         renderBasicStats(stats, isNewRecord);
-        
+
         // 4. Draw WPM Chart
         drawWpmChart();
-        
+
         // 5. Render Visualizations (Analysis Tab)
         if (state.heatmap) {
             state.heatmap.updateData(state.engine.keystrokes);
@@ -648,37 +728,37 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(([k, v]) => `${k} (${v}x)`)
             .join('\n');
     }
-    
+
     // Draw WPM Timeline Chart
     function drawWpmChart() {
         const canvas = document.getElementById('wpm-chart');
         if (!canvas || wpmTimeline.length < 2) return;
-        
+
         const ctx = canvas.getContext('2d');
         const dpr = window.devicePixelRatio || 1;
-        
+
         // Set canvas size
         const rect = canvas.parentElement.getBoundingClientRect();
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr);
-        
+
         const W = rect.width;
         const H = rect.height;
         const pad = { top: 20, right: 20, bottom: 35, left: 45 };
         const chartW = W - pad.left - pad.right;
         const chartH = H - pad.top - pad.bottom;
-        
+
         const data = wpmTimeline;
         const maxTime = data[data.length - 1].time || 1;
         const maxWpm = Math.max(20, ...data.map(d => d.wpm)) * 1.15;
-        
+
         const x = (t) => pad.left + (t / maxTime) * chartW;
         const y = (w) => pad.top + chartH - (w / maxWpm) * chartH;
-        
+
         // Clear canvas
         ctx.clearRect(0, 0, W, H);
-        
+
         // Grid lines
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 0.5;
@@ -689,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.lineTo(pad.left + chartW, gy);
             ctx.stroke();
         }
-        
+
         // Y axis labels
         ctx.fillStyle = '#94a3b8';
         ctx.font = '11px sans-serif';
@@ -699,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const gy = pad.top + (chartH / 4) * i;
             ctx.fillText(val, pad.left - 8, gy + 4);
         }
-        
+
         // X axis labels
         ctx.textAlign = 'center';
         const xSteps = Math.min(6, data.length);
@@ -708,12 +788,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = data[idx];
             ctx.fillText(`${d.time}s`, x(d.time), H - 8);
         }
-        
+
         // Gradient fill
         const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
         grad.addColorStop(0, 'rgba(88, 204, 2, 0.3)');
         grad.addColorStop(1, 'rgba(88, 204, 2, 0.02)');
-        
+
         ctx.beginPath();
         ctx.moveTo(x(data[0].time), y(0));
         data.forEach(d => ctx.lineTo(x(d.time), y(d.wpm)));
@@ -721,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.closePath();
         ctx.fillStyle = grad;
         ctx.fill();
-        
+
         // Line
         ctx.beginPath();
         data.forEach((d, i) => {
@@ -732,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 2.5;
         ctx.lineJoin = 'round';
         ctx.stroke();
-        
+
         // Dots
         data.forEach(d => {
             ctx.beginPath();
@@ -743,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.lineWidth = 1.5;
             ctx.stroke();
         });
-        
+
         // Axis labels
         ctx.fillStyle = '#64748b';
         ctx.font = '12px sans-serif';
@@ -760,7 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await client.get('/api/practice/typing-stats?timeframe=365');
             const previousBest = res.stats?.bestWpm || 0;
-            
+
             if (currentWpm > previousBest && previousBest > 0) {
                 // New personal record!
                 triggerConfetti();
@@ -786,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return Math.random() * (max - min) + min;
         }
 
-        const interval = setInterval(function() {
+        const interval = setInterval(function () {
             const timeLeft = animationEnd - Date.now();
 
             if (timeLeft <= 0) {
@@ -815,10 +895,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const wpm = stats.wpm;
         const scoreWpmEl = dom.scoreWpm || dom.wpmDisplay;
         const scoreRing = dom.scoreRing;
-        
+
         // Animate WPM counter
         animateValue(scoreWpmEl, 0, wpm, 1000);
-        
+
         // Animate score circle ring
         if (scoreRing) {
             const progress = Math.min((wpm / 100) * 360, 360);
@@ -828,7 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 scoreRing.style.background = `conic-gradient(var(--primary) ${progress}deg, var(--bg-input) 0deg)`;
             }, 100);
         }
-        
+
         // Stats Grid
         if (dom.statAcc) dom.statAcc.textContent = stats.accuracy + '%';
         if (dom.statChars) dom.statChars.textContent = stats.totalChars;
@@ -991,4 +1071,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-});
+}
+
+// Initialize immediately if DOM is already loaded, otherwise wait for DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPractice);
+} else {
+    initPractice();
+}
