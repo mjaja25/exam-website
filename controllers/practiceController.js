@@ -255,11 +255,13 @@ exports.analyzePractice = async (req, res) => {
 
 exports.analyzeTypingPractice = async (req, res) => {
     try {
+        console.log("AnalyzeTypingPractice called with body:", JSON.stringify(req.body));
         const result = req.body; // wpm, accuracy, duration, errorCount, errorDetails...
 
         // Fetch historical top error keys for context (non-blocking — AI works without it)
         let historicalProblemKeys = [];
         try {
+            console.log("Fetching historical errors for user:", req.userId);
             const historicalErrors = await PracticeResult.aggregate([
                 { $match: { user: new mongoose.Types.ObjectId(req.userId), category: 'typing' } },
                 { $unwind: '$errors' },
@@ -268,6 +270,7 @@ exports.analyzeTypingPractice = async (req, res) => {
                 { $limit: 5 }
             ]);
             historicalProblemKeys = historicalErrors.map(e => ({ key: e._id, count: e.count }));
+            console.log("Historical problem keys found:", historicalProblemKeys.length);
         } catch (dbErr) {
             console.warn("Could not fetch historical errors (DB may be unavailable):", dbErr.message);
         }
@@ -275,7 +278,9 @@ exports.analyzeTypingPractice = async (req, res) => {
         // Enhance result with history
         const enhancedResult = { ...result, historicalProblemKeys };
 
+        console.log("Calling aiGradingService.analyzePerformance...");
         const analysis = await aiGradingService.analyzePerformance(enhancedResult, 'typing');
+        console.log("Analysis generated successfully.");
         res.json({ success: true, analysis });
     } catch (error) {
         console.error("Typing Practice Analysis Error:", error);

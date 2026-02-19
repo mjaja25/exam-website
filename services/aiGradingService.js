@@ -5,7 +5,7 @@ const { sanitizeForAI } = require('../utils/helpers');
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
 /**
  * Grades a letter submission using both deterministic regex checks and AI evaluation.
@@ -315,6 +315,7 @@ async function analyzePerformance(result, type) {
 
     const aiRes = await model.generateContent(analysisPrompt);
     let text = aiRes.response.text();
+    console.log("AI Response Text:", text);
     text = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
 
     try {
