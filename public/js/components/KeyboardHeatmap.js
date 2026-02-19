@@ -13,15 +13,12 @@ export class KeyboardHeatmap {
     }
 
     getKeyClass(keyLabel) {
-        // Normalize key label to match data keys (usually lowercase or specific codes)
-        // Data likely keys: 'a', 'b', '1', 'space', 'shift' etc.
+        // Check both original case and lowercase — TypingEngine stores keys case-sensitively
         const key = keyLabel.toLowerCase();
-        const stats = this.data[key];
+        const stats = this.data[key] || this.data[keyLabel];
 
         if (!stats || stats.errors === 0) return '';
 
-        // Calculate error rate: errors / total presses
-        // If total presses is 0 (shouldn't happen if errors > 0), assume high error
         const total = stats.count || stats.errors; 
         const rate = stats.errors / total;
 
@@ -87,5 +84,47 @@ export class KeyboardHeatmap {
     updateData(newData) {
         this.data = newData || {};
         this.render();
+    }
+
+    highlightWeakFingers(weakFingers, frequentErrors) {
+        if (!weakFingers && !frequentErrors) return;
+
+        const fingerMap = {
+            leftPinky: '1qaz`~!QA',
+            leftRing: '2wsx@WSX',
+            leftMiddle: '3edc#EDC',
+            leftIndex: '4rfv5tgb$RFV%TGB',
+            rightIndex: '6yhn7ujm^YHN&UJM',
+            rightMiddle: '8ik,(IK<',
+            rightRing: '9ol.)OL>',
+            rightPinky: '0p;/-=P:?_+[]{}\\|\'"',
+            thumbs: ' '
+        };
+
+        // Collect weak keys from finger names
+        const weakKeys = new Set();
+        if (weakFingers && Array.isArray(weakFingers)) {
+            weakFingers.forEach(finger => {
+                const normalized = finger.replace(/\s+/g, '').replace(/^(.)/, c => c.toLowerCase());
+                const keys = fingerMap[normalized];
+                if (keys) {
+                    for (const k of keys) weakKeys.add(k.toLowerCase());
+                }
+            });
+        }
+
+        // Add frequent error keys
+        if (frequentErrors && Array.isArray(frequentErrors)) {
+            frequentErrors.forEach(k => weakKeys.add(k.toLowerCase()));
+        }
+
+        // Apply highlight class to matching key elements
+        const keyEls = this.container.querySelectorAll('.kb-key');
+        keyEls.forEach(el => {
+            const label = el.textContent.toLowerCase();
+            if (weakKeys.has(label)) {
+                el.classList.add('ai-weak-highlight');
+            }
+        });
     }
 }

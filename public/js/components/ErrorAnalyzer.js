@@ -77,7 +77,8 @@ export class ErrorAnalyzer {
         for (const [finger, keys] of Object.entries(fingerMap)) {
             let total = 0, errors = 0;
             for (const key of keys) {
-                const data = keystrokes[key.toLowerCase()];
+                // Check both original case and lowercase to handle case-sensitive keystroke data
+                const data = keystrokes[key] || keystrokes[key.toLowerCase()];
                 if (data) {
                     total += data.count;
                     errors += data.errors;

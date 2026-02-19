@@ -194,12 +194,30 @@ function initPractice() {
             analyzeBtn.disabled = true;
             analyzeBtn.innerHTML = '<span class="icon">⏳</span><span class="text">Analyzing...</span>';
 
+            // Show loading state in coach panel
+            const coachPanelEl = document.getElementById('coach-panel');
+            const coachContent = document.getElementById('coach-content');
+            if (coachPanelEl) {
+                coachPanelEl.classList.remove('hidden');
+                if (coachContent) {
+                    coachContent.innerHTML = `
+                        <div class="ai-loading-state" style="text-align:center;padding:2rem;">
+                            <div class="loading-spinner" style="width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#58CC02;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem;"></div>
+                            <p style="color:#64748b;">AI Coach is analyzing your session...</p>
+                            <p style="color:#94a3b8;font-size:0.85rem;">This may take a few moments</p>
+                        </div>
+                        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                    `;
+                }
+            }
+
             // Get stats from the last session
             const stats = state.lastSessionStats;
             if (!stats) {
                 ui.showToast('No session data available', 'error');
                 analyzeBtn.disabled = false;
                 analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Analyze with AI Coach</span>';
+                if (coachPanelEl) coachPanelEl.classList.add('hidden');
                 return;
             }
 
@@ -210,20 +228,48 @@ function initPractice() {
                 });
 
                 if (res.analysis) {
+                    // Store AI analysis in unified result
+                    state.lastSessionStats.aiAnalysis = res.analysis;
+
                     renderCoachReport(res.analysis);
-                    // Get fresh reference to coachPanel in case it wasn't found during init
-                    const coachPanelEl = document.getElementById('coach-panel');
+
+                    // Integrate AI weak fingers into heatmap
+                    if (state.heatmap && res.analysis.drills) {
+                        const weakFingers = [];
+                        const frequentErrors = [];
+                        res.analysis.drills.forEach(d => {
+                            if (d.target) weakFingers.push(d.target);
+                        });
+                        // Extract error keys from errorDetails
+                        if (stats.errorDetails) {
+                            stats.errorDetails.split('\n').forEach(line => {
+                                const match = line.match(/^.→(.) /);
+                                if (match) frequentErrors.push(match[1]);
+                            });
+                        }
+                        state.heatmap.highlightWeakFingers(weakFingers, frequentErrors);
+                    }
+
                     if (coachPanelEl) {
-                        coachPanelEl.classList.remove('hidden');
                         coachPanelEl.scrollIntoView({ behavior: 'smooth' });
                     }
                     analyzeBtn.innerHTML = '<span class="icon">✅</span><span class="text">Analysis Complete</span>';
                 }
             } catch (err) {
                 console.error('AI Analysis error:', err);
+                // Show error state in coach panel
+                if (coachContent) {
+                    coachContent.innerHTML = `
+                        <div class="ai-error-state" style="text-align:center;padding:2rem;">
+                            <div style="font-size:2rem;margin-bottom:0.5rem;">⚠️</div>
+                            <p style="color:#ef4444;font-weight:600;">Analysis Failed</p>
+                            <p style="color:#94a3b8;font-size:0.85rem;">The AI service is temporarily unavailable. Please try again.</p>
+                        </div>
+                    `;
+                }
                 ui.showToast('Failed to generate analysis', 'error');
                 analyzeBtn.disabled = false;
-                analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Analyze with AI Coach</span>';
+                analyzeBtn.innerHTML = '<span class="icon">🤖</span><span class="text">Retry Analysis</span>';
             }
         });
     }
@@ -628,11 +674,22 @@ function initPractice() {
         // 1. Switch to Results View
         switchView('results');
 
-        // 2. Store stats for AI analysis
-        state.lastSessionStats = {
-            ...stats,
-            errorDetails: formatErrorDetails(state.engine.errors)
+        // 2. Build Unified Result Object — single source of truth for stats, heatmap, and AI
+        const unifiedResult = {
+            wpm: stats.wpm,
+            accuracy: stats.accuracy,
+            correctChars: stats.correctChars,
+            totalChars: stats.totalChars,
+            errorCount: stats.errorCount,
+            duration: Math.round((stats.durationMin || 0) * 60),
+            durationMin: stats.durationMin,
+            keystrokes: stats.keystrokes,
+            errors: stats.errors,
+            fingerStats: stats.fingerStats,
+            errorDetails: formatErrorDetails(state.engine.errors),
+            aiAnalysis: null // populated after AI call
         };
+        state.lastSessionStats = unifiedResult;
 
         // Reset AI button
         if (analyzeBtn) {

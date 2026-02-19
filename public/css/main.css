@@ -9066,6 +9066,18 @@ body.typing-page textarea:focus,
     background: #fef08a;
 }
 
+/* AI Weak Finger Highlight */
+.kb-key.ai-weak-highlight {
+    outline: 2px dashed #f59e0b;
+    outline-offset: -1px;
+    animation: ai-pulse 1.5s ease-in-out 3;
+}
+
+@keyframes ai-pulse {
+    0%, 100% { outline-color: #f59e0b; }
+    50% { outline-color: #ef4444; }
+}
+
 .legend-item {
     display: flex;
     align-items: center;
