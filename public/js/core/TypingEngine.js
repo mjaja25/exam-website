@@ -11,6 +11,8 @@ export class TypingEngine {
         this.allowBackspace = config.allowBackspace !== false;
         this.minAccuracy = config.minAccuracy || 90;
         this.isSimulationMode = config.isSimulationMode || false;
+        // Word-count mode: if set, engine ends when all passage chars are typed (timer still shows elapsed)
+        this.wordCountMode = config.wordCountMode || false;
 
         this.onComplete = config.onComplete || (() => { });
         this.onTick = config.onTick || (() => { });
@@ -139,15 +141,22 @@ export class TypingEngine {
         this.onStart();
 
         this.timerInterval = setInterval(() => {
-            if (!this.startTime) return; 
+            if (!this.startTime) return;
             const elapsed = (Date.now() - this.startTime) / 1000;
-            const remaining = Math.max(0, this.duration - elapsed);
 
-            this.updateTimerDisplay(remaining, elapsed);
-            this.onTick(remaining);
-
-            if (remaining <= 0) {
-                this.end();
+            if (this.wordCountMode) {
+                // Show elapsed time counting up
+                if (this.timerElement) {
+                    this.timerElement.textContent = this.formatTime(elapsed);
+                }
+                this.onTick(elapsed);
+            } else {
+                const remaining = Math.max(0, this.duration - elapsed);
+                this.updateTimerDisplay(remaining, elapsed);
+                this.onTick(remaining);
+                if (remaining <= 0) {
+                    this.end();
+                }
             }
         }, 1000);
     }

@@ -82,6 +82,35 @@
             </div>
         </div>
 
+        <!-- Gamification Card -->
+        <div class="card gamification-card" id="gamification-card">
+            <div class="gamification-header">
+                <div class="gamification-level-badge" id="level-badge">Beginner</div>
+                <div class="gamification-streak" id="streak-display" title="Daily practice streak">
+                    🔥 <span id="streak-count">0</span> day streak
+                </div>
+            </div>
+            <div class="xp-bar-wrapper">
+                <div class="xp-bar-label">
+                    <span>XP: <strong id="xp-value">0</strong></span>
+                    <span id="xp-next-level" style="font-size:0.8rem; color:var(--text-muted);"></span>
+                </div>
+                <div class="xp-bar-track">
+                    <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+                </div>
+            </div>
+            <!-- Daily Goals -->
+            <div class="daily-goals-row">
+                <span class="daily-goals-label">Today's Goal:</span>
+                <div class="daily-goals-progress">
+                    <div class="daily-goals-fill" id="daily-goals-fill" style="width:0%"></div>
+                </div>
+                <span id="daily-goals-text" class="daily-goals-text">0 / 3 sessions</span>
+            </div>
+            <!-- Badges -->
+            <div id="badges-row" class="badges-row"></div>
+        </div>
+
         <div id="practice" class="card practice-zone-card">
             <h2>Practice Zones</h2>
             <div class="practice-grid">
@@ -105,6 +134,11 @@
                     <h3>Excel Practical Practice</h3>
                     <p>Download, solve & upload Excel tasks.</p>
                 </div>
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="/practice-history.html" class="secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; background: var(--card-bg); color: var(--text-primary); text-decoration: none; font-weight: 500;">
+                    📊 View Practice History
+                </a>
             </div>
         </div>
 

@@ -33,5 +33,19 @@ export const PRESET_DRILLS = {
         easy: 'the and for are but not you all any can her was one our out day get has him his how man new now old see two way who boy did its let put say she too use dad mom',
         medium: 'about after again below could every first found great house large learn never other place plant point right small sound spell still study their there these thing think three water where which world write',
         hard: 'animal answer change enough father friend little mother number people public school should system though thought through together without always before better during either follow ground himself itself'
+    },
+    punctuation: {
+        name: 'Punctuation',
+        reps: 10,
+        easy: '. , . , ! ? . , ! ? , . ! ? , . , ! ? .',
+        medium: 'Hello, world. How are you? Fine, thanks! Yes, no. Wait... Really? Of course! Let\'s go.',
+        hard: 'However, the result was unexpected; it failed. "Why?" she asked. Don\'t stop: keep going! (Really?) Yes—always.'
+    },
+    symbols: {
+        name: 'Symbols',
+        reps: 10,
+        easy: '@ # $ % @ # $ % @ # $ % @ # $ % @ # $ %',
+        medium: '@ # $ % ^ & * ( ) _ + = @ # $ % ^ & * ( )',
+        hard: '@ # $ % ^ & * ( ) _ + = [ ] { } | \\ : ; " \' < > ? / ~ `'
     }
 };

@@ -13,6 +13,10 @@ const letterQuestionSchema = new mongoose.Schema({
         enum: ['formal', 'informal', 'business'],
         default: 'formal'
     },
+    sampleAnswer: {
+        type: String,
+        default: ''
+    },
     addedAt: {
         type: Date,
         default: Date.now

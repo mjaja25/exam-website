@@ -102,8 +102,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startTimer() {
-        let timeLeft = 180;
+        const timerSelect = document.getElementById('timer-select');
+        let timeLeft = timerSelect ? parseInt(timerSelect.value) : 180;
+        
+        // If no limit selected (0), don't start timer
+        if (timeLeft === 0) {
+            if (timerElement) timerElement.textContent = '∞';
+            return;
+        }
+        
         if (timerElement) {
+            // Update initial display
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
             timerInterval = setInterval(() => {
                 timeLeft--;
                 const mins = Math.floor(timeLeft / 60);
@@ -200,6 +213,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
         }
+
+        // Show sample answer button if available
+        const sampleAnswerBtn = document.getElementById('sample-answer-btn');
+        const sampleAnswerPanel = document.getElementById('sample-answer-panel');
+        const sampleAnswerContent = document.getElementById('sample-answer-content');
+        if (data.sampleAnswer && sampleAnswerBtn) {
+            sampleAnswerBtn.style.display = '';
+            sampleAnswerBtn.onclick = () => {
+                if (sampleAnswerPanel) {
+                    sampleAnswerPanel.classList.toggle('active');
+                    if (sampleAnswerContent) sampleAnswerContent.textContent = data.sampleAnswer;
+                    sampleAnswerPanel.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+        }
     }
 
     if (analyzeBtn) {
@@ -293,6 +321,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 reviewPanel.scrollIntoView({ behavior: 'smooth' });
             }
         });
+    }
+
+    // Retry same question — reset editor and timer, keep same questionId
+    const retrySameBtn = document.getElementById('retry-same-btn');
+    if (retrySameBtn) {
+        retrySameBtn.addEventListener('click', () => {
+            resetToTestView();
+            // currentQuestionId stays the same
+            if (userInputElement) userInputElement.focus();
+            startTimer();
+        });
+    }
+
+    // New question — load a fresh random question
+    const newQuestionBtn = document.getElementById('new-question-btn');
+    if (newQuestionBtn) {
+        newQuestionBtn.addEventListener('click', () => {
+            resetToTestView();
+            loadQuestion();
+        });
+    }
+
+    function resetToTestView() {
+        clearInterval(timerInterval);
+        if (resultsView) resultsView.classList.remove('active');
+        if (testView) testView.style.display = '';
+        if (userInputElement) {
+            userInputElement.innerHTML = '';
+            userInputElement.contentEditable = 'true';
+        }
+        if (submitBtn) submitBtn.disabled = false;
+        savedContent = '';
+        savedFeedback = '';
+        // Reset analysis/review panels
+        if (analysisPanel) analysisPanel.classList.remove('active');
+        if (reviewPanel) reviewPanel.classList.remove('active');
+        if (analyzeBtn) {
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'Get Detailed AI Analysis';
+        }
+        // Reset timer display
+        if (timerElement) {
+            timerElement.textContent = '03:00';
+            timerElement.classList.remove('timer-danger');
+        }
     }
 
     if (submitBtn) {

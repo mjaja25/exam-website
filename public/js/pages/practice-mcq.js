@@ -5,11 +5,62 @@ import { ui } from '../utils/ui.js';
 document.addEventListener('DOMContentLoaded', () => {
     const token = auth.getToken();
 
+    // Fetch MCQ stats for weak-area targeting
+    async function loadMcqStats() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/practice/mcq-stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            const stats = await res.json();
+
+            // Map category card IDs to category names
+            const cardMap = {
+                'card-Formulas': 'Formulas',
+                'card-Shortcuts': 'Shortcuts',
+                'card-CellRef': 'Cell Referencing',
+                'card-BasicOps': 'Basic Operations',
+                'card-Formatting': 'Formatting',
+                'card-Charts': 'Charts',
+                'card-PivotTables': 'Pivot Tables',
+                'card-DataVal': 'Data Validation',
+                'card-CondFormat': 'Conditional Formatting'
+            };
+
+            Object.entries(cardMap).forEach(([cardId, catName]) => {
+                const card = document.getElementById(cardId);
+                if (!card) return;
+                const catStats = stats[catName];
+                if (!catStats) return;
+
+                // Remove existing badge
+                card.querySelector('.weak-area-badge')?.remove();
+
+                if (catStats.accuracy !== null && catStats.accuracy < 60) {
+                    const badge = document.createElement('div');
+                    badge.className = 'weak-area-badge';
+                    badge.textContent = `⚠️ Needs Work (${catStats.accuracy}%)`;
+                    card.insertBefore(badge, card.querySelector('.difficulty-selector'));
+                } else if (catStats.accuracy !== null && catStats.accuracy >= 80) {
+                    const badge = document.createElement('div');
+                    badge.className = 'strong-area-badge';
+                    badge.textContent = `✅ Strong (${catStats.accuracy}%)`;
+                    card.insertBefore(badge, card.querySelector('.difficulty-selector'));
+                }
+            });
+        } catch (_) { /* stats optional */ }
+    }
+
+    loadMcqStats();
+
     let questions = [];
     let currentIdx = 0;
     let score = 0;
     let currentStreak = 0;
     let bestStreak = 0;
+    let userAnswers = []; // Track each answer for review mode
+    let currentCategory = '';
+    let currentDifficulty = '';
 
     const selectionView = document.getElementById('selection-view');
     const questionView = document.getElementById('question-view');
@@ -23,9 +74,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.startPractice = async (category, difficulty) => {
         try {
+            currentCategory = category;
+            currentDifficulty = difficulty;
+
+            const spacedRep = document.getElementById('spaced-repetition-toggle')?.checked;
             let url = `${API_BASE_URL}/api/mcqs/practice/${encodeURIComponent(category)}`;
+            const params = new URLSearchParams();
             if (difficulty && difficulty !== 'All') {
-                url += `?difficulty=${encodeURIComponent(difficulty)}`;
+                params.append('difficulty', difficulty);
+            }
+            if (spacedRep) {
+                params.append('spacedRepetition', 'true');
+            }
+            if (params.toString()) {
+                url += '?' + params.toString();
             }
 
             const res = await fetch(url, {
@@ -43,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             score = 0;
             currentStreak = 0;
             bestStreak = 0;
+            userAnswers = [];
 
             if (selectionView) selectionView.classList.add('hidden');
             if (questionView) questionView.classList.remove('hidden');
@@ -72,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (explanationBox) {
             explanationBox.classList.remove('active');
+            explanationBox.style.display = 'none';
             explanationBox.textContent = '';
         }
 
@@ -93,7 +157,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (buttons) buttons.forEach(btn => btn.disabled = true);
 
-        if (selectedIndex === q.correctAnswerIndex) {
+        const isCorrect = selectedIndex === q.correctAnswerIndex;
+
+        // Record answer for review
+        userAnswers.push({
+            questionText: q.questionText,
+            imageUrl: q.imageUrl || null,
+            options: q.options,
+            selectedIndex,
+            correctIndex: q.correctAnswerIndex,
+            isCorrect,
+            explanation: q.correctExplanation || ''
+        });
+
+        if (isCorrect) {
             if (buttons) buttons[selectedIndex].classList.add('correct');
             if (feedbackMsg) {
                 feedbackMsg.innerText = "Correct! Well done.";
@@ -118,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (q.correctExplanation && explanationBox) {
             explanationBox.textContent = q.correctExplanation;
+            explanationBox.style.display = 'block';
             explanationBox.classList.add('active');
         }
 
@@ -159,12 +237,62 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    async function saveMcqResult() {
+        try {
+            await fetch(`${API_BASE_URL}/api/practice/results`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    category: `mcq-${currentCategory}`,
+                    difficulty: currentDifficulty === 'All' ? 'mixed' : (currentDifficulty || 'mixed').toLowerCase(),
+                    score,
+                    totalQuestions: questions.length
+                })
+            });
+        } catch (err) {
+            console.warn('Could not save MCQ result:', err);
+        }
+    }
+
+    function renderReviewList() {
+        const reviewList = document.getElementById('review-list');
+        if (!reviewList) return;
+
+        reviewList.innerHTML = userAnswers.map((a, i) => `
+            <div class="review-item ${a.isCorrect ? 'review-correct' : 'review-incorrect'}">
+                <div class="review-q-header">
+                    <span class="review-q-num">Q${i + 1}</span>
+                    <span class="review-q-status">${a.isCorrect ? '✅ Correct' : '❌ Incorrect'}</span>
+                </div>
+                <div class="review-q-text">${a.questionText}</div>
+                ${a.imageUrl ? `<img src="${a.imageUrl}" style="max-height:120px; margin:0.5rem 0; border-radius:6px;">` : ''}
+                <div class="review-options">
+                    ${a.options.map((opt, oi) => `
+                        <div class="review-option ${oi === a.correctIndex ? 'review-option-correct' : ''} ${oi === a.selectedIndex && !a.isCorrect ? 'review-option-wrong' : ''}">
+                            ${String.fromCharCode(65 + oi)}. ${opt}
+                            ${oi === a.correctIndex ? ' ✓' : ''}
+                            ${oi === a.selectedIndex && !a.isCorrect ? ' ✗' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                ${a.explanation ? `<div class="review-explanation">💡 ${a.explanation}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
     function showSummary() {
         if (questionView) questionView.classList.add('hidden');
         if (summaryView) summaryView.classList.remove('hidden');
-        
+
         const finalScore = document.getElementById('final-score');
         if (finalScore) finalScore.innerText = `${score} / ${questions.length}`;
+
+        const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
+        const scorePercent = document.getElementById('score-percent');
+        if (scorePercent) scorePercent.innerText = `${pct}%`;
 
         const bestStreakMsg = document.getElementById('best-streak-msg');
         if (bestStreakMsg) {
@@ -174,5 +302,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 bestStreakMsg.innerText = '';
             }
         }
+
+        // Render review list
+        renderReviewList();
+
+        // Save result to DB
+        saveMcqResult();
     }
+
+    // Toggle review section
+    window.toggleReview = () => {
+        const reviewSection = document.getElementById('review-section');
+        const toggleBtn = document.getElementById('toggle-review-btn');
+        if (!reviewSection) return;
+        const isHidden = reviewSection.classList.contains('hidden');
+        reviewSection.classList.toggle('hidden');
+        if (toggleBtn) toggleBtn.textContent = isHidden ? '▲ Hide Review' : '▼ Review All Answers';
+    };
 });

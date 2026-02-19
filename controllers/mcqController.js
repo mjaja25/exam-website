@@ -128,17 +128,70 @@ exports.submitExcelMCQ = async (req, res) => {
 exports.getPracticeQuestions = async (req, res) => {
     try {
         const { category } = req.params;
-        const { difficulty } = req.query;
+        const { difficulty, spacedRepetition } = req.query;
 
         // Build match filter
         const matchFilter = {};
         if (category !== 'All') matchFilter.category = category;
         if (difficulty && difficulty !== 'All') matchFilter.difficulty = difficulty;
 
-        const questions = await MCQQuestion.aggregate([
-            { $match: matchFilter },
-            { $sample: { size: 10 } }
-        ]);
+        // Spaced Repetition: Prioritize weak categories
+        let questions;
+        if (spacedRepetition === 'true') {
+            // Get user's category-level stats
+            const PracticeResult = require('../models/PracticeResult');
+            const stats = await PracticeResult.aggregate([
+                {
+                    $match: {
+                        user: req.userId,
+                        category: { $regex: /^mcq-/ }
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$category',
+                        avgScore: { $avg: '$score' },
+                        totalQuestions: { $sum: '$totalQuestions' }
+                    }
+                }
+            ]);
+
+            // Find weak categories (accuracy < 60%)
+            const weakCategories = new Set();
+            stats.forEach(s => {
+                const catAccuracy = s.totalQuestions > 0 ? (s.avgScore / s.totalQuestions) * 100 : 100;
+                if (catAccuracy < 60) {
+                    weakCategories.add(s._id.replace('mcq-', ''));
+                }
+            });
+
+            // Get all matching questions
+            const allQuestions = await MCQQuestion.find(matchFilter).lean();
+            
+            if (allQuestions.length <= 10) {
+                questions = allQuestions;
+            } else {
+                // Prioritize weak categories, then fill with random
+                const weakQuestions = allQuestions.filter(q => weakCategories.has(q.category));
+                const otherQuestions = allQuestions.filter(q => !weakCategories.has(q.category));
+                
+                // Shuffle arrays
+                const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+                
+                // Take up to 7 weak questions, then fill with random
+                const selectedWeak = shuffle([...weakQuestions]).slice(0, 7);
+                const needed = 10 - selectedWeak.length;
+                const selectedOther = shuffle([...otherQuestions]).slice(0, needed);
+                
+                questions = shuffle([...selectedWeak, ...selectedOther]);
+            }
+        } else {
+            questions = await MCQQuestion.aggregate([
+                { $match: matchFilter },
+                { $sample: { size: 10 } }
+            ]);
+        }
+        
         res.json(questions);
     } catch (error) {
         res.status(500).json({ message: "Error loading practice questions" });

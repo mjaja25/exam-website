@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentQuestionId = null;
     let timerInterval = null;
     let savedFeedback = '';
+    let allHints = [];
+    let hintsRevealed = 0;
+
+    const hintArea = document.getElementById('hint-area');
+    const hintsRevealedEl = document.getElementById('hints-revealed');
+    const getHintBtn = document.getElementById('get-hint-btn');
 
     async function loadQuestion() {
         try {
@@ -40,6 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 downloadBtn.removeAttribute('disabled');
             }
             currentQuestionId = question._id;
+
+            // Fetch hints for this question
+            try {
+                const hintRes = await fetch(`${API_BASE_URL}/api/practice/excel-hints/${question._id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (hintRes.ok) {
+                    const hintData = await hintRes.json();
+                    allHints = hintData.hints || [];
+                    if (allHints.length > 0 && hintArea) {
+                        hintArea.style.display = '';
+                    }
+                }
+            } catch (_) { /* hints optional */ }
+
             startTimer();
         } catch (err) {
             if (questionNameElement) questionNameElement.textContent = 'Error: No Excel questions available. Add questions in the admin panel.';
@@ -47,9 +68,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    if (getHintBtn) {
+        getHintBtn.addEventListener('click', () => {
+            if (hintsRevealed >= allHints.length) {
+                ui.showToast('No more hints available.', 'info');
+                return;
+            }
+            const hint = allHints[hintsRevealed];
+            hintsRevealed++;
+            if (hintsRevealedEl) {
+                const hintEl = document.createElement('div');
+                hintEl.className = 'coach-card coach-card-blue';
+                hintEl.style.marginBottom = '0.5rem';
+                hintEl.innerHTML = `<strong>Hint ${hintsRevealed}:</strong> ${hint}`;
+                hintsRevealedEl.appendChild(hintEl);
+            }
+            if (hintsRevealed >= allHints.length && getHintBtn) {
+                getHintBtn.disabled = true;
+                getHintBtn.textContent = 'No more hints';
+            }
+            ui.showToast(`Hint revealed (-1 point penalty)`, 'info');
+        });
+    }
+
     function startTimer() {
-        let timeLeft = 420;
+        const timerSelect = document.getElementById('timer-select');
+        let timeLeft = timerSelect ? parseInt(timerSelect.value) : 420;
+        
+        // If no limit selected (0), don't start timer
+        if (timeLeft === 0) {
+            if (timerElement) timerElement.textContent = '∞';
+            return;
+        }
+        
         if (timerElement) {
+            // Update initial display
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerElement.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
             timerInterval = setInterval(() => {
                 timeLeft--;
                 const mins = Math.floor(timeLeft / 60);
@@ -97,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('excelFile', fileInput?.files[0]);
             formData.append('questionId', currentQuestionId);
+            formData.append('hintsUsed', hintsRevealed);
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/practice/excel`, {
@@ -148,6 +206,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (score >= 16) { resultsTitle.textContent = '🌟 Excellent!'; resultsTitle.style.color = '#4ade80'; }
             else if (score >= 10) { resultsTitle.textContent = '👍 Good Effort!'; resultsTitle.style.color = '#f59e0b'; }
             else { resultsTitle.textContent = '💪 Keep Practicing!'; resultsTitle.style.color = '#f87171'; }
+        }
+
+        // Show hint penalty if any
+        const hintPenaltyResult = document.getElementById('hint-penalty-result');
+        if (hintPenaltyResult && data.hintPenalty > 0) {
+            hintPenaltyResult.textContent = `(-${data.hintPenalty} point${data.hintPenalty > 1 ? 's' : ''} hint penalty applied)`;
+            hintPenaltyResult.style.display = '';
+        }
+
+        // Show solution steps button if available
+        const solutionStepsBtn = document.getElementById('solution-steps-btn');
+        const solutionStepsPanel = document.getElementById('solution-steps-panel');
+        const solutionStepsList = document.getElementById('solution-steps-list');
+        if (data.solutionSteps && data.solutionSteps.length > 0 && solutionStepsBtn) {
+            solutionStepsBtn.style.display = '';
+            solutionStepsBtn.onclick = () => {
+                if (solutionStepsPanel) {
+                    solutionStepsPanel.classList.toggle('active');
+                    if (solutionStepsList) {
+                        solutionStepsList.innerHTML = data.solutionSteps.map(step => `<li>${step}</li>`).join('');
+                    }
+                    solutionStepsPanel.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
         }
 
         if (feedbackContent) {

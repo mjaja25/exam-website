@@ -30,11 +30,28 @@
 
             <div class="config-grid">
                 <div class="config-section">
+                    <label>Test Mode</label>
+                    <div class="selector-grid">
+                        <button class="select-btn active" data-testmode="time">⏱ Timed</button>
+                        <button class="select-btn" data-testmode="words">🔢 Word Count</button>
+                    </div>
+                </div>
+
+                <div class="config-section" id="duration-section">
                     <label>Test Duration</label>
                     <div class="selector-grid">
                         <button class="select-btn" data-time="60">1 Minute</button>
                         <button class="select-btn active" data-time="120">2 Minutes</button>
                         <button class="select-btn" data-time="300">5 Minutes</button>
+                    </div>
+                </div>
+
+                <div class="config-section hidden" id="wordcount-section">
+                    <label>Word Count</label>
+                    <div class="selector-grid">
+                        <button class="select-btn active" data-words="25">25 Words</button>
+                        <button class="select-btn" data-words="50">50 Words</button>
+                        <button class="select-btn" data-words="100">100 Words</button>
                     </div>
                 </div>
 
@@ -93,6 +110,14 @@
                     <button class="drill-btn" data-drill="words">
                         <span class="drill-icon">📝</span>
                         <span>Words</span>
+                    </button>
+                    <button class="drill-btn" data-drill="punctuation">
+                        <span class="drill-icon">.,!</span>
+                        <span>Punctuation</span>
+                    </button>
+                    <button class="drill-btn" data-drill="symbols">
+                        <span class="drill-icon">@#$</span>
+                        <span>Symbols</span>
                     </button>
                     <button class="drill-btn" data-drill="custom">
                         <span class="drill-icon">✏️</span>
@@ -217,6 +242,9 @@
 
         <!-- RESULTS VIEW -->
         <div id="results-view" class="results-view practice-results-view hidden">
+            <!-- Adaptive Difficulty Suggestion Banner -->
+            <div id="adaptive-suggestion-banner" class="adaptive-banner hidden"></div>
+
             <div class="results-header">
                 <h2>Practice Complete!</h2>
                 <div class="results-tabs">

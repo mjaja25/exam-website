@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice History - Exam Website</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="theme-toggle.js">
+    <link rel="stylesheet" href="dark-mode.css">
+    <style>
+        .history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .history-header {
+            margin-bottom: 24px;
+        }
+        
+        .history-header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-tab {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+        
+        .filter-tab:hover {
+            background: var(--hover-bg);
+        }
+        
+        .filter-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-card .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .history-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .history-item .item-type {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .type-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .type-icon.typing { background: #e3f2fd; color: #1976d2; }
+        .type-icon.mcq { background: #e8f5e9; color: #388e3c; }
+        .type-icon.letter { background: #fff3e0; color: #f57c00; }
+        .type-icon.excel { background: #f3e5f5; color: #7b1fa2; }
+        
+        .item-details h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        
+        .item-details p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        .item-score {
+            text-align: right;
+        }
+        
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .score-value.good { color: #4caf50; }
+        .score-value.average { color: #ff9800; }
+        .score-value.poor { color: #f44336; }
+        
+        .score-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        
+        .history-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .history-modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: var(--text-muted);
+        }
+        
+        .detail-value {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <div class="history-header">
+            <h1>📊 Practice History</h1>
+            <p>View all your practice sessions across all zones</p>
+        </div>
+        
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All Sessions</button>
+            <button class="filter-tab" data-filter="typing">⌨️ Typing</button>
+            <button class="filter-tab" data-filter="mcq">📝 MCQ</button>
+            <button class="filter-tab" data-filter="letter">✉️ Letter</button>
+            <button class="filter-tab" data-filter="excel">📊 Excel</button>
+        </div>
+        
+        <div class="history-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-sessions">0</div>
+                <div class="stat-label">Total Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-time">0h</div>
+                <div class="stat-label">Total Practice Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-score">0%</div>
+                <div class="stat-label">Average Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="best-score">0%</div>
+                <div class="stat-label">Best Score</div>
+            </div>
+        </div>
+        
+        <div class="history-list" id="history-list">
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <p>No practice sessions yet. Start practicing to see your history!</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detail Modal -->
+    <div class="history-modal" id="history-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Session Details</h2>
+                <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+    
+    <script src="js/api/client.js"></script>
+    <script src="theme-toggle.js"></script>
+    <script>
+        const TYPE_ICONS = {
+            typing: '⌨️',
+            mcq: '📝',
+            letter: '✉️',
+            excel: '📊'
+        };
+        
+        const TYPE_NAMES = {
+            typing: 'Typing Practice',
+            mcq: 'MCQ Practice',
+            letter: 'Letter Writing',
+            excel: 'Excel Practice'
+        };
+        
+        let allHistory = [];
+        let currentFilter = 'all';
+        
+        async function loadHistory() {
+            try {
+                const [typingRes, mcqRes, letterRes, excelRes] = await Promise.allSettled([
+                    client.get('/api/practice/typing-history'),
+                    client.get('/api/practice/mcq-history'),
+                    client.get('/api/practice/letter-history'),
+                    client.get('/api/practice/excel-history')
+                ]);
+                
+                allHistory = [];
+                
+                if (typingRes.status === 'fulfilled' && typingRes.value.sessions) {
+                    typingRes.value.sessions.forEach(s => {
+                        allHistory.push({ ...s, type: 'typing' });
+                    });
+                }
+                
+                if (mcqRes.status === 'fulfilled' && mcqRes.value.sessions) {
+                    mcqRes.value.sessions.forEach(s => {
+                        allHistory.push({ ...s, type: 'mcq' });
+                    });
+                }
+                
+                if (letterRes.status === 'fulfilled' && letterRes.value.sessions) {
+                    letterRes.value.sessions.forEach(s => {
+                        allHistory.push({ ...s, type: 'letter' });
+                    });
+                }
+                
+                if (excelRes.status === 'fulfilled' && excelRes.value.sessions) {
+                    excelRes.value.sessions.forEach(s => {
+                        allHistory.push({ ...s, type: 'excel' });
+                    });
+                }
+                
+                // Sort by date descending
+                allHistory.sort((a, b) => new Date(b.completedAt || b.createdAt) - new Date(a.completedAt || a.createdAt));
+                
+                updateStats();
+                renderHistory();
+            } catch (err) {
+                console.error('Failed to load history:', err);
+            }
+        }
+        
+        function updateStats() {
+            const total = allHistory.length;
+            const totalSeconds = allHistory.reduce((sum, s) => sum + (s.duration || 0), 0);
+            const hours = Math.floor(totalSeconds / 3600);
+            const avgScore = total > 0 ? Math.round(allHistory.reduce((sum, s) => sum + (s.score || s.accuracy || 0), 0) / total) : 0;
+            const bestScore = total > 0 ? Math.max(...allHistory.map(s => s.score || s.accuracy || 0)) : 0;
+            
+            document.getElementById('total-sessions').textContent = total;
+            document.getElementById('total-time').textContent = hours > 0 ? `${hours}h` : `${Math.round(totalSeconds / 60)}m`;
+            document.getElementById('avg-score').textContent = `${avgScore}%`;
+            document.getElementById('best-score').textContent = `${bestScore}%`;
+        }
+        
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const filtered = currentFilter === 'all' ? allHistory : allHistory.filter(s => s.type === currentFilter);
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>No ${currentFilter === 'all' ? '' : currentFilter + ' '}practice sessions found.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = filtered.map(session => {
+                const score = session.score || session.accuracy || 0;
+                const date = new Date(session.completedAt || session.createdAt);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                
+                let scoreClass = 'poor';
+                if (score >= 80) scoreClass = 'good';
+                else if (score >= 60) scoreClass = 'average';
+                
+                return `
+                    <div class="history-item" onclick="showSessionDetail('${session._id}')">
+                        <div class="item-type">
+                            <div class="type-icon ${session.type}">${TYPE_ICONS[session.type]}</div>
+                            <div class="item-details">
+                                <h3>${TYPE_NAMES[session.type]}</h3>
+                                <p>${session.passageTitle || session.questionTitle || session.setName || session.difficulty || 'Practice Session'}</p>
+                            </div>
+                        </div>
+                        <div class="item-score">
+                            <div class="score-value ${scoreClass}">${score}%</div>
+                            <div class="score-date">${dateStr} at ${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function showSessionDetail(id) {
+            const session = allHistory.find(s => s._id === id);
+            if (!session) return;
+            
+            const modal = document.getElementById('history-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            
+            title.textContent = TYPE_NAMES[session.type] + ' - Session Details';
+            
+            const date = new Date(session.completedAt || session.createdAt);
+            const duration = session.duration || 0;
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            
+            let details = `
+                <div class="detail-row">
+                    <span class="detail-label">Date</span>
+                    <span class="detail-value">${date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time</span>
+                    <span class="detail-value">${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Duration</span>
+                    <span class="detail-value">${minutes}m ${seconds}s</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Score</span>
+                    <span class="detail-value">${session.score || session.accuracy || 0}%</span>
+                </div>
+            `;
+            
+            if (session.type === 'typing') {
+                details += `
+                    <div class="detail-row">
+                        <span class="detail-label">WPM</span>
+                        <span class="detail-value">${session.wpm || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Accuracy</span>
+                        <span class="detail-value">${session.accuracy || 0}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Errors</span>
+                        <span class="detail-value">${session.errors || 0}</span>
+                    </div>
+                `;
+            } else if (session.type === 'mcq') {
+                details += `
+                    <div class="detail-row">
+                        <span class="detail-label">Questions</span>
+                        <span class="detail-value">${session.totalQuestions || session.questions?.length || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Correct</span>
+                        <span class="detail-value">${session.correct || 0}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Incorrect</span>
+                        <span class="detail-value">${session.incorrect || 0}</span>
+                    </div>
+                `;
+            } else if (session.type === 'letter') {
+                details += `
+                    <div class="detail-row">
+                        <span class="detail-label">Question</span>
+                        <span class="detail-value">${session.questionTitle || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Word Count</span>
+                        <span class="detail-value">${session.wordCount || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Grade</span>
+                        <span class="detail-value">${session.grade || 'Pending'}</span>
+                    </div>
+                `;
+            } else if (session.type === 'excel') {
+                details += `
+                    <div class="detail-row">
+                        <span class="detail-label">Question</span>
+                        <span class="detail-value">${session.questionTitle || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Difficulty</span>
+                        <span class="detail-value">${session.difficulty || 'N/A'}</span>
+                    </div>
+                `;
+            }
+            
+            if (session.xpEarned) {
+                details += `
+                    <div class="detail-row">
+                        <span class="detail-label">XP Earned</span>
+                        <span class="detail-value">+${session.xpEarned} XP</span>
+                    </div>
+                `;
+            }
+            
+            body.innerHTML = details;
+            modal.classList.add('show');
+        }
+        
+        function closeHistoryModal() {
+            document.getElementById('history-modal').classList.remove('show');
+        }
+        
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFilter = tab.dataset.filter;
+                renderHistory();
+            });
+        });
+        
+        // Close modal on outside click
+        document.getElementById('history-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'history-modal') closeHistoryModal();
+        });
+        
+        // Load on page load
+        loadHistory();
+    </script>
+</body>
+</html>

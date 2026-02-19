@@ -22,7 +22,18 @@
         <div id="test-view">
             <div class="practice-header">
                 <h2>Letter Writing Practice</h2>
-                <div class="practice-timer">Time: <span id="timer">03:00</span></div>
+                <div class="practice-timer">
+                    <label for="timer-select" style="margin-right: 8px; font-size: 0.875rem;">Time Limit:</label>
+                    <select id="timer-select" style="padding: 4px 8px; border-radius: 4px; margin-right: 12px;">
+                        <option value="60">1 min</option>
+                        <option value="120">2 min</option>
+                        <option value="180" selected>3 min</option>
+                        <option value="300">5 min</option>
+                        <option value="600">10 min</option>
+                        <option value="0">No Limit</option>
+                    </select>
+                    <span>Time:</span> <span id="timer">03:00</span>
+                </div>
             </div>
 
             <div class="card question-prompt">
@@ -72,14 +83,21 @@
 
             <div class="action-buttons">
                 <button class="btn btn-secondary" id="analyze-btn">Get Detailed AI Analysis</button>
+                <button id="sample-answer-btn" class="btn btn-outline" style="display:none;">📄 View Sample Answer</button>
                 <button id="review-btn" class="btn btn-outline">Review Your Letter</button>
-                <button onclick="location.reload()" class="btn btn-outline">Try Again</button>
+                <button id="retry-same-btn" class="btn btn-outline">🔄 Try Same Question</button>
+                <button id="new-question-btn" class="btn btn-outline">🎲 New Question</button>
                 <button onclick="location.href='/dashboard.html'" class="btn btn-outline">Dashboard</button>
             </div>
 
             <div id="analysis-panel" class="analysis-panel">
                 <h3>Detailed AI Analysis</h3>
                 <div id="analysis-content"></div>
+            </div>
+
+            <div id="sample-answer-panel" class="analysis-panel">
+                <h3>📄 Sample Answer</h3>
+                <div id="sample-answer-content" style="white-space: pre-wrap; font-family: 'Times New Roman', serif; font-size: 1rem; line-height: 1.8;"></div>
             </div>
 
             <div id="review-panel" class="card review-panel">

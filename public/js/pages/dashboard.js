@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load Data
     fetchDashboardData();
     fetchPracticeStats();
+    fetchGamificationData();
     
     // Auto-open exam modal if coming from results page
     if (localStorage.getItem('autoOpenExamModal') === 'true') {
@@ -408,6 +409,77 @@ function closeProfileModal() {
                 updateBioCount();
             }
         }, 300);
+    }
+}
+
+// ─── Gamification ────────────────────────────────────────────────────────────
+
+const BADGE_LABELS = {
+    first_practice: '🔥 First Practice',
+    speed_demon: '⌨️ Speed Demon',
+    sharpshooter: '🎯 Sharpshooter',
+    mcq_master: '📊 MCQ Master',
+    letter_pro: '✉️ Letter Pro',
+    century: '🏆 Century',
+    streak_7: '📅 7-Day Streak'
+};
+
+const XP_THRESHOLDS = { Beginner: 200, Intermediate: 600, Advanced: 1200, Expert: Infinity };
+
+async function fetchGamificationData() {
+    try {
+        const data = await client.get('/api/practice/gamification');
+
+        // Level badge
+        const levelBadge = document.getElementById('level-badge');
+        if (levelBadge) levelBadge.textContent = data.level || 'Beginner';
+
+        // Streak
+        const streakCount = document.getElementById('streak-count');
+        if (streakCount) streakCount.textContent = data.currentStreak || 0;
+
+        // XP bar
+        const xpValue = document.getElementById('xp-value');
+        const xpBarFill = document.getElementById('xp-bar-fill');
+        const xpNextLevel = document.getElementById('xp-next-level');
+        if (xpValue) xpValue.textContent = data.xp || 0;
+
+        const levelOrder = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+        const currentLevelIdx = levelOrder.indexOf(data.level || 'Beginner');
+        const thresholds = [0, 201, 601, 1201];
+        const nextThreshold = thresholds[currentLevelIdx + 1] || thresholds[currentLevelIdx];
+        const currentThreshold = thresholds[currentLevelIdx] || 0;
+        const xpInLevel = (data.xp || 0) - currentThreshold;
+        const xpNeeded = nextThreshold - currentThreshold;
+        const pct = Math.min(100, Math.round((xpInLevel / xpNeeded) * 100));
+
+        if (xpBarFill) xpBarFill.style.width = `${pct}%`;
+        if (xpNextLevel && data.level !== 'Expert') {
+            xpNextLevel.textContent = `${xpInLevel} / ${xpNeeded} XP to ${levelOrder[currentLevelIdx + 1]}`;
+        }
+
+        // Daily goals
+        const dailyGoalsFill = document.getElementById('daily-goals-fill');
+        const dailyGoalsText = document.getElementById('daily-goals-text');
+        const DAILY_GOAL = 3;
+        const todaySessions = data.todaySessions || 0;
+        const goalPct = Math.min(100, Math.round((todaySessions / DAILY_GOAL) * 100));
+        if (dailyGoalsFill) dailyGoalsFill.style.width = `${goalPct}%`;
+        if (dailyGoalsText) dailyGoalsText.textContent = `${todaySessions} / ${DAILY_GOAL} sessions`;
+
+        // Badges
+        const badgesRow = document.getElementById('badges-row');
+        if (badgesRow && data.badges && data.badges.length > 0) {
+            badgesRow.innerHTML = data.badges.map(b => `
+                <span class="badge-chip" title="${BADGE_LABELS[b] || b}">${BADGE_LABELS[b] || b}</span>
+            `).join('');
+        } else if (badgesRow) {
+            badgesRow.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Complete practice sessions to earn badges!</span>';
+        }
+    } catch (err) {
+        console.warn('Gamification data unavailable:', err);
+        const card = document.getElementById('gamification-card');
+        if (card) card.style.display = 'none';
     }
 }
 

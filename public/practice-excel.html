@@ -22,7 +22,18 @@
         <div id="test-view">
             <div class="practice-header">
                 <h2>📊 Excel Practical Practice</h2>
-                <div class="practice-timer">Time: <span id="timer">07:00</span></div>
+                <div class="practice-timer">
+                    <label for="timer-select" style="margin-right: 8px; font-size: 0.875rem;">Time Limit:</label>
+                    <select id="timer-select" style="padding: 4px 8px; border-radius: 4px; margin-right: 12px;">
+                        <option value="180">3 min</option>
+                        <option value="300">5 min</option>
+                        <option value="420" selected>7 min</option>
+                        <option value="600">10 min</option>
+                        <option value="900">15 min</option>
+                        <option value="0">No Limit</option>
+                    </select>
+                    <span>Time:</span> <span id="timer">07:00</span>
+                </div>
             </div>
 
             <div class="card instructions-card" style="margin-bottom: 1.5rem;">
@@ -32,6 +43,16 @@
                 <p>3. Save your completed file and upload it below.</p>
                 <a href="#" id="download-btn" class="btn btn-secondary" style="margin-top: 1rem;" download disabled>📥
                     Download Question File</a>
+            </div>
+
+            <!-- Hint System -->
+            <div id="hint-area" class="card" style="margin-top: 1rem; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>💡 Hints</h3>
+                    <span id="hint-penalty-label" style="font-size: 0.85rem; color: var(--text-muted);">Each hint costs -1 point</span>
+                </div>
+                <div id="hints-revealed"></div>
+                <button id="get-hint-btn" class="btn btn-outline" style="margin-top: 0.75rem;">Get a Hint</button>
             </div>
 
             <div class="card upload-card">
@@ -53,6 +74,7 @@
                     <span class="score-value" id="score-value">0</span>
                 </div>
                 <p class="score-label" id="score-label">out of 20</p>
+                <p id="hint-penalty-result" style="font-size: 0.85rem; color: var(--danger); display: none;"></p>
             </div>
 
             <div class="card feedback-card" style="margin-bottom: 2rem;">
@@ -62,8 +84,14 @@
 
             <div class="action-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                 <button class="btn btn-secondary" id="analyze-btn">🔍 Get Detailed AI Analysis</button>
+                <button id="solution-steps-btn" class="btn btn-outline" style="display:none;">📋 View Solution Steps</button>
                 <button onclick="location.reload()" class="btn btn-outline">🔄 Try Again</button>
                 <button onclick="location.href='/dashboard.html'" class="btn btn-outline">🏠 Dashboard</button>
+            </div>
+
+            <div id="solution-steps-panel" class="analysis-panel">
+                <h3>📋 Solution Steps</h3>
+                <ol id="solution-steps-list" style="padding-left: 1.5rem; line-height: 2;"></ol>
             </div>
 
             <div id="analysis-panel" class="analysis-panel">

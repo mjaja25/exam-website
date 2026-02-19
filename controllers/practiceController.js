@@ -2,7 +2,106 @@ const LetterQuestion = require('../models/LetterQuestion');
 const ExcelQuestion = require('../models/ExcelQuestion');
 const aiGradingService = require('../services/aiGradingService');
 const PracticeResult = require('../models/PracticeResult');
+const User = require('../models/User');
 const mongoose = require('mongoose');
+
+// ─── Gamification Helpers ────────────────────────────────────────────────────
+
+function calcLevel(xp) {
+    if (xp >= 1201) return 'Expert';
+    if (xp >= 601) return 'Advanced';
+    if (xp >= 201) return 'Intermediate';
+    return 'Beginner';
+}
+
+const BADGE_DEFINITIONS = [
+    { id: 'first_practice', label: '🔥 First Practice', check: (u, stats) => (u.xp || 0) === 0 },
+    { id: 'speed_demon', label: '⌨️ Speed Demon', check: (u, stats) => stats.wpm >= 60 },
+    { id: 'sharpshooter', label: '🎯 Sharpshooter', check: (u, stats) => stats.accuracy >= 100 },
+    { id: 'mcq_master', label: '📊 MCQ Master', check: (u, stats) => stats.mcqPerfect === true },
+    { id: 'letter_pro', label: '✉️ Letter Pro', check: (u, stats) => stats.letterScore >= 9 },
+    { id: 'century', label: '🏆 Century', check: (u, stats) => (u.totalSessions || 0) >= 99 },
+    { id: 'streak_7', label: '📅 7-Day Streak', check: (u, stats) => (u.currentStreak || 0) >= 6 }
+];
+
+async function awardXP(userId, amount) {
+    const user = await User.findById(userId);
+    if (!user) return;
+    user.xp = (user.xp || 0) + amount;
+    user.level = calcLevel(user.xp);
+    await user.save();
+    return { xp: user.xp, level: user.level };
+}
+
+async function updateStreak(userId) {
+    const user = await User.findById(userId);
+    if (!user) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lastDate = user.lastPracticeDate ? new Date(user.lastPracticeDate) : null;
+    if (lastDate) lastDate.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (!lastDate || lastDate < yesterday) {
+        // Streak broken or first time
+        user.currentStreak = 1;
+    } else if (lastDate.getTime() === yesterday.getTime()) {
+        // Consecutive day
+        user.currentStreak = (user.currentStreak || 0) + 1;
+    }
+    // Same day — no change to streak count
+
+    if (user.currentStreak > (user.longestStreak || 0)) {
+        user.longestStreak = user.currentStreak;
+    }
+    user.lastPracticeDate = new Date();
+    await user.save();
+    return { currentStreak: user.currentStreak, longestStreak: user.longestStreak };
+}
+
+async function checkAndAwardBadges(userId, stats) {
+    const user = await User.findById(userId);
+    if (!user) return [];
+
+    const totalSessions = await PracticeResult.countDocuments({ user: userId });
+    const userWithSessions = { ...user.toObject(), totalSessions };
+
+    const newBadges = [];
+    for (const def of BADGE_DEFINITIONS) {
+        if (!user.badges.includes(def.id) && def.check(userWithSessions, stats)) {
+            user.badges.push(def.id);
+            newBadges.push(def.label);
+        }
+    }
+    if (newBadges.length > 0) await user.save();
+    return newBadges;
+}
+
+exports.getGamificationProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).select('xp level badges currentStreak longestStreak lastPracticeDate');
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const todaySessions = await PracticeResult.countDocuments({
+            user: req.userId,
+            completedAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+        });
+
+        res.json({
+            xp: user.xp || 0,
+            level: user.level || 'Beginner',
+            badges: user.badges || [],
+            currentStreak: user.currentStreak || 0,
+            longestStreak: user.longestStreak || 0,
+            todaySessions
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching gamification profile.' });
+    }
+};
 
 exports.submitPracticeLetter = async (req, res) => {
     try {
@@ -21,6 +120,7 @@ exports.submitPracticeLetter = async (req, res) => {
             success: true,
             score: gradeResult.totalScore,
             maxScore: 10,
+            sampleAnswer: originalQuestion.sampleAnswer || '',
             breakdown: [
                 { label: 'Content Relevance', score: gradeResult.scores.content, max: 3, explanation: gradeResult.aiGrade.content.explanation },
                 { label: 'Layout & Structure', score: gradeResult.scores.format, max: 2, explanation: gradeResult.aiGrade.format.explanation },
@@ -39,7 +139,7 @@ exports.submitPracticeLetter = async (req, res) => {
 exports.submitPracticeExcel = async (req, res, next) => {
     try {
         if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
-        const { questionId } = req.body;
+        const { questionId, hintsUsed } = req.body;
 
         if (!questionId) {
             return res.status(400).json({ message: 'Question ID is required.' });
@@ -50,16 +150,34 @@ exports.submitPracticeExcel = async (req, res, next) => {
 
         const gradeResult = await aiGradingService.gradeExcel(req.file.path, originalQuestion.solutionFilePath, originalQuestion.questionName);
 
+        // Deduct 1 point per hint used (min score 0)
+        const hintPenalty = Math.min(parseInt(hintsUsed) || 0, gradeResult.score);
+        const finalScore = Math.max(0, gradeResult.score - hintPenalty);
+
         res.json({
             success: true,
-            score: gradeResult.score,
+            score: finalScore,
+            rawScore: gradeResult.score,
+            hintPenalty,
             maxScore: 20,
-            feedback: gradeResult.feedback
+            feedback: gradeResult.feedback,
+            solutionSteps: originalQuestion.solutionSteps || []
         });
 
     } catch (error) {
         console.error('Practice Excel Error:', error);
         next(error);
+    }
+};
+
+exports.getExcelHints = async (req, res) => {
+    try {
+        const { questionId } = req.params;
+        const question = await ExcelQuestion.findById(questionId).select('hints');
+        if (!question) return res.status(404).json({ message: 'Question not found.' });
+        res.json({ hints: question.hints || [] });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching hints.' });
     }
 };
 
@@ -161,6 +279,40 @@ exports.analyzeTypingPractice = async (req, res) => {
     }
 };
 
+exports.getMcqStats = async (req, res) => {
+    try {
+        const stats = await PracticeResult.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(req.userId),
+                    category: { $regex: /^mcq-/ }
+                }
+            },
+            {
+                $group: {
+                    _id: '$category',
+                    totalSessions: { $sum: 1 },
+                    totalScore: { $sum: '$score' },
+                    totalQuestions: { $sum: '$totalQuestions' }
+                }
+            }
+        ]);
+
+        // Format: { 'Formulas': { accuracy: 72, sessions: 5 }, ... }
+        const formatted = {};
+        stats.forEach(s => {
+            const category = s._id.replace('mcq-', '');
+            const accuracy = s.totalQuestions > 0 ? Math.round((s.totalScore / s.totalQuestions) * 100) : null;
+            formatted[category] = { accuracy, sessions: s.totalSessions };
+        });
+
+        res.json(formatted);
+    } catch (error) {
+        console.error('MCQ Stats Error:', error);
+        res.status(500).json({ message: 'Error fetching MCQ stats.' });
+    }
+};
+
 exports.saveResult = async (req, res) => {
     try {
         const { category, difficulty, score, totalQuestions } = req.body;
@@ -172,7 +324,22 @@ exports.saveResult = async (req, res) => {
             totalQuestions
         });
         await newResult.save();
-        res.status(201).json({ success: true, message: 'Practice result saved!' });
+
+        // Gamification: award XP, update streak, check badges
+        const xpAmount = Math.max(1, Math.round((score / (totalQuestions || 1)) * 20));
+        const [xpResult, streakResult, newBadges] = await Promise.all([
+            awardXP(req.userId, xpAmount),
+            updateStreak(req.userId),
+            checkAndAwardBadges(req.userId, { mcqPerfect: score === totalQuestions })
+        ]);
+
+        res.status(201).json({
+            success: true,
+            message: 'Practice result saved!',
+            xp: xpResult,
+            streak: streakResult,
+            newBadges
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error saving practice result.' });
     }
@@ -207,11 +374,24 @@ exports.saveTypingPractice = async (req, res) => {
         };
         
         const result = await PracticeResult.create(practiceData);
+
+        // Gamification: XP = floor(wpm * accuracy / 100), min 1
+        const wpm = req.body.wpm || 0;
+        const accuracy = req.body.accuracy || 0;
+        const xpAmount = Math.max(1, Math.floor(wpm * accuracy / 100));
+        const [xpResult, streakResult, newBadges] = await Promise.all([
+            awardXP(req.userId, xpAmount),
+            updateStreak(req.userId),
+            checkAndAwardBadges(req.userId, { wpm, accuracy })
+        ]);
         
-        res.status(201).json({ 
-            success: true, 
+        res.status(201).json({
+            success: true,
             message: 'Practice saved',
-            resultId: result._id 
+            resultId: result._id,
+            xp: xpResult,
+            streak: streakResult,
+            newBadges
         });
     } catch (error) {
         console.error('Save Typing Practice Error:', error);
@@ -304,6 +484,66 @@ exports.getUserHeatmapData = async (req, res) => {
         res.json(formatted);
     } catch (error) {
         console.error('Get Heatmap Data Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ─── Unified History ───────────────────────────────────────────────────────────
+
+exports.getTypingHistory = async (req, res) => {
+    try {
+        const sessions = await PracticeResult.find({
+            user: req.userId,
+            category: 'typing'
+        }).sort({ completedAt: -1 }).limit(50).lean();
+        
+        res.json({ sessions });
+    } catch (error) {
+        console.error('Get Typing History Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getMcqHistory = async (req, res) => {
+    try {
+        // Get from TestResult model (MCQ practice uses TestResult)
+        const TestResult = require('../models/TestResult');
+        const sessions = await TestResult.find({
+            user: req.userId,
+            type: 'mcq-practice'
+        }).sort({ createdAt: -1 }).limit(50).lean();
+        
+        res.json({ sessions });
+    } catch (error) {
+        console.error('Get MCQ History Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getLetterHistory = async (req, res) => {
+    try {
+        const sessions = await PracticeResult.find({
+            user: req.userId,
+            category: 'letter'
+        }).sort({ completedAt: -1 }).limit(50).lean();
+        
+        res.json({ sessions });
+    } catch (error) {
+        console.error('Get Letter History Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getExcelHistory = async (req, res) => {
+    try {
+        const sessions = await PracticeResult.find({
+            user: req.userId,
+            category: 'excel'
+        }).sort({ completedAt: -1 }).limit(50).lean();
+        
+        res.json({ sessions });
+    } catch (error) {
+        console.error('Get Excel History Error:', error);
         res.status(500).json({ message: error.message });
     }
 };

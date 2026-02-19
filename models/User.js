@@ -60,7 +60,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         maxLength: 150
     },
-    completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }]
+    completedMCQSets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MCQSet' }],
+
+    // Gamification
+    xp: { type: Number, default: 0 },
+    level: { type: String, default: 'Beginner' },
+    badges: [{ type: String }],
+    currentStreak: { type: Number, default: 0 },
+    longestStreak: { type: Number, default: 0 },
+    lastPracticeDate: { type: Date, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

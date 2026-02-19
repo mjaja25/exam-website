@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
             duration: 120, // seconds
             difficulty: 'easy',
             mode: 'standard', // 'standard' | 'simulation'
-            wordSet: '1k'
+            wordSet: '1k',
+            testMode: 'time', // 'time' | 'words'
+            wordCount: 25
         },
         drill: {
             active: false,
@@ -72,7 +74,34 @@ document.addEventListener('DOMContentLoaded', () => {
     initUI();
 
     // 5. Event Listeners
-    
+
+    // Test Mode Selection (time vs words)
+    document.querySelectorAll('[data-testmode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.config.testMode = btn.dataset.testmode;
+            document.querySelectorAll('[data-testmode]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const durationSection = document.getElementById('duration-section');
+            const wordcountSection = document.getElementById('wordcount-section');
+            if (state.config.testMode === 'words') {
+                if (durationSection) durationSection.classList.add('hidden');
+                if (wordcountSection) wordcountSection.classList.remove('hidden');
+            } else {
+                if (durationSection) durationSection.classList.remove('hidden');
+                if (wordcountSection) wordcountSection.classList.add('hidden');
+            }
+        });
+    });
+
+    // Word Count Selection
+    document.querySelectorAll('[data-words]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.config.wordCount = parseInt(btn.dataset.words);
+            document.querySelectorAll('[data-words]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
     // Duration Selection
     dom.durationBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -335,10 +364,13 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.accuracyElement = document.getElementById('dec-accuracy');
         }
 
+        const isWordCountMode = state.config.testMode === 'words';
+
         // Initialize Engine
         state.engine = new TypingEngine({
             ...elements,
             duration: state.config.duration,
+            wordCountMode: isWordCountMode,
             isSimulationMode: isSim,
             onStart: startWpmSampling,
             onComplete: (stats) => {
@@ -347,10 +379,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Load Passage
+        // Update timer label for word-count mode
+        if (isWordCountMode && elements.timerElement) {
+            elements.timerElement.textContent = '00:00';
+        }
+
+        // Load Passage — for word-count mode, request a passage with enough words
         try {
-            const data = await client.get(`/api/passages/random?difficulty=${state.config.difficulty}`);
-            state.engine.loadPassage(data.content);
+            const wordParam = isWordCountMode ? `&words=${state.config.wordCount}` : '';
+            const data = await client.get(`/api/passages/random?difficulty=${state.config.difficulty}${wordParam}`);
+            // For word-count mode, trim passage to exact word count
+            let passageContent = data.content;
+            if (isWordCountMode) {
+                const words = passageContent.trim().split(/\s+/);
+                passageContent = words.slice(0, state.config.wordCount).join(' ');
+            }
+            state.engine.loadPassage(passageContent);
             state.engine.passageId = data._id; // Store for submission
             elements.inputElement.focus();
             
@@ -430,41 +474,61 @@ document.addEventListener('DOMContentLoaded', () => {
         state.engine.inputElement.focus();
     }
 
+    // Store accumulated drill stats across reps
+    state.drill.accumulatedStats = {
+        totalChars: 0,
+        correctChars: 0,
+        totalErrors: 0,
+        totalTime: 0,
+        repCount: 0
+    };
+
     function handleDrillRepComplete(stats) {
+        // Accumulate stats from each rep
+        if (state.drill.accumulatedStats) {
+            state.drill.accumulatedStats.totalChars += stats.totalChars || 0;
+            state.drill.accumulatedStats.correctChars += stats.correctChars || 0;
+            state.drill.accumulatedStats.totalErrors += stats.totalErrors || 0;
+            state.drill.accumulatedStats.totalTime += stats.elapsed || 0;
+            state.drill.accumulatedStats.repCount++;
+        }
+        
         state.drill.currentRep++;
         
         if (state.drill.currentRep >= state.drill.reps) {
-            // Drill Session Complete
-            finishDrillSession(stats);
+            // Drill Session Complete - compute aggregate stats
+            const agg = state.drill.accumulatedStats;
+            const aggregateStats = {
+                totalChars: agg.totalChars,
+                correctChars: agg.correctChars,
+                totalErrors: agg.totalErrors,
+                elapsed: agg.totalTime,
+                accuracy: agg.totalChars > 0 ? Math.round((agg.correctChars / agg.totalChars) * 100) : 0,
+                wpm: agg.totalTime > 0 ? Math.round((agg.correctChars / 5) / (agg.totalTime / 60)) : 0
+            };
+            finishDrillSession(aggregateStats);
         } else {
             // Next Rep
-            ui.showToast('Rep Complete! Next...', 'success');
+            ui.showToast(`Rep ${state.drill.currentRep} Complete! Next...`, 'success');
             setTimeout(() => {
                 loadDrillRep();
             }, 1000);
         }
     }
 
-    function finishDrillSession(lastStats) {
+    function finishDrillSession(aggregateStats) {
         const modal = document.getElementById('drill-complete');
         const msg = document.getElementById('drill-complete-msg');
         
-        msg.textContent = `Completed ${state.drill.reps} repetitions with final accuracy ${lastStats.accuracy}%`;
+        msg.textContent = `Completed ${state.drill.reps} repetitions with ${aggregateStats.accuracy}% accuracy (${aggregateStats.wpm} WPM avg)`;
         modal.classList.remove('hidden');
-        
-        // In drill mode, we might accumulate stats differently
-        // For now, just submit the last rep or aggregate?
-        // Let's submit the cumulative stats if the engine supported it, 
-        // but current engine resets on loadPassage. 
-        // We'll save the last rep as a sample.
         
         // We can add a "Back to Results" button behavior here
         const resultsBtn = document.getElementById('drill-back-to-results-btn');
         resultsBtn.classList.remove('hidden');
         
-        // Prepare stats for submission/view
-        // Merging logic would be complex without engine support, so saving last rep
-        state.lastStats = lastStats; 
+        // Prepare aggregate stats for submission/view
+        state.lastStats = aggregateStats;
     }
 
     function showDrillResults() {
@@ -523,8 +587,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 8. Load History
         loadHistoricalProgress();
+
+        // 9. Adaptive Difficulty Suggestion
+        if (!state.drill.active) {
+            showAdaptiveDifficultySuggestion(stats);
+        }
     }
-    
+
+    function showAdaptiveDifficultySuggestion(stats) {
+        const banner = document.getElementById('adaptive-suggestion-banner');
+        if (!banner) return;
+
+        const { wpm, accuracy } = stats;
+        const current = state.config.difficulty;
+        let suggestion = null;
+        let message = '';
+
+        if (current === 'easy' && wpm >= 50 && accuracy >= 95) {
+            suggestion = 'medium';
+            message = `🚀 Great job! You're ready to try <strong>Medium</strong> difficulty.`;
+        } else if (current === 'medium' && wpm >= 70 && accuracy >= 95) {
+            suggestion = 'hard';
+            message = `🔥 Impressive! Try <strong>Hard</strong> difficulty next.`;
+        } else if (current === 'hard' && wpm >= 90 && accuracy >= 95) {
+            message = `🏆 You're at the top level! Keep pushing your speed.`;
+        } else if (accuracy < 85 && current !== 'easy') {
+            suggestion = current === 'hard' ? 'medium' : 'easy';
+            message = `💡 Focus on accuracy first. Try <strong>${suggestion.charAt(0).toUpperCase() + suggestion.slice(1)}</strong> difficulty.`;
+        }
+
+        if (message) {
+            banner.innerHTML = message;
+            if (suggestion) {
+                banner.innerHTML += ` <button class="btn-inline" onclick="applyDifficultySuggestion('${suggestion}')">Switch Now</button>`;
+            }
+            banner.classList.remove('hidden');
+        }
+    }
+
+    window.applyDifficultySuggestion = (diff) => {
+        state.config.difficulty = diff;
+        document.querySelectorAll('[data-diff]').forEach(b => {
+            b.classList.toggle('active', b.dataset.diff === diff);
+        });
+        const banner = document.getElementById('adaptive-suggestion-banner');
+        if (banner) banner.classList.add('hidden');
+        ui.showToast(`Difficulty set to ${diff}`, 'success');
+    };
+
     function formatErrorDetails(errors) {
         if (!errors || errors.length === 0) return '';
         const errorMap = {};
