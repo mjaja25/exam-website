@@ -931,6 +931,21 @@ function initPractice() {
         window.requestAnimationFrame(step);
     }
 
+    // Helper function for default finger stats
+    function getDefaultFingerStats() {
+        return {
+            leftPinky: { correct: 0, errors: 0 },
+            leftRing: { correct: 0, errors: 0 },
+            leftMiddle: { correct: 0, errors: 0 },
+            leftIndex: { correct: 0, errors: 0 },
+            rightIndex: { correct: 0, errors: 0 },
+            rightMiddle: { correct: 0, errors: 0 },
+            rightRing: { correct: 0, errors: 0 },
+            rightPinky: { correct: 0, errors: 0 },
+            thumbs: { correct: 0, errors: 0 }
+        };
+    }
+
     async function submitPracticeData(stats) {
         try {
             // Convert keystrokes map to array
@@ -949,8 +964,8 @@ function initPractice() {
 
             const payload = {
                 category: state.drill.active ? `drill-${state.drill.type}` : 'typing',
-                difficulty: state.config.difficulty,
-                mode: state.config.mode,
+                difficulty: state.config.difficulty || 'medium',
+                mode: state.config.mode || 'standard',
                 duration: stats.durationMin * 60,
                 wpm: stats.wpm,
                 accuracy: stats.accuracy,
@@ -960,7 +975,7 @@ function initPractice() {
                 passageLength: stats.totalChars,
                 errors: errorsArray,
                 keystrokes: keystrokesArray,
-                fingerStats: stats.fingerStats,
+                fingerStats: stats.fingerStats || getDefaultFingerStats(),
                 drillType: state.drill.active ? state.drill.type : null,
                 drillRepetitions: state.drill.active ? state.drill.reps : null
             };
