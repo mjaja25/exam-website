@@ -6,12 +6,6 @@ Your exam website has been thoroughly analyzed and all bugs have been fixed. Her
 
 ---
 
-## 🚨 URGENT: Before Running the App
-
-### 1. Rotate Your API Credentials (REQUIRED)
-
-Your current `.env` file has real credentials that may be exposed. Generate new ones:
-
 #### MongoDB
 1. Go to MongoDB Atlas → Database Access
 2. Create new user with strong password

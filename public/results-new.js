@@ -311,17 +311,54 @@ window.analyzeExam = async function (type, sessionId) {
         // Render Analysis
         let html = '';
 
-        if (analysis.strengths) {
-            html += `<h3>💪 Strengths</h3><ul>${analysis.strengths.map(s => `<li><strong>${s.title}</strong>: ${s.detail}</li>`).join('')}</ul>`;
-        }
-        if (analysis.improvements) {
-            html += `<h3>📈 Areas for Improvement</h3><ul>${analysis.improvements.map(s => `<li><strong>${s.title}</strong>: ${s.detail}<br><em>Tip: ${s.suggestion}</em></li>`).join('')}</ul>`;
-        }
-        if (analysis.tips) {
-            html += `<h3>💡 Pro Tips</h3><ul>${analysis.tips.map(t => `<li>${t.text}</li>`).join('')}</ul>`;
-        }
-        if (analysis.sampleStructure) {
-            html += `<h3>📝 Suggested Structure</h3><pre style="background:#f4f4f5; padding:10px; border-radius:5px; white-space:pre-wrap;">${analysis.sampleStructure}</pre>`;
+        // Handle typing analysis differently (different response structure)
+        if (type === 'typing') {
+            if (analysis.level) {
+                html += `<p><strong>Level:</strong> ${analysis.level}</p>`;
+            }
+            if (analysis.summary) {
+                html += `<p>${analysis.summary}</p>`;
+            }
+            if (analysis.speedTip) {
+                html += `<h3>⚡ Speed Tip</h3><p>${analysis.speedTip}</p>`;
+            }
+            if (analysis.accuracyTip) {
+                html += `<h3>🎯 Accuracy Tip</h3><p>${analysis.accuracyTip}</p>`;
+            }
+            if (analysis.drills && analysis.drills.length > 0) {
+                html += `<h3>🏋️ Custom Drills</h3><ul>`;
+                analysis.drills.forEach(drill => {
+                    html += `<li><strong>${drill.name}</strong>: ${drill.text} (${drill.reps} reps - ${drill.target})</li>`;
+                });
+                html += `</ul>`;
+            }
+            if (analysis.warmup && analysis.warmup.length > 0) {
+                html += `<h3>🔥 Warm-up Routine</h3><ol>`;
+                analysis.warmup.forEach(step => {
+                    html += `<li>${step}</li>`;
+                });
+                html += `</ol>`;
+            }
+            if (analysis.goalWpm || analysis.goalAccuracy) {
+                html += `<h3>🎯 Next Goals</h3><ul>`;
+                if (analysis.goalWpm) html += `<li>Target WPM: ${analysis.goalWpm}</li>`;
+                if (analysis.goalAccuracy) html += `<li>Target Accuracy: ${analysis.goalAccuracy}</li>`;
+                html += `</ul>`;
+            }
+        } else {
+            // Letter and Excel analysis (original structure)
+            if (analysis.strengths) {
+                html += `<h3>💪 Strengths</h3><ul>${analysis.strengths.map(s => `<li><strong>${s.title}</strong>: ${s.detail}</li>`).join('')}</ul>`;
+            }
+            if (analysis.improvements) {
+                html += `<h3>📈 Areas for Improvement</h3><ul>${analysis.improvements.map(s => `<li><strong>${s.title}</strong>: ${s.detail}<br><em>Tip: ${s.suggestion}</em></li>`).join('')}</ul>`;
+            }
+            if (analysis.tips) {
+                html += `<h3>💡 Pro Tips</h3><ul>${analysis.tips.map(t => `<li>${t.text}</li>`).join('')}</ul>`;
+            }
+            if (analysis.sampleStructure) {
+                html += `<h3>📝 Suggested Structure</h3><pre style="background:#f4f4f5; padding:10px; border-radius:5px; white-space:pre-wrap;">${analysis.sampleStructure}</pre>`;
+            }
         }
 
         body.innerHTML = html;
