@@ -257,16 +257,20 @@ exports.analyzeTypingPractice = async (req, res) => {
     try {
         const result = req.body; // wpm, accuracy, duration, errorCount, errorDetails...
 
-        // Fetch historical top error keys for context
-        const historicalErrors = await PracticeResult.aggregate([
-            { $match: { user: new mongoose.Types.ObjectId(req.userId), category: 'typing' } },
-            { $unwind: '$errors' },
-            { $group: { _id: '$errors.key', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 5 }
-        ]);
-        
-        const historicalProblemKeys = historicalErrors.map(e => ({ key: e._id, count: e.count }));
+        // Fetch historical top error keys for context (non-blocking — AI works without it)
+        let historicalProblemKeys = [];
+        try {
+            const historicalErrors = await PracticeResult.aggregate([
+                { $match: { user: new mongoose.Types.ObjectId(req.userId), category: 'typing' } },
+                { $unwind: '$errors' },
+                { $group: { _id: '$errors.key', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 5 }
+            ]);
+            historicalProblemKeys = historicalErrors.map(e => ({ key: e._id, count: e.count }));
+        } catch (dbErr) {
+            console.warn("Could not fetch historical errors (DB may be unavailable):", dbErr.message);
+        }
         
         // Enhance result with history
         const enhancedResult = { ...result, historicalProblemKeys };

@@ -57,9 +57,18 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await User.findById(id);
-    done(null, user);
+    const mongoose = require('mongoose');
+    // Only attempt DB lookup if fully connected (readyState 1)
+    if (mongoose.connection.readyState !== 1) {
+      return done(null, false);
+    }
+    // Race against a 3-second timeout so a slow/hung DB never blocks requests
+    const user = await Promise.race([
+      User.findById(id).lean(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('DB timeout')), 3000))
+    ]);
+    done(null, user || false);
   } catch (error) {
-    done(error, false);
+    done(null, false);
   }
 });
