@@ -157,8 +157,8 @@
 }
 
 .logo-container img.logo {
-    width: 72px;
-    height: 72px;
+    width: 72px !important;
+    height: 72px !important;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     object-fit: cover;
