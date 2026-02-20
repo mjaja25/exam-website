@@ -107,3 +107,28 @@
         padding: 0.875rem 1rem;
     }
 }
+/* Action/View buttons for tables */
+.action-btn, .view-btn {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-btn {
+    background: var(--secondary);
+    color: white;
+}
+
+.view-btn:hover {
+    background: var(--secondary-shade);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(28, 176, 246, 0.4);
+}

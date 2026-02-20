@@ -57,3 +57,20 @@
         padding: var(--spacing-sm) 0;
     }
 }
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.logo-area .logo {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logo-area h1 span {
+    color: var(--text-primary);
+}

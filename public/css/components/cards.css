@@ -1,4 +1,4 @@
-.card, .auth-card, .practice-card, .gamification-card {
+.card, .auth-card, .practice-item, .gamification-card {
     background: var(--bg-card);
     border: 2px solid var(--border-color);
     border-radius: var(--radius-xl);
@@ -9,7 +9,7 @@
     overflow: hidden;
 }
 
-.card:hover, .practice-card:hover {
+.card:hover, .practice-item:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 0 var(--primary), var(--shadow-lg);
     border-color: var(--primary);
@@ -77,4 +77,27 @@
     .hero-card p {
         max-width: 100%;
     }
+}
+/* Fix Past Results Card Layout */
+.past-results-card {
+    border-top: 4px solid var(--secondary);
+    max-height: 600px;
+}
+
+.results-table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.practice-stats-card {
+    border-top: 4px solid var(--accent);
+}
+
+.dashboard-content {
+    padding: var(--spacing-xl) 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    align-items: stretch;
 }
