@@ -104,7 +104,7 @@ describe('leaderboardController.getMyRank', () => {
             sort: jest.fn().mockResolvedValue(mockBestResult)
         });
 
-        TestResult.countDocuments = jest.fn().mockResolvedValue(5); // 5 users scored higher
+        TestResult.aggregate = jest.fn().mockResolvedValue([{ betterUsers: 5 }]); // 5 users scored higher
 
         TestResult.distinct = jest.fn().mockResolvedValue(
             ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10'] // 10 total users
