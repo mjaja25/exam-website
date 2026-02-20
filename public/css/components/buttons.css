@@ -1,0 +1,109 @@
+/* Base Button */
+.btn, .nav-button, button[type="submit"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 800;
+    font-family: var(--font-ui);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius-lg);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s var(--bounce);
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+/* Primary Button (Green) */
+.btn-primary, .nav-button.primary, button[type="submit"] {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 0 var(--primary-shade);
+    border-color: var(--primary-shade);
+}
+
+.btn-primary:hover, .nav-button.primary:hover, button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--primary-shade), var(--shadow-primary);
+    background: #5ee003;
+}
+
+.btn-primary:active, .nav-button.primary:active, button[type="submit"]:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--primary-shade);
+}
+
+/* Secondary Button (Blue) */
+.btn-secondary, .nav-button.secondary {
+    background: var(--secondary);
+    color: white;
+    box-shadow: 0 4px 0 var(--secondary-shade);
+    border-color: var(--secondary-shade);
+}
+
+.btn-secondary:hover, .nav-button.secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--secondary-shade), 0 8px 20px rgba(28, 176, 246, 0.35);
+}
+
+.btn-secondary:active, .nav-button.secondary:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--secondary-shade);
+}
+
+/* Danger Button */
+.btn-danger {
+    background: var(--bg-card);
+    color: var(--danger);
+    border: 2px solid var(--danger);
+    box-shadow: 0 4px 0 var(--danger);
+}
+
+.btn-danger:hover {
+    background: var(--danger);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--danger-shade);
+}
+
+.btn-danger:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--danger-shade);
+}
+
+/* Outline/Ghost Buttons */
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    box-shadow: 0 4px 0 var(--border-color);
+}
+
+.btn-outline:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--border-color);
+}
+
+/* Disabled State */
+.btn:disabled, button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: 0 2px 0 var(--border-color) !important;
+    background: var(--neutral);
+    border-color: var(--neutral-shade);
+    color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+    .btn, .nav-button {
+        width: 100%;
+        text-align: center;
+        padding: 0.875rem 1rem;
+    }
+}
