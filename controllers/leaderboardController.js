@@ -71,6 +71,7 @@ exports.getAllLeaderboards = async (req, res) => {
                     }
                 },
                 { $replaceRoot: { newRoot: '$bestResult' } },
+                { $sort: { [sortField]: sortOrder } },
                 { $limit: limit }
             ]);
         };
@@ -152,13 +153,27 @@ exports.getMyRank = async (req, res) => {
         const patterns = ['standard', 'new_pattern'];
         const response = {};
 
+        // Pass timeframe from frontend or default to 'all'
+        const timeframe = req.query.timeframe || 'all';
+        let dateFilter = {};
+        if (timeframe === 'week') {
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
+            dateFilter = { submittedAt: { $gte: lastWeek } };
+        } else if (timeframe === 'month') {
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            dateFilter = { submittedAt: { $gte: lastMonth } };
+        }
+
         for (const pattern of patterns) {
-            // Find user's best score for this pattern
+            // Find user's best score for this pattern within timeframe
             const userBest = await TestResult.findOne({ 
                 user: userId, 
                 testPattern: pattern, 
                 attemptMode: 'exam', 
-                status: 'completed' 
+                status: 'completed',
+                ...dateFilter
             }).sort({ totalScore: -1 });
 
             if (!userBest) {
@@ -166,19 +181,22 @@ exports.getMyRank = async (req, res) => {
                 continue;
             }
 
-            // Count users with higher scores
-            const betterCount = await TestResult.countDocuments({
-                testPattern: pattern,
-                attemptMode: 'exam',
-                status: 'completed',
-                totalScore: { $gt: userBest.totalScore }
-            });
+            // Count users with higher best scores using aggregation
+            const betterCountAggr = await TestResult.aggregate([
+                { $match: { testPattern: pattern, attemptMode: 'exam', status: 'completed', ...dateFilter } },
+                { $group: { _id: '$user', maxScore: { $max: '$totalScore' } } },
+                { $match: { maxScore: { $gt: userBest.totalScore } } },
+                { $count: 'betterUsers' }
+            ]);
+            
+            const betterCount = betterCountAggr.length > 0 ? betterCountAggr[0].betterUsers : 0;
 
-            // Count total unique users for this pattern
+            // Count total unique users for this pattern within timeframe
             const totalUsersList = await TestResult.distinct('user', {
                 testPattern: pattern,
                 attemptMode: 'exam',
-                status: 'completed'
+                status: 'completed',
+                ...dateFilter
             });
             const totalUsers = totalUsersList.length;
 
@@ -186,18 +204,22 @@ exports.getMyRank = async (req, res) => {
             const rank = betterCount + 1; // 1-based rank
             
             // FIXED: Percentile should show what % you're better than
-            // If you're rank 1 out of 100, you're better than 99% (Top 1%)
-            // Formula: (rank / totalUsers) * 100 = percentile you're in
+            // Formula: Math.round(((totalUsers - rank) / totalUsers) * 100) = percentile you're in
+            // E.g. rank 1 of 100 -> (99/100)*100 = 99th percentile (Top 1%)
+            // A higher percentile number means you are better than more people
+            // But UI displays "Top X%", so we want 100 - percentile.
+            // If formula is (rank / totalUsers) * 100, then 1/100 * 100 = 1, so "Top 1%"
             const percentile = totalUsers > 1 
                 ? Math.round((rank / totalUsers) * 100) 
                 : 1; // If only 1 user, they're in top 1%
 
-            // Trend: Compare latest vs previous
+            // Trend: Compare latest vs previous (ONLY within timeframe if requested)
             const latestTwo = await TestResult.find({
                 user: userId,
                 testPattern: pattern,
                 attemptMode: 'exam',
-                status: 'completed'
+                status: 'completed',
+                ...dateFilter
             }).sort({ submittedAt: -1 }).limit(2);
 
             let trend = null;
@@ -232,18 +254,25 @@ exports.compareResult = async (req, res) => {
     try {
         const targetResultId = req.params.resultId;
         const userId = req.userId;
+        const category = req.query.category || 'overall'; // Pass category to compare correct metric
 
         // Fetch the target result (Them)
         const them = await TestResult.findById(targetResultId).populate('user', 'username avatar');
         if (!them) return res.status(404).json({ message: "Result not found" });
 
-        // Fetch current user's BEST result for the same pattern (You)
+        let sortField = 'totalScore';
+        if (category.includes('typing')) sortField = them.testPattern === 'standard' ? 'wpm' : 'typingScore';
+        if (category.includes('letter')) sortField = 'letterScore';
+        if (category.includes('excel')) sortField = 'excelScore';
+        if (category.includes('mcq')) sortField = 'mcqScore';
+
+        // Fetch current user's BEST result for the same pattern (You) based on category
         const you = await TestResult.findOne({
             user: userId,
             testPattern: them.testPattern,
             attemptMode: 'exam',
             status: 'completed'
-        }).sort({ totalScore: -1 });
+        }).sort({ [sortField]: -1 });
 
         if (!you) {
             return res.json({ 

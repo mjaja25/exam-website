@@ -59,7 +59,7 @@ async function loadData() {
 
 async function loadMyRank() {
     try {
-        const res = await fetch('/api/leaderboard/my-rank', {
+        const res = await fetch(`/api/leaderboard/my-rank?timeframe=${currentTimeframe}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -318,7 +318,7 @@ window.openCompare = async function(resultId) {
     if (content) content.innerHTML = '<div class="spinner" style="margin: 2rem auto;"></div>';
 
     try {
-        const res = await fetch(`/api/leaderboard/compare/${resultId}`, {
+        const res = await fetch(`/api/leaderboard/compare/${resultId}?category=${currentCategory}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
