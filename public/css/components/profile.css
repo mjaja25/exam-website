@@ -1,0 +1,128 @@
+/* User Profile Widget */
+.user-profile-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-full);
+    transition: background 0.2s;
+}
+
+.user-profile-widget:hover {
+    background: var(--bg-input);
+}
+
+.nav-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.nav-initials {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-shade);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* Profile Modal Specific */
+.profile-modal-content {
+    max-width: 480px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.profile-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-bottom: 2px solid var(--border-color);
+    background: var(--bg-input);
+}
+
+.profile-modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.profile-modal-body {
+    padding: var(--spacing-xl);
+}
+
+.profile-edit-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.avatar-selection {
+    display: flex;
+    gap: var(--spacing-xl);
+    align-items: center;
+}
+
+.avatar-preview-img,
+.avatar-preview-initials {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-preview-initials {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-shade);
+}
+
+.default-avatars {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.def-avatar-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    background: var(--bg-card);
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.def-avatar-btn:hover, .def-avatar-btn.selected {
+    transform: scale(1.15);
+    border-color: var(--primary);
+}
+
+.def-avatar-btn.selected {
+    background: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.2);
+}
+
+.profile-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}

@@ -17,6 +17,7 @@
 @import url('./components/cards.css');
 @import url('./components/forms.css');
 @import url('./components/modals.css');
+@import url('./components/profile.css');
 
 /* 5. Pages */
 @import url('./pages/auth.css');
