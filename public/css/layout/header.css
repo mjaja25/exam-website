@@ -31,7 +31,7 @@
 .dashboard-nav {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 12px;
 }
 
 /* Auth Header */

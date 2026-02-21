@@ -34,8 +34,20 @@
 /* Primary Button (Green) */
 .btn-primary, .nav-button.primary {
     background: var(--primary);
-    border-bottom-color: var(--primary-shade);
+    border-bottom: 4px solid var(--primary-shade);
     color: white;
+    box-shadow: 0 8px 20px -6px rgba(88, 204, 2, 0.5);
+}
+
+.btn-primary:hover, .nav-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -6px rgba(88, 204, 2, 0.6);
+}
+
+.btn-primary:active, .nav-button.primary:active {
+    transform: translateY(4px);
+    border-bottom-width: 0;
+    box-shadow: 0 2px 8px -2px rgba(88, 204, 2, 0.5);
 }
 
 [data-theme="dark"] .btn-primary, [data-theme="dark"] .nav-button.primary {
@@ -57,7 +69,7 @@
 }
 
 /* Outline/Ghost Buttons */
-.btn-outline, .btn-ghost {
+.btn-outline {
     background: transparent;
     border-bottom: none;
     border: 2px solid var(--border-color);
@@ -66,9 +78,23 @@
     padding: 10px 20px;
 }
 
-.btn-outline:hover, .btn-ghost:hover {
+.btn-outline:hover {
     background: var(--bg-input);
     border-color: var(--text-muted);
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: var(--radius-lg);
+    padding: 10px 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.btn-ghost:hover {
+    background: var(--bg-input);
 }
 
 /* Disabled State */

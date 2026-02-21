@@ -1,9 +1,9 @@
 .card, .auth-card, .practice-item, .gamification-card {
     background: var(--bg-card);
-    border: 2px solid var(--border-color);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: var(--radius-xl);
     padding: var(--spacing-xl);
-    box-shadow: 0 4px 0 var(--border-color);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
     transition: all 0.3s var(--bounce);
     position: relative;
     overflow: hidden;
@@ -11,7 +11,7 @@
 
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 0 var(--border-color);
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.08);
 }
 
 .practice-item:hover {
