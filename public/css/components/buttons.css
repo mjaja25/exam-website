@@ -3,90 +3,72 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.75rem 1.5rem;
+    padding: 12px 24px;
     font-size: 1rem;
-    font-weight: 800;
     font-family: var(--font-ui);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-radius: var(--radius-lg);
-    border: 2px solid transparent;
+    border: none;
+    border-bottom: 4px solid var(--neutral-shade);
+    background: var(--neutral);
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s var(--bounce);
+    transition: all 0.15s;
+    position: relative;
     text-decoration: none;
     line-height: 1.2;
+}
+
+.btn:active, .nav-button:active, button[type="submit"]:active {
+    transform: translateY(2px);
+    border-bottom-width: 0;
+    margin-bottom: 4px;
+}
+
+.btn:hover, .nav-button:hover, button[type="submit"]:hover {
+    filter: brightness(1.05);
 }
 
 /* Primary Button (Green) */
 .btn-primary, .nav-button.primary, button[type="submit"] {
     background: var(--primary);
+    border-bottom-color: var(--primary-shade);
     color: white;
-    box-shadow: 0 4px 0 var(--primary-shade);
-    border-color: var(--primary-shade);
 }
 
-.btn-primary:hover, .nav-button.primary:hover, button[type="submit"]:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--primary-shade), var(--shadow-primary);
-    background: #5ee003;
-}
-
-.btn-primary:active, .nav-button.primary:active, button[type="submit"]:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 var(--primary-shade);
+[data-theme="dark"] .btn-primary, [data-theme="dark"] .nav-button.primary, [data-theme="dark"] button[type="submit"] {
+    color: var(--text-inverse);
 }
 
 /* Secondary Button (Blue) */
 .btn-secondary, .nav-button.secondary {
     background: var(--secondary);
+    border-bottom-color: var(--secondary-shade);
     color: white;
-    box-shadow: 0 4px 0 var(--secondary-shade);
-    border-color: var(--secondary-shade);
-}
-
-.btn-secondary:hover, .nav-button.secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--secondary-shade), 0 8px 20px rgba(28, 176, 246, 0.35);
-}
-
-.btn-secondary:active, .nav-button.secondary:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 var(--secondary-shade);
 }
 
 /* Danger Button */
 .btn-danger {
-    background: var(--bg-card);
-    color: var(--danger);
-    border: 2px solid var(--danger);
-    box-shadow: 0 4px 0 var(--danger);
-}
-
-.btn-danger:hover {
     background: var(--danger);
+    border-bottom-color: var(--danger-shade);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--danger-shade);
-}
-
-.btn-danger:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 var(--danger-shade);
 }
 
 /* Outline/Ghost Buttons */
-.btn-outline {
+.btn-outline, .btn-ghost {
     background: transparent;
+    border-bottom: none;
     border: 2px solid var(--border-color);
     color: var(--text-secondary);
-    box-shadow: 0 4px 0 var(--border-color);
+    box-shadow: none;
+    padding: 10px 20px;
 }
 
-.btn-outline:hover {
+.btn-outline:hover, .btn-ghost:hover {
     background: var(--bg-input);
-    color: var(--text-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--border-color);
+    border-color: var(--text-muted);
 }
 
 /* Disabled State */
