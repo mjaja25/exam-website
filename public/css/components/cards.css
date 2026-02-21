@@ -83,26 +83,31 @@
         max-width: 100%;
     }
 }
-/* Fix Past Results Card Layout */
+/* Past Results Card */
 .past-results-card {
-    border-top: 4px solid var(--secondary);
+    border-left: 4px solid var(--secondary);
     max-height: 600px;
 }
 
-.results-table-wrapper {
-    flex: 1;
-    overflow-y: auto;
-    max-height: 400px;
+.past-results-card:hover {
+    border-left-color: var(--secondary-shade);
 }
 
+/* Practice Stats Card */
 .practice-stats-card {
-    border-top: 4px solid var(--accent);
+    border-left: 4px solid var(--accent);
 }
 
-.dashboard-content {
-    padding: var(--spacing-xl) 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-lg);
-    align-items: stretch;
+.practice-stats-card:hover {
+    border-left-color: var(--accent-shade);
+}
+
+/* Practice Zone Card */
+.practice-zone-card {
+    grid-column: 1 / -1;
+    border-left: 4px solid var(--danger);
+}
+
+.practice-zone-card:hover {
+    border-left-color: var(--danger-shade);
 }
