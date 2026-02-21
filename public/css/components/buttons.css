@@ -1,5 +1,5 @@
 /* Base Button */
-.btn, .nav-button, button[type="submit"] {
+.btn, .nav-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -21,24 +21,24 @@
     line-height: 1.2;
 }
 
-.btn:active, .nav-button:active, button[type="submit"]:active {
+.btn:active, .nav-button:active {
     transform: translateY(2px);
     border-bottom-width: 0;
     margin-bottom: 4px;
 }
 
-.btn:hover, .nav-button:hover, button[type="submit"]:hover {
+.btn:hover, .nav-button:hover {
     filter: brightness(1.05);
 }
 
 /* Primary Button (Green) */
-.btn-primary, .nav-button.primary, button[type="submit"] {
+.btn-primary, .nav-button.primary {
     background: var(--primary);
     border-bottom-color: var(--primary-shade);
     color: white;
 }
 
-[data-theme="dark"] .btn-primary, [data-theme="dark"] .nav-button.primary, [data-theme="dark"] button[type="submit"] {
+[data-theme="dark"] .btn-primary, [data-theme="dark"] .nav-button.primary {
     color: var(--text-inverse);
 }
 
@@ -113,4 +113,24 @@
     background: var(--secondary-shade);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(28, 176, 246, 0.4);
+}
+
+/* Submit Button 3D Effect */
+button[type="submit"] {
+    background: var(--gradient-primary);
+    border: none;
+    border-bottom: 4px solid var(--primary-shade);
+    border-radius: var(--radius-md);
+    color: white;
+    padding: 0.875rem 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button[type="submit"]:active {
+    transform: translateY(4px);
+    border-bottom-width: 0;
+    margin-top: 4px;
 }
