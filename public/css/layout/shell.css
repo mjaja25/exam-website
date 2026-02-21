@@ -1,0 +1,45 @@
+/* layout/shell.css */
+
+/* Base reset for the shell */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    /* Sticky Footer Flexbox setup */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    
+    /* Apply base theme variables */
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.app-header {
+    flex-shrink: 0;
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-main {
+    flex-grow: 1; /* This pushes the footer to the bottom */
+    padding: var(--spacing-md);
+    
+    /* Optional constraints for ultra-wide monitors */
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.app-footer {
+    flex-shrink: 0;
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
