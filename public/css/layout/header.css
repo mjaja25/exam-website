@@ -1,31 +1,63 @@
 .page-wrap {
     max-width: var(--page-width);
     margin: 0 auto;
-    padding: 0 var(--spacing-lg);
+    padding: 0 var(--spacing-xl);
 }
 
 .dashboard-header {
     background: var(--bg-card);
-    height: var(--header-height);
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: none;
     position: sticky;
     top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow-sm);
+    z-index: 1000;
+    padding: var(--spacing-md) 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: box-shadow 0.3s ease;
+}
+
+.dashboard-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+}
+
+.dashboard-header.scrolled {
+    box-shadow: var(--shadow-md);
 }
 
 .dashboard-header-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 100%;
+    max-width: var(--page-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-xl);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.logo-area .logo {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .logo-area h1 {
+    font-weight: 700;
+    color: var(--text-primary);
     margin: 0;
     font-size: 1.5rem;
-    color: var(--primary);
-    letter-spacing: -0.5px;
 }
 
 .dashboard-nav {
@@ -55,22 +87,6 @@
     .dashboard-header {
         height: auto;
         padding: var(--spacing-sm) 0;
+        top: 40px;
     }
-}
-.logo-area {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.logo-area .logo {
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: var(--radius-md);
-    object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.logo-area h1 span {
-    color: var(--text-primary);
 }

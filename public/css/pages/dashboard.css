@@ -2,6 +2,20 @@
     background-color: var(--bg-body);
 }
 
+.dashboard-content {
+    padding: var(--spacing-xl) 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    align-items: stretch;
+}
+
+.dashboard-content .card {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Practice Grid */
 .practice-grid {
     display: grid;
@@ -224,6 +238,7 @@
 @media (max-width: 1024px) {
     .dashboard-content {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
     .dashboard-content .card {
         min-height: auto;
